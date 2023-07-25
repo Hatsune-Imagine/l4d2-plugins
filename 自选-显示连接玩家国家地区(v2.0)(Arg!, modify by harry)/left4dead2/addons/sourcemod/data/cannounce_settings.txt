@@ -1,0 +1,30 @@
+"CountryShow"
+{
+	// {PLAYERNAME}: player name
+	// {STEAMID}: player STEAMID
+	// {PLAYERCOUNTRY}: player country name
+	// {PLAYERCOUNTRYSHORT}: player country short name
+	// {PLAYERCOUNTRYSHORT3}: player country another short name
+	// {PLAYERCITY}: player city name
+	// {PLAYERREGION}: player region name
+	// {PLAYERIP}: player IP
+	// {PLAYERTYPE}: player is Adm or not
+	
+	// {default}: white
+	// {green}: orange
+	// {olive}: green
+	// {lightgreen}: lightgreen
+	// {red}: red
+	// {blue}: blue
+	// Warning: {lightgreen}、{red}、{blue}, 2 of 3 colors can not be used at the same sentence
+	"messages"  //display message to everyone (Non-admin)
+	{
+		"playerjoin"		"{blue}Player {green}{PLAYERNAME} {blue}connected{default}. ({green}{PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY}{default})"
+		"playerdisc"		"{red}Player {green}{PLAYERNAME} {red}disconnected{default}. ({green}{DISC_REASON}{default})"
+	}
+	"messages_admin"  //only display message to adm
+	{
+		"playerjoin"		"{blue}Player {green}{PLAYERNAME} {blue}connected{default}. ({green}{PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY}{default}) IP: {green}{PLAYERIP}{default} {olive}<ID:{STEAMID}>"
+		"playerdisc"		"{red}Player {green}{PLAYERNAME} {red}disconnected{default}. ({green}{DISC_REASON}{default}) IP: {green}{PLAYERIP}{default} {olive}<ID:{STEAMID}>"
+	}
+}
