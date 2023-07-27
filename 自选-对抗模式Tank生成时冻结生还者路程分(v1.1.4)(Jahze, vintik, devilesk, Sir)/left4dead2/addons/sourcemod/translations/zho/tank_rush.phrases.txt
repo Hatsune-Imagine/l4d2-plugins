@@ -1,0 +1,15 @@
+"Phrases"
+{
+	"freeze"
+	{
+		"zho"		"{red}Tank {default}已生成. {olive}正在凍結 {default}路程分以防止跑分!"
+	}
+	"unfreeze"
+	{
+		"zho"		"{red}Tank {default}已死亡. {olive}正在解凍 {default}路程分限制!"
+	}
+	"saferoom"
+	{
+		"zho"		"{red}倖存者 {default}已到達安全屋. {olive}正在解凍 {default}路程分限制!"
+	}
+}

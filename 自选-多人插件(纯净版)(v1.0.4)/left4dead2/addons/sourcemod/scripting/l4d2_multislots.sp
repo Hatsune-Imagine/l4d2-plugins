@@ -13,7 +13,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.3"
+#define PLUGIN_VERSION	"1.0.4"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -372,8 +372,8 @@ void IsGetOtherCvars()
 	if (g_iMaxs > 8 && !IsDedicatedServer())
 		g_iMaxs = 8;
 	
-	SetConVarInt(FindConVar("sv_maxplayers"), !bMaxplayers ? g_iMaxs : g_iMaxplayers, false, false);
-	SetConVarInt(FindConVar("sv_visiblemaxplayers"), !bMaxplayers ? g_iMaxs : g_iMaxplayers, false, false);
+	SetConVarInt(FindConVar("sv_maxplayers"), bMaxplayers ? g_iMaxplayers : g_iMaxs, false, false);
+	SetConVarInt(FindConVar("sv_visiblemaxplayers"), bMaxplayers ? g_iMaxplayers : g_iMaxs, false, false);
 }
 
 void Iskilltimer()
@@ -911,11 +911,15 @@ public Action Timer_SpecCheck(Handle timer)
 			{
 				char PlayerName[32];
 				GetClientName(i, PlayerName, sizeof(PlayerName));
-				if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
+				if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
 					if(!MenuFunc_SpecNext[i])
-						PrintToChat(i, "\x04[提示]\x03%s\x04,\x05输入\x03!jg\x05或\x03!join\x05或\x03按鼠标右键\x05加入幸存者.", PlayerName);
+						PrintToChat(i, "\x04[提示]\x05点击\x03鼠标右键\x05, 或输入\x03!jg\x05或\x03!join\x05加入幸存者.");
 					else
-						PrintToChat(i, "\x04[提示]\x03%s\x04,\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.", PlayerName);
+						PrintToChat(i, "\x04[提示]\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.");
+				}
+				else if(l4d2_GetPlayerCount() <= 8) {
+					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03M\x05选择阵营加入.", PlayerName);
+				}
 			}
 		
 	return Plugin_Continue;
@@ -1296,7 +1300,7 @@ public int SLMenuHandler(Menu menu, MenuAction action, int client, int itemNum)
 			GetMenuItem(menu, itemNum, sInfos, sizeof(sInfos));
 			int g_iUserids = StringToInt(sInfos);
 			g_iMaxplayers = g_iUserids;
-			bMaxplayers = g_iUserids !=  g_iMaxs ? true : false;
+			bMaxplayers = !(g_iUserids == g_iMaxs);
 			SetConVarInt(FindConVar("sv_maxplayers"), g_iUserids, false, false);
 			SetConVarInt(FindConVar("sv_visiblemaxplayers"), g_iUserids, false, false);
 			PrintToChatAll("\x04[提示]\x05更改服务器的最大人数为\x04:\x03%i\x05人.", g_iUserids);

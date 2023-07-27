@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"Tag"
+	{
+		"en"		"{red}[NoTankRush]"
+	}
+	"freeze"
+	{
+		"en"		"{red}Tank {default}has spawned. {olive}Freezing {default}distance points!"
+	}
+	"unfreeze"
+	{
+		"en"		"{red}Tank {default}is dead. {olive}Unfreezing {default}distance points!"
+	}
+	"saferoom"
+	{
+		"en"		"{red}Survivors {default}made it to the saferoom. {olive}Unfreezing {default}distance points!"
+	}
+}
