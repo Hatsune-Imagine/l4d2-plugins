@@ -173,8 +173,8 @@ void SetClientHealth(int client, int iHealth)
 	if (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1)
 		return;
 	
-	SetEntProp(client, Prop_Data, "m_iHealth", iHealth);
 	SetEntProp(client, Prop_Data, "m_iMaxHealth", iHealth);
+	SetEntProp(client, Prop_Data, "m_iHealth", iHealth);
 }
 
 void IsTankPrint(DataPack hPack)
