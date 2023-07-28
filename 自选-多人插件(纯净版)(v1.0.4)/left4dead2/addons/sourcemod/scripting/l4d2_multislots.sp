@@ -1,4 +1,3 @@
-/*有很多代码嫖至superversus.sp*/
 #pragma semicolon 1
 //強制1.7以後的新語法
 #pragma newdecls required
@@ -918,7 +917,7 @@ public Action Timer_SpecCheck(Handle timer)
 						PrintToChat(i, "\x04[提示]\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.");
 				}
 				else if(l4d2_GetPlayerCount() <= 8) {
-					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03M\x05选择阵营加入.", PlayerName);
+					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
 				}
 			}
 		
