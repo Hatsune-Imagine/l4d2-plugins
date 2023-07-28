@@ -50,6 +50,15 @@ if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
 
 当 “对抗模式” 和 “清道夫模式” 比赛双方有空位时，发送提示给旁观者提示其可按M选择阵营并加入游戏。
 
+```c
+if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
+    ......
+}
+else if(l4d2_GetPlayerCount() <= 8) {
+    PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
+}
+```
+
 
 
 
@@ -63,8 +72,8 @@ if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
 ```c
 public Action JoinTeam_Type(int client, int args)
 {
-	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
-		return Plugin_Continue;
+    if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+        return Plugin_Continue;
     
     ......
 }
@@ -77,8 +86,8 @@ public Action JoinTeam_Type(int client, int args)
 ```c
 void vSpawnFakeSurvivorClient()
 {
-	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
-		return;
+    if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+        return;
     
     ......
 }
@@ -103,17 +112,17 @@ void vSpawnFakeSurvivorClient()
 ```c
 void GiveWeapon(int client) {
     switch(g_iGive2)
-	{
-		case 1:
-		{
+    {
+        case 1:
+        {
             // 当配置文件中l4d2_multislots_Survivor_spawn2设为“1”时，直接给予小手枪
-			BypassAndExecuteCommand(client, "give", "pistol");//小手枪
-		}
-		case 2:
-		{
-			BypassAndExecuteCommand(client, "give", "fireaxe");//斧头.
-		}
-	}
+            BypassAndExecuteCommand(client, "give", "pistol");//小手枪
+        }
+        case 2:
+        {
+            BypassAndExecuteCommand(client, "give", "fireaxe");//斧头.
+        }
+    }
     
     .......
 }
@@ -135,17 +144,17 @@ void GiveWeapon(int client) {
 //玩家离开游戏时踢出多余电脑.
 void l4d2_kick_SurvivorBot()
 {
-	//幸存者数量必须大于设置的开局时的幸存者数量.
-	if (TotalSurvivors() > g_iLimit)
-		for (int i =1; i <= MaxClients; i++)
-			if (IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
-				if (!HasIdlePlayer(i))
-				{
+    //幸存者数量必须大于设置的开局时的幸存者数量.
+    if (TotalSurvivors() > g_iLimit)
+        for (int i =1; i <= MaxClients; i++)
+            if (IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
+                if (!HasIdlePlayer(i))
+                {
                     // 注释掉对StripWeapons()方法的调用
-					// StripWeapons(i);
-					KickClient(i, "[提示] 自动踢出多余电脑");
-					break;
-				}
+                    // StripWeapons(i);
+                    KickClient(i, "[提示] 自动踢出多余电脑");
+                    break;
+                }
 }
 ```
 
