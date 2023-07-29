@@ -2,7 +2,7 @@
 {
 	"Tag"
 	{
-		"en"		"{red}[NoTankRush]"
+		"en"		"{default}[{default}NoTankRush{default}]"
 	}
 	"freeze"
 	{

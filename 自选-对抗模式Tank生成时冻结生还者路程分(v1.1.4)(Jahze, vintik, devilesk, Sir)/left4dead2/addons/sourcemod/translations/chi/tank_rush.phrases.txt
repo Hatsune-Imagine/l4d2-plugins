@@ -2,14 +2,14 @@
 {
 	"freeze"
 	{
-		"chi"		"{red}Tank {default}已生成. {olive}正在冻结 {default}路程分以防止跑分!"
+		"chi"		"{red}Tank{default}已生成. {olive}正在冻结{default}路程分以防止跑分!"
 	}
 	"unfreeze"
 	{
-		"chi"		"{red}Tank {default}已死亡. {olive}正在解冻 {default}路程分限制!"
+		"chi"		"{red}Tank{default}已死亡. {olive}正在解冻{default}路程分限制!"
 	}
 	"saferoom"
 	{
-		"chi"		"{red}生还者 {default}已到达安全屋. {olive}正在解冻 {default}路程分限制!"
+		"chi"		"{red}生还者{default}已到达安全屋. {olive}正在解冻{default}路程分限制!"
 	}
 }
