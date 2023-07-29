@@ -492,7 +492,7 @@ public Action JoinTeam_Type(int client, int args)
 
 		switch(iTeam)
 		{
-			case 1:
+			case TEAM_SPECTATOR:
 			{
 				if (iGetBotOfIdle(client))
 					PrintHintText(client, "请按下鼠标左键加入幸存者.");
@@ -508,7 +508,7 @@ public Action JoinTeam_Type(int client, int args)
 					}
 				}
 			}
-			case 2:
+			case TEAM_SURVIVOR:
 			{
 				if(DispatchKeyValue(client, "classname", "player") == true)
 					PrintHintText(client, "[提示] 你已经加入了幸存者.");
@@ -540,7 +540,7 @@ public Action CheckClientState(Handle Timer, DataPack hPack)
 				TakeOverBot(client, false);//更改为 true 则自动加入幸存者,反之是闲置状态.
 			ClientSpawnMaxTimer[client] = 0;
 		}
-		if(!client || ClientSpawnMaxTimer[client] >= 60 || !IsClientConnected(client) || !ClientSpawnMaxTimer[client] || (GetClientTeam(client) == 1 && iGetBotOfIdle(client)))
+		if(!client || ClientSpawnMaxTimer[client] >= 60 || !IsClientConnected(client) || !ClientSpawnMaxTimer[client] || (GetClientTeam(client) == TEAM_SPECTATOR && iGetBotOfIdle(client)))
 		{
 			ClientSpawnMaxTimer[client] = 0;
 			ClientTimer_Index[client] = null;
@@ -574,7 +574,7 @@ int GetTakeOverTarget()
 	int[] iDeathBots = new int[MaxClients];
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == 2 && !iHasIdlePlayer(i))
+		if(IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR && !iHasIdlePlayer(i))
 		{
 			if(IsPlayerAlive(i))
 				iAliveBots[iAlive++] = i;
@@ -589,7 +589,7 @@ void TakeOverBot(int client, bool completely)
 {
 	if (!IsClientInGame(client))
 		return;
-	if (GetClientTeam(client) == 2)
+	if (GetClientTeam(client) == TEAM_SURVIVOR)
 		return;
 	if (IsFakeClient(client))
 		return;
@@ -655,7 +655,7 @@ public Action iPlayerJoinsSurvivor(Handle timer, any client)
 		
 		if (iDelayedValidationStatus[client] <= 5)
 		{
-			if (GetClientTeam(client) == 1)
+			if (GetClientTeam(client) == TEAM_SPECTATOR)
 			{
 				if (!iGetBotOfIdle(client))
 				{
@@ -834,7 +834,7 @@ int iGetAnyValidSurvivorBot()
 	{
 		if(bIsValidSurvivorBot(i))
 		{
-			if((iSurvivor = GetClientOfUserId(g_iBotPlayer[i])) && IsClientInGame(iSurvivor) && !IsFakeClient(iSurvivor) && GetClientTeam(iSurvivor) != 2)
+			if((iSurvivor = GetClientOfUserId(g_iBotPlayer[i])) && IsClientInGame(iSurvivor) && !IsFakeClient(iSurvivor) && GetClientTeam(iSurvivor) != TEAM_SURVIVOR)
 				iHasPlayerBots[iHasPlayer++] = i;
 			else
 				iNotPlayerBots[iNotPlayer++] = i;
@@ -906,7 +906,7 @@ public Action Timer_SpecCheck(Handle timer)
 	
 	for (int i = 1; i <= MaxClients; i++)
 		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i))
-			if(GetClientTeam(i) == 1 && !iGetBotOfIdle(i))
+			if(GetClientTeam(i) == TEAM_SPECTATOR && !iGetBotOfIdle(i))
 			{
 				char PlayerName[32];
 				GetClientName(i, PlayerName, sizeof(PlayerName));
@@ -916,7 +916,7 @@ public Action Timer_SpecCheck(Handle timer)
 					else
 						PrintToChat(i, "\x04[提示]\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.");
 				}
-				else if(l4d2_GetPlayerCount() <= 8) {
+				else if(iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8) {
 					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
 				}
 			}
@@ -1196,7 +1196,7 @@ public Action GoAFK(int client, int args)
 			PrintToChat(client, "\x04[提示]\x05加入旁观者指令已禁用,请在CFG中设为1启用.");
 		case 1,2:
 		{
-			if(GetClientTeam(client) == 1)
+			if(GetClientTeam(client) == TEAM_SPECTATOR)
 				PrintToChat(client, "\x04[提示]\x05你已经是观察者.");
 			else if(GetClientTeam(client) == TEAM_SURVIVOR)
 			{
@@ -1331,7 +1331,7 @@ void IsFrameGoAwayFromKeyboard(int client)
 	{
 		if(IsClientInGame(client) && !IsFakeClient(client))
 		{
-			if (IsPlayerAlive(client) && GetClientTeam(client) == 2)
+			if (IsPlayerAlive(client) && GetClientTeam(client) == TEAM_SURVIVOR)
 			{
 				if (IsPlayerFallen(client))
 					PrintToChat(client,"\x04[提示]\x05倒地时禁止使用休息.");
@@ -1345,7 +1345,7 @@ void IsFrameGoAwayFromKeyboard(int client)
 						PrintToChat(client,"\x04[提示]\x05人数不足时禁止使用休息.");
 				}
 			}
-			else if(GetClientTeam(client) == 1)
+			else if(GetClientTeam(client) == TEAM_SPECTATOR)
 				PrintToChat(client,"\x04[提示]\x05你当前已加入了旁观者.");
 			else if(!IsPlayerAlive(client))
 				PrintToChat(client,"\x04[提示]\x05死亡状态禁止使用休息.");
@@ -1410,7 +1410,7 @@ int l4d2_gamemode()
 //玩家在旁观者按鼠标右键自动加入幸存者.
 public Action CommandListener_SpecPrev(int client, char[] command, int argc)
 {
-	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) != 1 || iGetBotOfIdle(client))
+	if(client == 0 || !IsClientInGame(client) || GetClientTeam(client) != TEAM_SPECTATOR || iGetBotOfIdle(client))
 		return Plugin_Continue;
 
 	if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
@@ -1440,7 +1440,7 @@ public int MenuHandler_JoinTeam(Menu menu, MenuAction action, int client, int it
 			GetMenuItem(menu, itemNum, sInfos, sizeof(sInfos));
 			int iParam = StringToInt(sInfos);
 
-			if (iParam == 0 && IsValidClient(client) && !IsFakeClient(client) && GetClientTeam(client) == 1 && !iGetBotOfIdle(client))
+			if (iParam == 0 && IsValidClient(client) && !IsFakeClient(client) && GetClientTeam(client) == TEAM_SPECTATOR && !iGetBotOfIdle(client))
 				JoinTeam_Type(client, false);
 		}
 		case MenuAction_End:
