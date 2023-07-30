@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"Title"
+	{
+		"chi"	"{blue}[Tank投石动作]{default}"
+	}
+	"Reload"
+	{
+		"chi"	"{olive}R键{default} = {blue}双手高抛{default}"
+	}
+	"Use"
+	{
+		"chi"	"{olive}E键{default} = {blue}低抛{default}"
+	}
+	"M2"
+	{
+		"chi"	"{olive}鼠标右键{default} = {blue}单手高抛{default}"
+	}
+}

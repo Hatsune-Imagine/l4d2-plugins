@@ -38,8 +38,8 @@ int
 public Plugin myinfo =
 {
 	name = "L4D2 Weapon Rules",
-	author = "ProdigySim, modified by HatsuneImagine",
-	version = "1.0.3",
+	author = "ProdigySim",
+	version = "1.0.2",
 	description = "^",
 	url = "https://github.com/SirPlease/L4D2-Competitive-Rework"
 };
@@ -134,22 +134,23 @@ void WeaponSearchLoop()
 {
 	char GameMode[64];
 	FindConVar("mp_gamemode").GetString(GameMode, sizeof(GameMode));
-	if (StrContains("versus", GameMode) != -1) {
-		int entcnt = GetEntityCount();
-		for (int ent = 1; ent <= entcnt; ent++) {
-			int source = IdentifyWeapon(ent);
-			if (source > WEPID_NONE && g_GlobalWeaponRules[source] != -1) {
-				if (g_GlobalWeaponRules[source] == WEPID_NONE) {
-					AcceptEntityInput(ent, "kill");
-					#if DEBUG
-					PrintToServer("Found Weapon %d, killing", source);
-					#endif
-				} else {
-					#if DEBUG
-					PrintToServer("Found Weapon %d, converting to %d", source, g_GlobalWeaponRules[source]);
-					#endif
-					ConvertWeaponSpawn(ent, g_GlobalWeaponRules[source]);
-				}
+	if (StrContains("versus", GameMode) == -1)
+		return;
+	
+	int entcnt = GetEntityCount();
+	for (int ent = 1; ent <= entcnt; ent++) {
+		int source = IdentifyWeapon(ent);
+		if (source > WEPID_NONE && g_GlobalWeaponRules[source] != -1) {
+			if (g_GlobalWeaponRules[source] == WEPID_NONE) {
+				AcceptEntityInput(ent, "kill");
+				#if DEBUG
+				PrintToServer("Found Weapon %d, killing", source);
+				#endif
+			} else {
+				#if DEBUG
+				PrintToServer("Found Weapon %d, converting to %d", source, g_GlobalWeaponRules[source]);
+				#endif
+				ConvertWeaponSpawn(ent, g_GlobalWeaponRules[source]);
 			}
 		}
 	}

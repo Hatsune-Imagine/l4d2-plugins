@@ -1,0 +1,19 @@
+"Phrases"
+{
+	"Title"
+	{
+		"zho"	"{blue}[Tank投石動作]{default}"
+	}
+	"Reload"
+	{
+		"zho"	"{olive}R鍵{default} = {blue}雙手高抛{default}"
+	}
+	"Use"
+	{
+		"zho"	"{olive}E鍵{default} = {blue}低抛{default}"
+	}
+	"M2"
+	{
+		"zho"	"{olive}鼠標右鍵{default} = {blue}單手高抛{default}"
+	}
+}

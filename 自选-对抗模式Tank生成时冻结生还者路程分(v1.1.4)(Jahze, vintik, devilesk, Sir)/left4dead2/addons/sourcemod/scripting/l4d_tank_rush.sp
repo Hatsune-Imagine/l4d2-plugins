@@ -44,7 +44,7 @@ public void OnPluginStart()
 	// ChangeHook
 	cvar_noTankRush.AddChangeHook(NoTankRushChange);
 
-	if (L4D_GetGameModeType() == 2 && cvar_noTankRush.BoolValue)
+	if (cvar_noTankRush.BoolValue)
 	{
 		PluginEnable();
 	}
@@ -60,6 +60,11 @@ public void OnMapStart()
 {
 	PrecacheSound("ui/pickup_secret01.wav");
 	bTankAlive = false;
+
+	if (L4D_GetGameModeType() != 2)
+	{
+		PluginDisable();
+	}
 }
 
 void PluginEnable()
