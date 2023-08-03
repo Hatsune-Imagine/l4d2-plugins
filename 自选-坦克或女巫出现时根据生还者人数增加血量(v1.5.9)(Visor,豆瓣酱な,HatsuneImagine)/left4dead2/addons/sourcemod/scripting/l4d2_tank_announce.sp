@@ -33,7 +33,6 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	g_cvGameMode		= FindConVar("mp_gamemode");
 	g_hTankSwitch		= CreateConVar("l4d2_tank_Switch", 		"1", 				"启用坦克出现时根据生还者人数而增加血量? 0=禁用, 1=启用.", CVAR_FLAGS);
 	g_hTankPrompt		= CreateConVar("l4d2_tank_prompt", 		"3", 				"设置坦克出现时的提示类型(启用多个就把数字相加). 0=禁用, 1=聊天窗, 2=屏幕中下.", CVAR_FLAGS);
 	g_hTankMultiple		= CreateConVar("l4d2_tank_Multiples", 	"0.8;1.0;1.5;2.0", "设置游戏难度对应的倍数(留空=使用默认值:1.0).", CVAR_FLAGS);
@@ -63,6 +62,7 @@ public void OnPluginStart()
 public void OnMapStart()
 {
 	PrecacheSound(TankSound);
+	g_cvGameMode = FindConVar("mp_gamemode");
 }
 
 public void OnConfigsExecuted()

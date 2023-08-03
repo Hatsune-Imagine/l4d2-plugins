@@ -24,9 +24,9 @@ exec weaponrules.cfg
 ```c
 void WeaponSearchLoop()
 {
-	char GameMode[64];
-	FindConVar("mp_gamemode").GetString(GameMode, sizeof(GameMode));
-	if (StrContains("versus", GameMode) == -1) {
+    char GameMode[64];
+    g_cvGameMode.GetString(GameMode, sizeof(GameMode));
+    if (StrContains("versus", GameMode) == -1) {
         return;
     }
     
