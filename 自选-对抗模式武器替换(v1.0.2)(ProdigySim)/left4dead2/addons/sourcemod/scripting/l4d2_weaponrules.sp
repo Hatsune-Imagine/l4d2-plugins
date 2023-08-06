@@ -135,9 +135,9 @@ void AddWeaponRule(int match, int to)
 
 void WeaponSearchLoop()
 {
-	char GameMode[64];
-	g_cvGameMode.GetString(GameMode, sizeof(GameMode));
-	if (StrContains("versus", GameMode) == -1) {
+	char sGameMode[32];
+	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
+	if (StrContains(sGameMode, "versus") == -1) {
 		return;
 	}
 	
