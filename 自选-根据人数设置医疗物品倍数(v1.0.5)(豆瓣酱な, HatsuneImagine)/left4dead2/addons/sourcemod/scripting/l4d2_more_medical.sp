@@ -21,11 +21,12 @@ int g_iPlayerNumber;
 
 int    g_iMoreMedical;
 ConVar g_hMoreMedical;
+ConVar g_cvGameMode;
 
 public Plugin myinfo = 
 {
 	name 			= "l4d2_more_medical",
-	author 			= "豆瓣酱な, modified by HatsuneImagine",
+	author 			= "豆瓣酱な, HatsuneImagine",
 	description 	= "根据玩家人数设置医疗物品倍数.",
 	version 		= PLUGIN_VERSION,
 	url 			= "N/A"
@@ -47,6 +48,7 @@ public void OnMapStart()
 	g_iPlayerNumber = 0;
 	g_bMoreMedical = false;
 	g_bMedicalCheck = false;
+	g_cvGameMode = FindConVar("mp_gamemode");
 }
 
 public void ConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -123,7 +125,14 @@ public Action IsCreateMoreMedicalTimer(Handle Timer, DataPack hPack)
 
 void IsPlayerMultiple(bool g_bPrompt, bool g_bContent, bool g_bMoreCheck, int client, int g_iClientNumber, int g_iSurvivorLimit)
 {
-	IsUpdateEntCount(client, RoundToCeil(g_iClientNumber * 1.0 / 4), g_bPrompt, g_bContent, g_bMoreCheck, g_iClientNumber, g_iSurvivorLimit);
+	char sGameMode[32];
+	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
+	if (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1) {
+		IsUpdateEntCount(client, 1, g_bPrompt, g_bContent, g_bMoreCheck, g_iClientNumber, g_iSurvivorLimit);
+	}
+	else {
+		IsUpdateEntCount(client, RoundToCeil(g_iClientNumber * 1.0 / 4), g_bPrompt, g_bContent, g_bMoreCheck, g_iClientNumber, g_iSurvivorLimit);
+	}
 }
 
 void IsUpdateEntCount(int client, int g_Multiple, bool g_bPrompt, bool g_bContent, bool g_bMoreCheck, int g_iClientNumber, int g_iSurvivorLimit)

@@ -13,14 +13,18 @@
 1. 新增了对当前游戏模式的判断，仅在对抗模式启用此插件
 
 ```c
-public void OnPluginStart()
+public void OnMapStart()
 {
-	......
+    ......
 
-	if (L4D_GetGameModeType() == 2 && cvar_noTankRush.BoolValue)
-	{
-		PluginEnable();
-	}
+    if (cvar_noTankRush.BoolValue && L4D_GetGameModeType() == 2)
+    {
+        PluginEnable();
+    }
+    else
+    {
+        PluginDisable();
+    }
 }
 ```
 
