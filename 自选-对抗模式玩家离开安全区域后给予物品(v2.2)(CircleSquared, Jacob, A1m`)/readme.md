@@ -8,7 +8,7 @@
 
 **注意：其配置文件 `starting_items.cfg` 需要在服务器配置文件中执行才可生效**
 
-例：在 `starting_items.cfg` 中添加
+例：在 `server.cfg` 中添加
 
 ```bash
 // 执行对抗模式玩家离开安全区域后给予物品配置文件
