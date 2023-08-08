@@ -111,6 +111,10 @@ public void RoundStartEvent(Event hEvent, const char[] name, bool dontBroadcast)
 
 public Action ProcessTankSpawn(Handle hTimer)
 {
+	if (L4D_GetGameModeType() != 2) {
+		return Plugin_Stop;
+	}
+
 	spawnScheme = Skip;
 	tankCount = 0;
 	
