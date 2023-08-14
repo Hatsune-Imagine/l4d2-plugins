@@ -16,6 +16,9 @@ ConVar
 bool
 	g_bUnreserve;
 
+char
+	g_sReservation[20];
+
 public Plugin myinfo = {
 	name = PLUGIN_NAME,
 	author = PLUGIN_AUTHOR,
@@ -31,10 +34,17 @@ public void OnPluginStart() {
 
 	g_cvUnreserve.AddChangeHook(CvarChanged);
 
+	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
+
 	RegAdminCmd("sm_unreserve", cmdUnreserve, ADMFLAG_BAN, "sm_unreserve - manually force removes the lobby reservation");
+
+	// AutoExecConfig(true, "l4d2_unreservelobby");//生成指定文件名的CFG.
 }
 
 Action cmdUnreserve(int client, int args) {
+	if (!g_sReservation[0] && L4D_LobbyIsReserved())
+		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
+
 	L4D_LobbyUnreserve();
 	SetAllowLobby(0);
 	ReplyToCommand(client, "[UL] Lobby reservation has been removed.");
@@ -63,8 +73,29 @@ public void OnClientConnected(int client) {
 	if (!IsServerLobbyFull(-1))
 		return;
 
+	if (!g_sReservation[0] && L4D_LobbyIsReserved())
+		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
+
 	L4D_LobbyUnreserve();
 	SetAllowLobby(0);
+}
+
+//OnClientDisconnect will fired when changing map, issued by gH0sTy at http://docs.sourcemod.net/api/index.php?fastload=show&id=390&
+void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (!client)
+		return;
+
+	if (IsFakeClient(client))
+		return;
+
+	if (IsServerLobbyFull(client))
+		return;
+
+	if (g_sReservation[0])
+		L4D_SetLobbyReservation(g_sReservation);
+
+	// SetAllowLobby(1);
 }
 
 bool IsServerLobbyFull(int client) {
