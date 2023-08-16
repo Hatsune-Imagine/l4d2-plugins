@@ -82,10 +82,10 @@ public OnPluginStart()
 	hCvarValveSurvivalBonus = FindConVar("vs_survival_bonus");
 	hCvarValveTieBreaker = FindConVar("vs_tiebreak_bonus");
 
-	HookConVarChange(hCvarBonusPerSurvivorMultiplier, CvarChanged);
-	HookConVarChange(hCvarPermanentHealthProportion, CvarChanged);
+	// HookConVarChange(hCvarBonusPerSurvivorMultiplier, CvarChanged);
+	// HookConVarChange(hCvarPermanentHealthProportion, CvarChanged);
 
-	HookEvent("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
+	HookEvent("player_left_start_area", OnPlayerLeftStartArea, EventHookMode_PostNoCopy);
 	HookEvent("player_ledge_grab", OnPlayerLedgeGrab);
 	HookEvent("player_incapacitated", OnPlayerIncapped);
 	HookEvent("player_hurt", OnPlayerHurt);
@@ -114,7 +114,36 @@ public OnPluginEnd()
 	ResetConVar(hCvarValveTieBreaker);
 }
 
-public OnConfigsExecuted()
+// public OnMapStart()
+// {
+// 	CalculateBonus();
+
+// 	iLostTempHealth[0] = 0;
+// 	iLostTempHealth[1] = 0;
+// 	iSiDamage[0] = 0;
+// 	iSiDamage[1] = 0;
+// 	bTiebreakerEligibility[0] = false;
+// 	bTiebreakerEligibility[1] = false;
+// }
+
+// public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
+// {
+// 	CalculateBonus();
+// }
+
+public OnClientPutInServer(client)
+{
+	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
+	SDKHook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
+}
+
+public OnClientDisconnect(client)
+{
+	SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
+	SDKUnhook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
+}
+
+public void CalculateBonus()
 {
 	iTeamSize = GetConVarInt(FindConVar("survivor_limit"));
 	SetConVarInt(hCvarValveTieBreaker, 0);
@@ -136,9 +165,9 @@ public OnConfigsExecuted()
 #endif
 }
 
-public OnMapStart()
+public void OnPlayerLeftStartArea(Event hEvent, const char[] sEventName, bool bDontBroadcast)
 {
-	OnConfigsExecuted();
+	CalculateBonus();
 
 	iLostTempHealth[0] = 0;
 	iLostTempHealth[1] = 0;
@@ -146,27 +175,7 @@ public OnMapStart()
 	iSiDamage[1] = 0;
 	bTiebreakerEligibility[0] = false;
 	bTiebreakerEligibility[1] = false;
-}
-
-public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
-{
-	OnConfigsExecuted();
-}
-
-public OnClientPutInServer(client)
-{
-	SDKHook(client, SDKHook_OnTakeDamage, OnTakeDamage);
-	SDKHook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
-}
-
-public OnClientDisconnect(client)
-{
-	SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
-	SDKUnhook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
-}
-
-public void RoundStartEvent(Event hEvent, const char[] sEventName, bool bDontBroadcast)
-{
+	
 	for (new i = 0; i <= MAXPLAYERS; i++)
 	{
 		iTempHealth[i] = 0;
