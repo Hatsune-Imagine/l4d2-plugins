@@ -12,7 +12,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.4"
+#define PLUGIN_VERSION	"1.0.5"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -287,6 +287,9 @@ void vInitPatchs(GameData hGameData = null)
 
 void vRoundRespawn(int client)
 {
+	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+		return;
+
 	vStatsConditionPatch(true);
 	SDKCall(hRoundRespawn, client);
 	vStatsConditionPatch(false);
