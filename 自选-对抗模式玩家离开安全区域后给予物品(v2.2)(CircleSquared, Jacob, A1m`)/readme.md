@@ -2,7 +2,7 @@
 
 
 
-原作者来源：https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/starting_items.sp
+原作者来源：https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/starting_items.sp
 
 
 
