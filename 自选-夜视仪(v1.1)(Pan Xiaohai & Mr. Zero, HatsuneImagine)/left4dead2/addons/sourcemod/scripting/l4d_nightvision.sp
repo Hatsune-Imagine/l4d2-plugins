@@ -4,10 +4,10 @@
 
 int IMPULS_FLASHLIGHT = 100;
 float PressTime[MAXPLAYERS+1];
- 
-int Mode; 
-bool EnableSuvivor; 
-bool EnableInfected; 
+
+int Mode;
+bool EnableSuvivor;
+bool EnableInfected;
 ConVar l4d_nt_team;
 ConVar g_cvGameMode;
 
@@ -23,8 +23,8 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	RegConsoleCmd("sm_nightvision", sm_nightvision);
-	l4d_nt_team = CreateConVar("l4d_nt_team", "1", "0:关闭, 1:向生还者和感染者开放, 2:向生还者开放, 3:向感染者开放", FCVAR_NONE);	
-	AutoExecConfig(true, "l4d_nightvision"); 
+	l4d_nt_team = CreateConVar("l4d_nt_team", "1", "0:关闭, 1:向生还者和感染者开放, 2:向生还者开放, 3:向感染者开放", FCVAR_NONE);
+	AutoExecConfig(true, "l4d_nightvision");
 	HookConVarChange(l4d_nt_team, ConVarChange);
 	GetConVar();
 }
@@ -36,7 +36,7 @@ public void OnMapStart()
 
 public void ConVarChange(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-	GetConVar(); 
+	GetConVar();
 }
 
 void GetConVar()
@@ -49,7 +49,7 @@ void GetConVar()
 public Action sm_nightvision(int client, int args)
 {
 	if(IsClientInGame(client)) SwitchNightVision(client);
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 //code from "Block Flashlight",
@@ -60,26 +60,26 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impuls, float vel[3]
 	{
 		int team = GetClientTeam(client);
 		if(team == 2 && EnableSuvivor)
-		{		 	
+		{
 			float time = GetEngineTime();
 			if(time - PressTime[client] < 0.3)
 			{
-				SwitchNightVision(client); 				 
+				SwitchNightVision(client);
 			}
 			PressTime[client] = time;
-		}	 
+		}
 		if(team == 3 && EnableInfected)
 		{
 			float time = GetEngineTime();
 			if(time - PressTime[client] > 0.1)
 			{
-				SwitchNightVision(client); 
+				SwitchNightVision(client);
 			}
-			PressTime[client] = time;			 
+			PressTime[client] = time;
 		}
 	}
-	
-	return Plugin_Handled;
+
+	return Plugin_Continue;
 }
 
 void SwitchNightVision(int client)
@@ -91,13 +91,13 @@ void SwitchNightVision(int client)
 	int d = GetEntProp(client, Prop_Send, "m_bNightVisionOn");
 	if(d == 0)
 	{
-		SetEntProp(client, Prop_Send, "m_bNightVisionOn",1); 
+		SetEntProp(client, Prop_Send, "m_bNightVisionOn",1);
 		PrintHintText(client, "夜视仪已开启");
 		
 	}
 	else
 	{
 		SetEntProp(client, Prop_Send, "m_bNightVisionOn",0);
-		PrintHintText(client, "夜视仪已关闭");	
+		PrintHintText(client, "夜视仪已关闭");
 	}
 }
