@@ -6,12 +6,13 @@
 #define PLUGIN_NAME				"L4D 1/2 Remove Lobby Reservation"
 #define PLUGIN_AUTHOR			"Downtown1, Anime4000, sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		"Removes lobby reservation when server is full"
-#define PLUGIN_VERSION			"2.0.1a"
+#define PLUGIN_VERSION			"2.0.1b"
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
 ConVar
-	g_cvUnreserve,
-	g_cvSvAllowLobbyCo;
+	g_cvGameMode,
+	g_cvSvAllowLobbyCo,
+	g_cvUnreserve;
 
 bool
 	g_bUnreserve;
@@ -29,16 +30,19 @@ public Plugin myinfo = {
 
 public void OnPluginStart() {
 	CreateConVar("l4d_unreserve_version", PLUGIN_VERSION, "Version of the Lobby Unreserve plugin.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	g_cvUnreserve =			CreateConVar("l4d_unreserve_full",	"1",	"Automatically unreserve server after a full lobby joins", FCVAR_SPONLY|FCVAR_NOTIFY);
-	g_cvSvAllowLobbyCo =	FindConVar("sv_allow_lobby_connect_only");
+	g_cvUnreserve = CreateConVar("l4d_unreserve_full",	"1",	"Automatically unreserve server after a full lobby joins", FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	g_cvUnreserve.AddChangeHook(CvarChanged);
-
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
-
 	RegAdminCmd("sm_unreserve", cmdUnreserve, ADMFLAG_BAN, "sm_unreserve - manually force removes the lobby reservation");
+	RegAdminCmd("sm_reserve", cmdReserve, ADMFLAG_BAN, "sm_reserve - manually restores the lobby reservation");
 
 	// AutoExecConfig(true, "l4d2_unreservelobby");//生成指定文件名的CFG.
+}
+
+public void OnMapStart() {
+	g_cvGameMode = FindConVar("mp_gamemode");
+	g_cvSvAllowLobbyCo = FindConVar("sv_allow_lobby_connect_only");
 }
 
 Action cmdUnreserve(int client, int args) {
@@ -48,6 +52,14 @@ Action cmdUnreserve(int client, int args) {
 	L4D_LobbyUnreserve();
 	SetAllowLobby(0);
 	ReplyToCommand(client, "[UL] Lobby reservation has been removed.");
+	return Plugin_Handled;
+}
+
+Action cmdReserve(int client, int args) {
+	if (!L4D_LobbyIsReserved() && g_sReservation[0])
+		L4D_SetLobbyReservation(g_sReservation);
+
+	ReplyToCommand(client, "[UL] Lobby reservation has been restored.");
 	return Plugin_Handled;
 }
 
@@ -99,7 +111,12 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 }
 
 bool IsServerLobbyFull(int client) {
-	return GetConnectedPlayer(client) >= 4;
+	char sGameMode[32];
+	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
+
+	int slots = (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1) ? 8 : 4;
+
+	return GetConnectedPlayer(client) >= slots;
 }
 
 int GetConnectedPlayer(int client) {
