@@ -84,10 +84,9 @@ public Action OnPlayerRunCmd(int client, int &buttons, int &impuls, float vel[3]
 
 void SwitchNightVision(int client)
 {
-	int team = GetClientTeam(client);
 	char sGameMode[32];
 	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
-	if(team == 2 && (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1)) return;
+	if(GetClientTeam(client) == 2 && (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1)) return;
 
 	int d = GetEntProp(client, Prop_Send, "m_bNightVisionOn");
 	if(d == 0)
