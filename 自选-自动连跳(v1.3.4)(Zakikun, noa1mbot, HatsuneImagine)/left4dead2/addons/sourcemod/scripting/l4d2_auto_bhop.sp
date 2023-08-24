@@ -19,7 +19,7 @@
 #include <sdktools>
 
 #define MAXCLIENTS 32
-#define PLUGIN_VER "1.3.3"
+#define PLUGIN_VER "1.3.4"
 
 bool g_AutoBhop[MAXCLIENTS + 1];
 
@@ -40,6 +40,8 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_bh", Cmd_Autobhop);
 	RegConsoleCmd("sm_onrb", Cmd_Autobhop);
 	RegConsoleCmd("sm_bhop", Cmd_Autobhop);
+
+	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 }
 
 public Action Cmd_Autobhop(int client, int args)
@@ -93,8 +95,10 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 	return Plugin_Continue;
 }
 
-public void OnClientDisconnect(int client)
+//OnClientDisconnect will fired when changing map, use "player_disconnect" event instead.
+void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
+	int client = GetClientOfUserId(event.GetInt("userid"));
 	g_AutoBhop[client] = false;
 }
 

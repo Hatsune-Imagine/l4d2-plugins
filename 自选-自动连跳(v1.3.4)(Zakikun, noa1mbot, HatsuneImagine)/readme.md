@@ -1,0 +1,45 @@
+# 自动连跳
+
+
+
+输入 `/bhop` 或 `/onrb` 可切换按住空格自动连跳开关
+
+1. 新增了对当前游戏模式的判断，禁止玩家在 “对抗模式” 和 “清道夫模式” 使用此指令。以避免对抗模式中或清道夫模式中玩家利用此插件进行跑图或快速拿油灌油。
+
+```c
+public Action Cmd_Autobhop(int client, int args)
+{
+    ......
+
+    if(l4d2_gamemode() == 2) {
+        ReplyToCommand(client, "对抗模式不可用");
+        return Plugin_Handled;
+    }
+
+    if(l4d2_gamemode() == 4) {
+        ReplyToCommand(client, "清道夫模式不可用");
+        return Plugin_Handled;
+    }
+    
+    ......
+}
+```
+
+2. 修复了每次过关后所有玩家连跳开关被关闭的bug，由于 `OnClientDisconnect()` 方法在每次切换章节时也会被触发，因此改为使用 `player_disconnect` 事件触发方式。
+
+```c
+public void OnPluginStart()
+{
+    ......
+
+    HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
+}
+
+//OnClientDisconnect will fired when changing map, use "player_disconnect" event instead.
+void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
+{
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    g_AutoBhop[client] = false;
+}
+```
+
