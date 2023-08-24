@@ -10,8 +10,8 @@
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
 ConVar
-	g_cvSvAllowLobbyCo,
-	g_cvUnreserve;
+	g_cvUnreserve,
+	g_cvSvAllowLobbyCo;
 
 bool
 	g_bUnreserve;
@@ -29,7 +29,8 @@ public Plugin myinfo = {
 
 public void OnPluginStart() {
 	CreateConVar("l4d_unreserve_version", PLUGIN_VERSION, "Version of the Lobby Unreserve plugin.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	g_cvUnreserve = CreateConVar("l4d_unreserve_full",	"1",	"Automatically unreserve server after a full lobby joins", FCVAR_SPONLY|FCVAR_NOTIFY);
+	g_cvUnreserve = CreateConVar("l4d_unreserve_full", "1", "Automatically unreserve server after a full lobby joins", FCVAR_SPONLY|FCVAR_NOTIFY);
+	g_cvSvAllowLobbyCo = FindConVar("sv_allow_lobby_connect_only");
 
 	g_cvUnreserve.AddChangeHook(CvarChanged);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
@@ -39,12 +40,11 @@ public void OnPluginStart() {
 	// AutoExecConfig(true, "l4d2_unreservelobby");//生成指定文件名的CFG.
 }
 
-public void OnMapStart() {
-	g_cvSvAllowLobbyCo = FindConVar("sv_allow_lobby_connect_only");
-
-	if (IsServerLobbyFull(-1)) {
+public void OnConfigsExecuted() {
+	GetCvars();
+	
+	if (IsServerLobbyFull(-1))
 		unreserve();
-	}
 }
 
 Action cmdUnreserve(int client, int args) {
@@ -59,31 +59,13 @@ Action cmdReserve(int client, int args) {
 	return Plugin_Handled;
 }
 
-public void OnConfigsExecuted() {
-	GetCvars();
-}
-
 void CvarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
 	GetCvars();
 }
 
 void GetCvars() {
 	g_bUnreserve = g_cvUnreserve.BoolValue;
-}
-
-void unreserve() {
-	if (!g_sReservation[0] && L4D_LobbyIsReserved())
-		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
-
-	L4D_LobbyUnreserve();
-	SetAllowLobby(0);
-}
-
-void reserve() {
-	if (g_sReservation[0])
-		L4D_SetLobbyReservation(g_sReservation);
-
-	// SetAllowLobby(1);
+	g_cvSvAllowLobbyCo = FindConVar("sv_allow_lobby_connect_only");
 }
 
 public void OnClientConnected(int client) {
@@ -126,6 +108,21 @@ int GetConnectedPlayer(int client) {
 			count++;
 	}
 	return count;
+}
+
+void unreserve() {
+	if (!g_sReservation[0] && L4D_LobbyIsReserved())
+		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
+
+	L4D_LobbyUnreserve();
+	SetAllowLobby(0);
+}
+
+void reserve() {
+	if (g_sReservation[0])
+		L4D_SetLobbyReservation(g_sReservation);
+
+	// SetAllowLobby(1);
 }
 
 void SetAllowLobby(int value) {
