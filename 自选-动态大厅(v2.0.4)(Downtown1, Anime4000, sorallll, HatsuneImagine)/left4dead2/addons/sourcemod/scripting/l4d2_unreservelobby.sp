@@ -6,11 +6,10 @@
 #define PLUGIN_NAME				"L4D 1/2 Remove Lobby Reservation"
 #define PLUGIN_AUTHOR			"Downtown1, Anime4000, sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		"Removes lobby reservation when server is full"
-#define PLUGIN_VERSION			"2.0.1b"
+#define PLUGIN_VERSION			"2.0.4"
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
 ConVar
-	g_cvGameMode,
 	g_cvSvAllowLobbyCo,
 	g_cvUnreserve;
 
@@ -41,24 +40,21 @@ public void OnPluginStart() {
 }
 
 public void OnMapStart() {
-	g_cvGameMode = FindConVar("mp_gamemode");
 	g_cvSvAllowLobbyCo = FindConVar("sv_allow_lobby_connect_only");
+
+	if (IsServerLobbyFull(-1)) {
+		unreserve();
+	}
 }
 
 Action cmdUnreserve(int client, int args) {
-	if (!g_sReservation[0] && L4D_LobbyIsReserved())
-		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
-
-	L4D_LobbyUnreserve();
-	SetAllowLobby(0);
+	unreserve();
 	ReplyToCommand(client, "[UL] Lobby reservation has been removed.");
 	return Plugin_Handled;
 }
 
 Action cmdReserve(int client, int args) {
-	if (!L4D_LobbyIsReserved() && g_sReservation[0])
-		L4D_SetLobbyReservation(g_sReservation);
-
+	reserve();
 	ReplyToCommand(client, "[UL] Lobby reservation has been restored.");
 	return Plugin_Handled;
 }
@@ -75,6 +71,21 @@ void GetCvars() {
 	g_bUnreserve = g_cvUnreserve.BoolValue;
 }
 
+void unreserve() {
+	if (!g_sReservation[0] && L4D_LobbyIsReserved())
+		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
+
+	L4D_LobbyUnreserve();
+	SetAllowLobby(0);
+}
+
+void reserve() {
+	if (g_sReservation[0])
+		L4D_SetLobbyReservation(g_sReservation);
+
+	// SetAllowLobby(1);
+}
+
 public void OnClientConnected(int client) {
 	if (!g_bUnreserve)
 		return;
@@ -85,11 +96,7 @@ public void OnClientConnected(int client) {
 	if (!IsServerLobbyFull(-1))
 		return;
 
-	if (!g_sReservation[0] && L4D_LobbyIsReserved())
-		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
-
-	L4D_LobbyUnreserve();
-	SetAllowLobby(0);
+	unreserve();
 }
 
 //OnClientDisconnect will fired when changing map, issued by gH0sTy at http://docs.sourcemod.net/api/index.php?fastload=show&id=390&
@@ -104,18 +111,11 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	if (IsServerLobbyFull(client))
 		return;
 
-	if (g_sReservation[0])
-		L4D_SetLobbyReservation(g_sReservation);
-
-	// SetAllowLobby(1);
+	reserve();
 }
 
 bool IsServerLobbyFull(int client) {
-	char sGameMode[32];
-	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
-
-	int slots = (StrContains(sGameMode, "versus") > -1 || StrContains(sGameMode, "scavenge") > -1) ? 8 : 4;
-
+	int slots = L4D_IsVersusMode() || L4D2_IsScavengeMode() ? 8 : 4;
 	return GetConnectedPlayer(client) >= slots;
 }
 
