@@ -10,6 +10,10 @@
 *							player's jump animation during boost is incorrect (it's must be ACT_RUN_CROUCH_* sequence always!);
 *							removed 'm_nWaterLevel' check (we cannot swim in this game anyway) to avoid problems with jumping
 *							on some deep water maps.
+*	26/05/2023 Version 1.3.3 - Add some restrictions in versus mode and scavenge mode. Players can no longer enable auto bhop in
+*							versus mode and scavenge mode now.
+*	24/08/2023 Version 1.3.4 - Fixed a bug that players have to enable auto bhop manually after changing the chapter. Using
+*							'player_disconnect' event instead of 'OnClientDisconnect()' function.
 */
 
 #pragma semicolon 1
