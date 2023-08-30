@@ -273,8 +273,14 @@ public void OnConfigsExecuted()
 	// are different between campaigns.
 	// Here we are reloading all the attributes set by our own.
 	
-	ResetWeaponAttributes(false);
-	ResetMeleeAttributes(false);
+	if (L4D_IsVersusMode()) {
+		ResetWeaponAttributes(false);
+		ResetMeleeAttributes(false);
+	}
+	else {
+		ResetWeaponAttributes(true);
+		ResetMeleeAttributes(true);
+	}
 }
 
 void OnTankDamageEnableAttriChanged(bool newValue)
@@ -305,10 +311,6 @@ void OnReloadDurationEnableAttriChanged(bool newValue)
 
 public Action Cmd_Weapon(int args)
 {
-	if (L4D_GetGameModeType() != 2) {
-		return Plugin_Handled;
-	}
-
 	if (args < 3) {
 		PrintDebug(eLogError|eServerPrint, "Syntax: sm_weapon <weapon> <attr> <value>.");
 		return Plugin_Handled;
@@ -428,10 +430,6 @@ public Action Cmd_Weapon(int args)
 
 public Action Cmd_WeaponAttributes(int client, int args)
 {
-	if (L4D_GetGameModeType() != 2) {
-		return Plugin_Handled;
-	}
-
 	int iCvarValue = hHideWeaponAttributes.IntValue;
 	
 	if (iCvarValue == eDisableCommand || 

@@ -22,24 +22,19 @@ exec weapon_attributes.cfg
 原作者的插件安装后，在所有游戏模式均生效，新增了对游戏模式的判断，使得其只在 “对抗模式” 中生效。
 
 ```c
-public Action Cmd_Weapon(int args)
+public void OnConfigsExecuted()
 {
-    if (L4D_GetGameModeType() != 2) {
-        return Plugin_Handled;
-    }
+    // Weapon info may get reloaded, and supported melees
+    // are different between campaigns.
+    // Here we are reloading all the attributes set by our own.
     
-    ......
+    if (L4D_IsVersusMode()) {
+        ResetWeaponAttributes(false);
+        ResetMeleeAttributes(false);
+    }
+    else {
+        ResetWeaponAttributes(true);
+        ResetMeleeAttributes(true);
+    }
 }
 ```
-
-```c
-public Action Cmd_WeaponAttributes(int client, int args)
-{
-    if (L4D_GetGameModeType() != 2) {
-        return Plugin_Handled;
-    }
-    
-    ......
-}
-```
-
