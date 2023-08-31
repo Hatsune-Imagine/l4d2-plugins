@@ -86,7 +86,7 @@ public Action JoinTeam_Type(int client, int args)
 ```c
 void vSpawnFakeSurvivorClient()
 {
-    if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+    if((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && iGetTeamPlayers(TEAM_SURVIVOR, true) >= 4)
         return;
     
     ......

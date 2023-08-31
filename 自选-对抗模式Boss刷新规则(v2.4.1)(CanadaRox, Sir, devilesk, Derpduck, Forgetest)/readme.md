@@ -4,11 +4,11 @@
 
 原作者来源：
 
-- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/witch_and_tankifier.sp
-- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/eq_finale_tanks.sp
-- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/l4d_boss_percent.sp
-- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/current.sp
-- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/83f547e2d941ee1fb63409dbfb594653e0fe1f43/addons/sourcemod/scripting/l4d2lib.sp
+- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/witch_and_tankifier.sp
+- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/eq_finale_tanks.sp
+- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/l4d_boss_percent.sp
+- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/current.sp
+- https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/l4d2lib.sp
 
 
 

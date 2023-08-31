@@ -12,7 +12,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.5"
+#define PLUGIN_VERSION	"1.0.6"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -489,7 +489,7 @@ public Action JoinTeam_Type(int client, int args)
 	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
 		return Plugin_Continue;
 
-	if (IsClientInGame(client) && !IsFakeClient(client))
+	if(IsClientInGame(client) && !IsFakeClient(client))
 	{
 		int iTeam = GetClientTeam(client);
 
@@ -1029,7 +1029,7 @@ int TotalFreeBots()
 	int intt = 0;
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(!IsValidEntity(i))continue;
+		if(!IsValidEntity(i)) continue;
 		if(IsClientConnected(i) && IsClientInGame(i))
 			if(IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
 				if(!iHasIdlePlayer(i))
@@ -1040,7 +1040,7 @@ int TotalFreeBots()
 
 void vSpawnFakeSurvivorClient()
 {
-	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+	if((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && iGetTeamPlayers(TEAM_SURVIVOR, true) >= 4)
 		return;
 
 	int client = CreateFakeClient("FakeClient");
