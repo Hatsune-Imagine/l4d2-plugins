@@ -12,7 +12,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.6"
+#define PLUGIN_VERSION	"1.0.8"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -35,7 +35,7 @@ ConVar g_hAway, g_hKick, g_hSset, g_hMaxs, g_hLimit, g_hTeam;
 
 int g_iMaxplayers;
 
-bool bMaxplayers, g_bRoundStarted, gbVehicleLeaving, gbFirstItemPickedUp;
+bool bMaxplayers, g_bRoundStarted, gbVehicleLeaving;
 bool PlayerWentAFK[MAXPLAYERS+1], MenuFunc_SpecNext[MAXPLAYERS+1];
 Handle g_TimerSpecCheck, g_hBotsUpdateTimer;
 Handle hRoundRespawn, hTakeOverBot, hSetHumanSpec;
@@ -57,7 +57,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 {
 	char GameName[64];
 	GetGameFolderName(GameName, sizeof(GameName));
-	if (StrContains(GameName, "left4dead", false) == -1)
+	if(StrContains(GameName, "left4dead", false) == -1)
 		return APLRes_Failure; 
 	
 	return APLRes_Success; 
@@ -110,7 +110,6 @@ public void OnPluginStart()
 	g_hTeam.AddChangeHook(IsOtherConVarChanged);
 	g_hLimit.AddChangeHook(IsOtherConVarChanged);
 	
-	HookEvent("item_pickup", Event_ItemPickup);//玩家拾取武器或物品.
 	HookEvent("round_start", Event_RoundStart);//回合开始.
 	HookEvent("round_end", Event_RoundEnd);//回合结束.
 	HookEvent("player_spawn", Event_PlayerSpawn, EventHookMode_Pre);
@@ -141,11 +140,11 @@ public void IsLoadGameCFG()
 	BuildPath(Path_SM, sPath, sizeof(sPath), "gamedata/%s.txt", GAMEDATA);
 	
 	//判断是否有文件
-	if (FileExists(sPath))
+	if(FileExists(sPath))
 	{
 		GameData hGameData = new GameData(GAMEDATA);
 
-		if (!hGameData)
+		if(!hGameData)
 			SetFailState("无法加载 \"%s.txt\" gamedata.", GAMEDATA);
 
 		StartPrepSDKCall(SDKCall_Player);
@@ -154,7 +153,7 @@ public void IsLoadGameCFG()
 		else
 		{
 			hRoundRespawn = EndPrepSDKCall();
-			if (hRoundRespawn == null)
+			if(hRoundRespawn == null)
 				SetFailState("[提示] 创建 SDKCall: \"RoundRespawn\" 失败.");
 		}
 			
@@ -165,7 +164,7 @@ public void IsLoadGameCFG()
 		{
 			PrepSDKCall_AddParameter(SDKType_CBasePlayer, SDKPass_Pointer);
 			hSetHumanSpec = EndPrepSDKCall();
-			if (hSetHumanSpec == null)
+			if(hSetHumanSpec == null)
 				SetFailState("[提示] 创建 SDKCall: \"SetHumanSpec\" 失败.");
 		}
 		
@@ -176,7 +175,7 @@ public void IsLoadGameCFG()
 		{
 			PrepSDKCall_AddParameter(SDKType_Bool, SDKPass_Plain);
 			hTakeOverBot = EndPrepSDKCall();
-			if (hTakeOverBot == null)
+			if(hTakeOverBot == null)
 				SetFailState("[提示] 创建 SDKCall: \"TakeOverBot\" 失败.");
 		}
 
@@ -189,7 +188,7 @@ public void IsLoadGameCFG()
 		PrintToServer("[提示] 未发现 %s.txt 文件,创建中...", GAMEDATA);
 		//签名与偏移文件生成.
 		File hFile = OpenFile(sPath, "w", false);
-		if (hFile == null)
+		if(hFile == null)
 			SetFailState("[提示] 创建 %s.txt 文件失败.", GAMEDATA);
 		
 		WriteFileLine(hFile, "\"Games\"");
@@ -313,8 +312,9 @@ void vStatsConditionPatch(bool bPatch)
 
 public void OnMapStart()
 {
+	StartTimers();
+
 	g_bRoundStarted = true;
-	gbFirstItemPickedUp = false;
 	
 	ServerCommand("exec banned_user.cfg");//加载服务器封禁列表.
 	
@@ -322,18 +322,18 @@ public void OnMapStart()
 	SetConVarInt(FindConVar("z_spawn_flow_limit"), 50000);
 	
 	//修复女巫模型没预载而引起的游戏闪退,必备.
-	if (!IsModelPrecached("models/infected/witch.mdl")) 				PrecacheModel("models/infected/witch.mdl", false);
-	if (!IsModelPrecached("models/infected/witch_bride.mdl")) 			PrecacheModel("models/infected/witch_bride.mdl", false);
+	if(!IsModelPrecached("models/infected/witch.mdl")) 				PrecacheModel("models/infected/witch.mdl", false);
+	if(!IsModelPrecached("models/infected/witch_bride.mdl")) 			PrecacheModel("models/infected/witch_bride.mdl", false);
 	
 	//修复幸存者模型没预载而引起的游戏闪退,必备.
-	if (!IsModelPrecached("models/survivors/survivor_teenangst.mdl"))	PrecacheModel("models/survivors/survivor_teenangst.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_biker.mdl"))		PrecacheModel("models/survivors/survivor_biker.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_manager.mdl"))		PrecacheModel("models/survivors/survivor_manager.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_namvet.mdl"))		PrecacheModel("models/survivors/survivor_namvet.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_gambler.mdl"))		PrecacheModel("models/survivors/survivor_gambler.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_coach.mdl"))		PrecacheModel("models/survivors/survivor_coach.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_mechanic.mdl"))	PrecacheModel("models/survivors/survivor_mechanic.mdl", false);
-	if (!IsModelPrecached("models/survivors/survivor_producer.mdl"))	PrecacheModel("models/survivors/survivor_producer.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_teenangst.mdl"))	PrecacheModel("models/survivors/survivor_teenangst.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_biker.mdl"))		PrecacheModel("models/survivors/survivor_biker.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_manager.mdl"))		PrecacheModel("models/survivors/survivor_manager.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_namvet.mdl"))		PrecacheModel("models/survivors/survivor_namvet.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_gambler.mdl"))		PrecacheModel("models/survivors/survivor_gambler.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_coach.mdl"))		PrecacheModel("models/survivors/survivor_coach.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_mechanic.mdl"))	PrecacheModel("models/survivors/survivor_mechanic.mdl", false);
+	if(!IsModelPrecached("models/survivors/survivor_producer.mdl"))	PrecacheModel("models/survivors/survivor_producer.mdl", false);
 }
 
 //地图结束.
@@ -344,7 +344,6 @@ public void OnMapEnd()
 	
 	g_bRoundStarted = false;
 	gbVehicleLeaving = false;
-	gbFirstItemPickedUp = false;
 }
 
 public void IsOtherConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
@@ -368,10 +367,10 @@ void IsGetOtherCvars()
 	g_iTeam	= g_hTeam.IntValue;
 	g_hSLimit.IntValue = g_iLimit = g_hLimit.IntValue;
 	
-	if (g_iMaxs < 1)
+	if(g_iMaxs < 1)
 		g_iMaxs = 1;
 
-	if (g_iMaxs > 8 && !IsDedicatedServer())
+	if(g_iMaxs > 8 && !IsDedicatedServer())
 		g_iMaxs = 8;
 	
 	SetConVarInt(FindConVar("sv_maxplayers"), bMaxplayers ? g_iMaxplayers : g_iMaxs, false, false);
@@ -380,7 +379,7 @@ void IsGetOtherCvars()
 
 void Iskilltimer()
 {
-	for (int i = 1; i <= MaxClients; i++)
+	for(int i = 1; i <= MaxClients; i++)
 	{
 		delete hJoinsSurvivor[i];
 		delete ClientTimer_Index[i];
@@ -395,11 +394,11 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 	{
 		if(IsValidClient(client) && IsPlayerAlive(client) && GetClientTeam(client) == TEAM_SURVIVOR)
 		{	
-			if (GetEntProp(client, Prop_Send, "m_isIncapacitated") == 0)
+			if(GetEntProp(client, Prop_Send, "m_isIncapacitated") == 0)
 			{
 				int slot1 = GetPlayerWeaponSlot(client, 1);
 					
-				if (IsValidEdict(slot1))
+				if(IsValidEdict(slot1))
 				{
 					char classname[128];
 					GetEntityClassname(slot1, classname, sizeof(classname));
@@ -466,18 +465,18 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 	
 	if(client > 0 && !IsFakeClient(client))
 	{
-		if(oldteam == 2 && iTeam != 2)
+		if(oldteam == TEAM_SURVIVOR && iTeam != TEAM_SURVIVOR)
 			RequestFrame(l4d2_kick_SurvivorBot);
 
-		if(g_iTeam != 0 && g_iTeam == 1)
+		if(g_iTeam == 1)
 		{
 			switch(iTeam)
 			{
-				case 1:
+				case TEAM_SPECTATOR:
 					PrintToChatAll("\x04[提示]\x03%N\x05加入了观察者.", client);
-				case 2:
+				case TEAM_SURVIVOR:
 					PrintToChatAll("\x04[提示]\x03%N\x05加入了幸存者.", client);
-				case 3:
+				case TEAM_INFECTED:
 					PrintToChatAll("\x04[提示]\x03%N\x05加入了感染者.", client);
 			}
 		}
@@ -487,7 +486,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 public Action JoinTeam_Type(int client, int args)
 {
 	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
-		return Plugin_Continue;
+		return Plugin_Handled;
 
 	if(IsClientInGame(client) && !IsFakeClient(client))
 	{
@@ -497,7 +496,7 @@ public Action JoinTeam_Type(int client, int args)
 		{
 			case TEAM_SPECTATOR:
 			{
-				if (iGetBotOfIdle(client))
+				if(iGetBotOfIdle(client))
 					PrintHintText(client, "请按下鼠标左键加入幸存者.");
 				else
 				{
@@ -532,15 +531,16 @@ public Action CheckClientState(Handle Timer, DataPack hPack)
 		
 		if(TotalFreeBots() > 0)
 		{
-			int bot = FindBotToTakeOver();
+			int botClient = FindBotToTakeOver();
 			
-			if (bot <= 0)
+			if(botClient <= 0)
 				IsGetTakeOverTarget();
 			
-			if (ClientTakeOverBot)
+			if(ClientTakeOverBot)
 				TakeOverBot(client, true);//更改为 true 则自动加入幸存者,反之是闲置状态.
 			else
 				TakeOverBot(client, false);//更改为 true 则自动加入幸存者,反之是闲置状态.
+
 			ClientSpawnMaxTimer[client] = 0;
 		}
 		if(!client || ClientSpawnMaxTimer[client] >= 60 || !IsClientConnected(client) || !ClientSpawnMaxTimer[client] || (GetClientTeam(client) == TEAM_SPECTATOR && iGetBotOfIdle(client)))
@@ -590,16 +590,16 @@ int GetTakeOverTarget()
 
 void TakeOverBot(int client, bool completely)
 {
-	if (!IsClientInGame(client))
+	if(!IsClientInGame(client))
 		return;
-	if (GetClientTeam(client) == TEAM_SURVIVOR)
+	if(GetClientTeam(client) == TEAM_SURVIVOR)
 		return;
-	if (IsFakeClient(client))
+	if(IsFakeClient(client))
 		return;
 	
 	int bot = FindBotToTakeOver();
 	
-	if (bot==0)
+	if(bot == 0)
 	{
 		PrintHintText(client, "[提示] 目前没有存活的电脑接管.");
 		return;
@@ -649,6 +649,9 @@ void IsPlayerJoinsVerificationStatus(int client)
 
 public Action iPlayerJoinsSurvivor(Handle timer, any client)
 {
+	if(l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+		return Plugin_Stop;
+
 	if((client = GetClientOfUserId(client)))
 	{
 		if(!IsClientInGame(client))
@@ -656,25 +659,13 @@ public Action iPlayerJoinsSurvivor(Handle timer, any client)
 
 		iDelayedValidationStatus[client] += 1;
 		
-		if (iDelayedValidationStatus[client] <= 5)
+		if(iDelayedValidationStatus[client] <= 5 && GetClientTeam(client) == TEAM_SPECTATOR && !iGetBotOfIdle(client) && ClientTimer_Index[client] == null)
 		{
-			if (GetClientTeam(client) == TEAM_SPECTATOR)
-			{
-				if (!iGetBotOfIdle(client))
-				{
-					if (!iGetBotOfIdle(client))
-					{
-						if(ClientTimer_Index[client] == null)
-						{
-							ClientSpawnMaxTimer[client] = 1;
-							DataPack hPack;
-							ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
-							hPack.WriteCell(GetClientUserId(client));
-							hPack.WriteCell(false);
-						}
-					}
-				}
-			}
+			ClientSpawnMaxTimer[client] = 1;
+			DataPack hPack;
+			ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
+			hPack.WriteCell(GetClientUserId(client));
+			hPack.WriteCell(true);
 		}
 		else
 		{
@@ -718,7 +709,6 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	Iskilltimer();
 	
 	g_bRoundStarted = false;
-	gbFirstItemPickedUp = false;
 }
 
 //回合开始.
@@ -731,7 +721,7 @@ public Action Timer_BotsUpdate(Handle timer)
 {
 	g_hBotsUpdateTimer = null;
 
-	if(AreAllInGame() == true)
+	if(AreAllInGame())
 		vSpawnCheck();
 	else
 		g_hBotsUpdateTimer = CreateTimer(1.0, Timer_BotsUpdate);
@@ -855,14 +845,14 @@ public Action AddBot(int client, int args)
 {
 	if(bCheckClientAccess(client))
 	{
-		if (TotalSurvivors() < l4d2_GetPlayerCount())
+		if(TotalSurvivors() < l4d2_GetPlayerCount())
 		{
 			vSpawnFakeSurvivorClient();
 			PrintToChat(client, "\x04[提示]\x05添加电脑成功.");
 		}
 		else
 		{
-			if (TotalSurvivors() < g_iLimit)
+			if(TotalSurvivors() < g_iLimit)
 			{
 				vSpawnFakeSurvivorClient();
 				PrintToChat(client, "\x04[提示]\x05添加电脑成功.");
@@ -881,22 +871,11 @@ public Action AddBot(int client, int args)
 int l4d2_GetPlayerCount()
 {
 	int intt = 0;
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i))
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i))
 			intt++;
 	
 	return intt;
-}
-
-public void Event_ItemPickup(Event event, const char[] name, bool dontBroadcast)
-{
-	if(!gbFirstItemPickedUp)
-	{
-		if(g_TimerSpecCheck == INVALID_HANDLE)
-			g_TimerSpecCheck = CreateTimer(15.0, Timer_SpecCheck, _, TIMER_REPEAT);
-		
-		gbFirstItemPickedUp = true;
-	}
 }
 
 public Action Timer_SpecCheck(Handle timer)
@@ -907,20 +886,20 @@ public Action Timer_SpecCheck(Handle timer)
 		return Plugin_Stop;
 	}
 	
-	for (int i = 1; i <= MaxClients; i++)
+	for(int i = 1; i <= MaxClients; i++)
 		if(IsClientConnected(i) && IsClientInGame(i) && !IsFakeClient(i))
 			if(GetClientTeam(i) == TEAM_SPECTATOR && !iGetBotOfIdle(i))
 			{
 				char PlayerName[32];
 				GetClientName(i, PlayerName, sizeof(PlayerName));
-				if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
+				if((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && (iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8)) {
+					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
+				}
+				else {
 					if(!MenuFunc_SpecNext[i])
 						PrintToChat(i, "\x04[提示]\x05点击\x03鼠标右键\x05, 或输入\x03!jg\x05或\x03!join\x05加入幸存者.");
 					else
 						PrintToChat(i, "\x04[提示]\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.");
-				}
-				else if(iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8) {
-					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
 				}
 			}
 		
@@ -953,6 +932,12 @@ public void Event_FinaleVehicleLeaving(Event event, const char[] name, bool dont
 	gbVehicleLeaving = true;
 }
 
+void StartTimers()
+{
+	if(g_TimerSpecCheck == INVALID_HANDLE)
+		g_TimerSpecCheck = CreateTimer(15.0, Timer_SpecCheck, _, TIMER_REPEAT);
+}
+
 void StopTimers()
 {
 	delete g_TimerSpecCheck;
@@ -968,10 +953,9 @@ void BypassAndExecuteCommand(int client, char[] strCommand, char[] strParam1)
 
 int FindBotToTakeOver()
 {
-	for (int i = 1; i <= MaxClients; i++)
-		if(IsClientConnected(i) && IsClientInGame(i))
-				if (IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR && IsAlive(i) && !iHasIdlePlayer(i))
-					return i;
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR && !iHasIdlePlayer(i) && IsAlive(i))
+			return i;
 	return 0;
 }
 
@@ -979,10 +963,10 @@ int FindBotToTakeOver()
 void l4d2_kick_SurvivorBot()
 {
 	//幸存者数量必须大于设置的开局时的幸存者数量.
-	if (TotalSurvivors() > g_iLimit)
-		for (int i =1; i <= MaxClients; i++)
-			if (IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
-				if (!HasIdlePlayer(i))
+	if(TotalSurvivors() > g_iLimit)
+		for(int i =1; i <= MaxClients; i++)
+			if(IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
+				if(!HasIdlePlayer(i))
 				{
 					// StripWeapons(i);
 					KickClient(i, "[提示] 自动踢出多余电脑");
@@ -997,9 +981,9 @@ bool HasIdlePlayer(int bot)
 		char sNetClass[12];
 		GetEntityNetClass(bot, sNetClass, sizeof(sNetClass));
 
-		if( strcmp(sNetClass, "SurvivorBot") == 0 )
+		if(strcmp(sNetClass, "SurvivorBot") == 0)
 		{
-			if( !GetEntProp(bot, Prop_Send, "m_humanSpectatorUserID") )
+			if(!GetEntProp(bot, Prop_Send, "m_humanSpectatorUserID"))
 				return false;
 
 			int client = GetClientOfUserId(GetEntProp(bot, Prop_Send, "m_humanSpectatorUserID"));
@@ -1014,28 +998,28 @@ bool HasIdlePlayer(int bot)
 	return false;
 }
 
+//所有生还者(真人玩家+人机)
 int TotalSurvivors()
 {
-	int intt = 0;
-	for (int i = 1; i <= MaxClients; i++)
-		if(IsClientConnected(i))
-			if(IsClientInGame(i) && (GetClientTeam(i) == TEAM_SURVIVOR))
-				intt++;
-	return intt;
+	int survivors = 0;
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsClientConnected(i) && IsClientInGame(i) && (GetClientTeam(i) == TEAM_SURVIVOR))
+			survivors++;
+	return survivors;
 }
 
+//所有生还者人机
 int TotalFreeBots()
 {
-	int intt = 0;
+	int freeBots = 0;
 	for(int i = 1; i <= MaxClients; i++)
 	{
-		if(!IsValidEntity(i)) continue;
-		if(IsClientConnected(i) && IsClientInGame(i))
-			if(IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
-				if(!iHasIdlePlayer(i))
-					intt++;
+		if(!IsValidEntity(i))
+			continue;
+		if(IsClientConnected(i) && IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR && !iHasIdlePlayer(i))
+			freeBots++;
 	}
-	return intt;
+	return freeBots;
 }
 
 void vSpawnFakeSurvivorClient()
@@ -1222,15 +1206,15 @@ public Action Command_kickbot(int client, int args)
 {
 	if(bCheckClientAccess(client))
 	{
-		switch (g_iKick)
+		switch(g_iKick)
 		{
 			case 0:
 				PrintToChat(client, "\x04[提示]\x05踢出全部电脑幸存者指令已禁用,请在CFG中设为1启用.");
 			case 1:
 			{
-				for (int i = 1; i <= MaxClients; i++)
+				for(int i = 1; i <= MaxClients; i++)
 				{
-					if (IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
+					if(IsClientInGame(i) && IsFakeClient(i) && GetClientTeam(i) == TEAM_SURVIVOR)
 					{
 						StripWeapons(i);
 						KickClient(i, "[提示] 指令踢出所有电脑幸存者");
@@ -1249,7 +1233,7 @@ public Action Command_sset(int client, int args)
 {
 	if(bCheckClientAccess(client))
 	{
-		switch (g_iSset)
+		switch(g_iSset)
 		{
 			case 0:
 				PrintToChat(client, "\x04[提示]\x05设置服务器人数指令已禁用,请在CFG中设为1启用.");
@@ -1317,7 +1301,7 @@ public Action OnClientSayCommand(int client, const char[] commnad, const char[] 
 	if(strlen(args) <= 1 || strncmp(commnad, "say", 3, false) != 0)
 		return Plugin_Continue;
 
-	if (StrEqual(args, "闲置", false) || StrEqual(args, "休息", false))
+	if(StrEqual(args, "闲置", false) || StrEqual(args, "休息", false))
 		RequestFrame(IsFrameGoAwayFromKeyboard, GetClientUserId(client));
 	return Plugin_Continue;
 }
@@ -1330,15 +1314,15 @@ public Action GoAwayFromKeyboard(int client, int args)
 
 void IsFrameGoAwayFromKeyboard(int client)
 {
-	if ((client = GetClientOfUserId(client)))
+	if((client = GetClientOfUserId(client)))
 	{
 		if(IsClientInGame(client) && !IsFakeClient(client))
 		{
-			if (IsPlayerAlive(client) && GetClientTeam(client) == TEAM_SURVIVOR)
+			if(IsPlayerAlive(client) && GetClientTeam(client) == TEAM_SURVIVOR)
 			{
-				if (IsPlayerFallen(client))
+				if(IsPlayerFallen(client))
 					PrintToChat(client,"\x04[提示]\x05倒地时禁止使用休息.");
-				else if (IsPlayerFalling(client))
+				else if(IsPlayerFalling(client))
 					PrintToChat(client,"\x04[提示]\x05挂边时禁止使用休息.");
 				else
 				{
@@ -1361,8 +1345,8 @@ void IsFrameGoAwayFromKeyboard(int client)
 int IsGoAwayFromKeyboard()
 {
 	int count = 0;
-	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientInGame(i) && GetClientTeam(i) == TEAM_SURVIVOR && !IsFakeClient(i))
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsClientInGame(i) && GetClientTeam(i) == TEAM_SURVIVOR && !IsFakeClient(i))
 			count++;
 
 	return count;
@@ -1371,7 +1355,7 @@ int IsGoAwayFromKeyboard()
 void StripWeapons(int client)
 {
 	int itemIdx;
-	for (int x = 0; x <= 4; x++)
+	for(int x = 0; x <= 4; x++)
 	{
 		if((itemIdx = GetPlayerWeaponSlot(client, x)) != -1)
 		{  
@@ -1398,13 +1382,13 @@ int l4d2_gamemode()
 	char gmode[32];
 	GetConVarString(FindConVar("mp_gamemode"), gmode, sizeof(gmode));
 
-	if (StrEqual(gmode, "coop", false) || StrEqual(gmode, "realism", false))
+	if(StrEqual(gmode, "coop", false) || StrEqual(gmode, "realism", false))
 		return 1;
-	else if (StrEqual(gmode, "versus", false) || StrEqual(gmode, "teamversus", false))
+	else if(StrEqual(gmode, "versus", false) || StrEqual(gmode, "teamversus", false))
 		return 2;
-	if (StrEqual(gmode, "survival", false))
+	if(StrEqual(gmode, "survival", false))
 		return 3;
-	if (StrEqual(gmode, "scavenge", false) || StrEqual(gmode, "teamscavenge", false))
+	if(StrEqual(gmode, "scavenge", false) || StrEqual(gmode, "teamscavenge", false))
 		return 4;
 	else
 		return 0;
@@ -1443,7 +1427,7 @@ public int MenuHandler_JoinTeam(Menu menu, MenuAction action, int client, int it
 			GetMenuItem(menu, itemNum, sInfos, sizeof(sInfos));
 			int iParam = StringToInt(sInfos);
 
-			if (iParam == 0 && IsValidClient(client) && !IsFakeClient(client) && GetClientTeam(client) == TEAM_SPECTATOR && !iGetBotOfIdle(client))
+			if(iParam == 0 && IsValidClient(client) && !IsFakeClient(client) && GetClientTeam(client) == TEAM_SPECTATOR && !iGetBotOfIdle(client))
 				JoinTeam_Type(client, false);
 		}
 		case MenuAction_End:
@@ -1456,7 +1440,7 @@ public int MenuHandler_JoinTeam(Menu menu, MenuAction action, int client, int it
 public Action TextMsg(UserMsg msg_id, Handle bf, int[] players, int playersNum, bool reliable, bool init)
 {
 	static char sUserMess[96];
-	if (GetUserMessageType() == UM_Protobuf)
+	if(GetUserMessageType() == UM_Protobuf)
 	{
 		PbReadString(bf, "params", sUserMess, sizeof(sUserMess), 0);
 	}
@@ -1465,7 +1449,7 @@ public Action TextMsg(UserMsg msg_id, Handle bf, int[] players, int playersNum, 
 		BfReadString(bf, sUserMess, sizeof(sUserMess));
 	}
 
-	if (StrContains(sUserMess, "L4D_idle_spectator", false) != -1)
+	if(StrContains(sUserMess, "L4D_idle_spectator", false) != -1)
 	{
 		return Plugin_Handled;
 	}
