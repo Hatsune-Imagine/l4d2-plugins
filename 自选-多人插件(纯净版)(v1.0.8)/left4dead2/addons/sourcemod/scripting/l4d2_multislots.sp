@@ -892,14 +892,14 @@ public Action Timer_SpecCheck(Handle timer)
 			{
 				char PlayerName[32];
 				GetClientName(i, PlayerName, sizeof(PlayerName));
-				if((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && (iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8)) {
-					PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
-				}
-				else {
+				if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
 					if(!MenuFunc_SpecNext[i])
-						PrintToChat(i, "\x04[提示]\x05点击\x03鼠标右键\x05, 或输入\x03!jg\x05或\x03!join\x05加入幸存者.");
+						PrintToChat(i, "\x05点击\x04鼠标右键\x05, 或输入\x04!jg\x05或\x04!join\x05加入幸存者.");
 					else
-						PrintToChat(i, "\x04[提示]\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.");
+						PrintToChat(i, "\x05聊天窗输入\x04!jg\x05或\x04!join\x05加入幸存者.");
+				}
+				else if(iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8) {
+					PrintToChat(i, "\x03%s\x05, 当前比赛有空位, 请按\x04M\x05选择阵营加入.", PlayerName);
 				}
 			}
 		
