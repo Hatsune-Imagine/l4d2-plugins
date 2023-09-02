@@ -466,7 +466,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 	
 	if (client > 0 && !IsFakeClient(client))
 	{
-		if (oldteam == 2 && iTeam != 2)
+		if (oldteam == TEAM_SURVIVOR && iTeam != TEAM_SURVIVOR)
 			RequestFrame(l4d2_kick_SurvivorBot);
 
 		if (g_iTeam != 0 && g_iTeam == 1)
@@ -487,7 +487,7 @@ public void Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
 public Action JoinTeam_Type(int client, int args)
 {
 	if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
-		return Plugin_Continue;
+		return Plugin_Handled;
 
 	if (IsClientInGame(client) && !IsFakeClient(client))
 	{
