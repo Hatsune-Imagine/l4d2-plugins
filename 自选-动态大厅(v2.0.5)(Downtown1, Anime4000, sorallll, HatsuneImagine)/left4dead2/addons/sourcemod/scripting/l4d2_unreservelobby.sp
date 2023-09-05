@@ -6,7 +6,7 @@
 #define PLUGIN_NAME				"L4D 1/2 Remove Lobby Reservation"
 #define PLUGIN_AUTHOR			"Downtown1, Anime4000, sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		"Removes lobby reservation when server is full"
-#define PLUGIN_VERSION			"2.0.4"
+#define PLUGIN_VERSION			"2.0.5"
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
 ConVar
@@ -93,7 +93,16 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	if (IsServerLobbyFull(client))
 		return;
 
+	if (IsServerEmpty(client)) {
+		clearSavedLobbyId();
+		return;
+	}
+
 	reserve();
+}
+
+bool IsServerEmpty(int client) {
+	return GetConnectedPlayer(client) == 0;
 }
 
 bool IsServerLobbyFull(int client) {
@@ -111,7 +120,7 @@ int GetConnectedPlayer(int client) {
 }
 
 void unreserve() {
-	if (!g_sReservation[0] && L4D_LobbyIsReserved())
+	if (L4D_LobbyIsReserved())
 		L4D_GetLobbyReservation(g_sReservation, sizeof g_sReservation);
 
 	L4D_LobbyUnreserve();
@@ -119,10 +128,14 @@ void unreserve() {
 }
 
 void reserve() {
-	if (g_sReservation[0])
+	if (!L4D_LobbyIsReserved() && g_sReservation[0])
 		L4D_SetLobbyReservation(g_sReservation);
 
 	// SetAllowLobby(1);
+}
+
+void clearSavedLobbyId() {
+	g_sReservation = "";
 }
 
 void SetAllowLobby(int value) {
