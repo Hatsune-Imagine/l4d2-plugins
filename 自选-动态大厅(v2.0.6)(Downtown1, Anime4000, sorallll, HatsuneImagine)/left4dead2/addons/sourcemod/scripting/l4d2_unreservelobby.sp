@@ -6,7 +6,7 @@
 #define PLUGIN_NAME				"L4D 1/2 Remove Lobby Reservation"
 #define PLUGIN_AUTHOR			"Downtown1, Anime4000, sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		"Removes lobby reservation when server is full"
-#define PLUGIN_VERSION			"2.0.5"
+#define PLUGIN_VERSION			"2.0.6"
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
 ConVar
@@ -45,6 +45,8 @@ public void OnConfigsExecuted() {
 	
 	if (IsServerLobbyFull(-1))
 		unreserve();
+	else
+		reserve();
 }
 
 Action cmdUnreserve(int client, int args) {
@@ -132,6 +134,7 @@ void reserve() {
 		L4D_SetLobbyReservation(g_sReservation);
 
 	// SetAllowLobby(1);
+	ServerCommand("heartbeat");
 }
 
 void clearSavedLobbyId() {
