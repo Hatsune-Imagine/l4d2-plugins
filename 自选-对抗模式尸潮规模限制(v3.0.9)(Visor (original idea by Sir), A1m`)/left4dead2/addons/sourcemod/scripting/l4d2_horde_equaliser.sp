@@ -104,12 +104,12 @@ public void RoundStartEvent(Event hEvent, const char[] name, bool dontBroadcast)
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if (!L4D_IsVersusMode()) {
-		return;
-	}
-
 	// TO-DO: Find a value that tells wanderers from active event commons?
 	if (strcmp(classname, "infected") == 0 && IsInfiniteHordeActive()) {
+		if (!L4D_IsVersusMode()) {
+			return;
+		}
+
 		// Don't count in boomer hordes, alarm cars and wanderers during a Tank fight
 		if (hCvarNoEventHordeDuringTanks.BoolValue && IsTankUp()) {
 			return;

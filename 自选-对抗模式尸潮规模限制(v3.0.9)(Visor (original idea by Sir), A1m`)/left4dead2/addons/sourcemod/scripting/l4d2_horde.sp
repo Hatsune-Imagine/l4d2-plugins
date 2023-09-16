@@ -85,11 +85,11 @@ public void OnConfigsExecuted()
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if (!L4D_IsVersusMode()) {
-		return;
-	}
-
 	if (strcmp(classname, "infected") == 0) {
+		if (!L4D_IsVersusMode()) {
+			return;
+		}
+
 		if (IsInfiniteHordeActive() && !IsTankUp() && !ArePlayersBiled() && iSurvivorLimit > 1) {
 			SDKHook(entity, SDKHook_SpawnPost, CommonSpawnPost);
 		}
