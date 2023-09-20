@@ -35,8 +35,6 @@ int
 	g_bRoundStartHit,
 	g_bConfigsExecuted;
 
-ConVar g_cvGameMode;
-
 public Plugin myinfo =
 {
 	name = "L4D2 Weapon Rules",
@@ -79,7 +77,6 @@ public void OnMapStart()
 {
 	g_bRoundStartHit = false;
 	g_bConfigsExecuted = false;
-	g_cvGameMode = FindConVar("mp_gamemode");
 }
 
 public void OnConfigsExecuted()
@@ -136,7 +133,7 @@ void AddWeaponRule(int match, int to)
 void WeaponSearchLoop()
 {
 	char sGameMode[32];
-	g_cvGameMode.GetString(sGameMode, sizeof sGameMode);
+	FindConVar("mp_gamemode").GetString(sGameMode, sizeof sGameMode);
 	if (StrContains(sGameMode, "versus") == -1) {
 		return;
 	}
