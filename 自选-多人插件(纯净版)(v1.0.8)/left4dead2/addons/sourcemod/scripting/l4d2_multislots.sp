@@ -670,7 +670,7 @@ public Action iPlayerJoinsSurvivor(Handle timer, any client)
 							DataPack hPack;
 							ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
 							hPack.WriteCell(GetClientUserId(client));
-							hPack.WriteCell(true);
+							hPack.WriteCell(false);
 						}
 					}
 				}
