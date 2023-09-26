@@ -12,7 +12,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.8"
+#define PLUGIN_VERSION	"1.0.9"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -75,9 +75,9 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_jg", JoinTeam_Type, "加入幸存者.");
 	RegConsoleCmd("sm_join", JoinTeam_Type, "加入幸存者.");
 	
-	RegConsoleCmd("sm_addbot", AddBot, "管理员添加电脑幸存者.");
 	RegConsoleCmd("sm_sset", Command_sset, "更改服务器人数.");
-	RegConsoleCmd("sm_kb", Command_kickbot, "踢出所有电脑幸存者.");
+	RegConsoleCmd("sm_ab", Command_addbot, "管理员添加一个电脑幸存者.");
+	RegConsoleCmd("sm_kb", Command_kickbot, "管理员踢出所有电脑幸存者.");
 	
 	g_hSLimit	= FindConVar("survivor_limit");
 	g_hGive0	= CreateConVar("l4d2_multislots_Survivor_spawn0",		"1",	"启用给予玩家武器和物品. 0=禁用, 1=启用.", CVAR_FLAGS);
@@ -670,7 +670,7 @@ public Action iPlayerJoinsSurvivor(Handle timer, any client)
 							DataPack hPack;
 							ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
 							hPack.WriteCell(GetClientUserId(client));
-							hPack.WriteCell(false);
+							hPack.WriteCell(true);
 						}
 					}
 				}
@@ -729,6 +729,9 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 
 public Action Timer_BotsUpdate(Handle timer)
 {
+	if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+		return Plugin_Continue;
+
 	g_hBotsUpdateTimer = null;
 
 	if (AreAllInGame() == true)
@@ -851,7 +854,7 @@ bool bIsValidSurvivorBot(int client)
 	return IsClientInGame(client) && !IsClientInKickQueue(client) && IsFakeClient(client) && GetClientTeam(client) == TEAM_SURVIVOR && !iHasIdlePlayer(client);
 }
 
-public Action AddBot(int client, int args)
+public Action Command_addbot(int client, int args)
 {
 	if (bCheckClientAccess(client))
 	{
@@ -1040,9 +1043,6 @@ int TotalFreeBots()
 
 void vSpawnFakeSurvivorClient()
 {
-	if ((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && iGetTeamPlayers(TEAM_SURVIVOR, true) >= 4)
-		return;
-
 	int client = CreateFakeClient("FakeClient");
 	if (client == 0)
 		return;

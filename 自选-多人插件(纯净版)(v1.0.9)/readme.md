@@ -13,11 +13,12 @@
 但在 “对抗模式” 和 “清道夫模式” 中，不应该引导旁观者使用此方式加入游戏，应使其通过按M的方式选择阵营加入。但是原本的逻辑中包含一个逻辑错误，原本的逻辑为：
 
 ```c
-if(l4d2_gamemode() != 2 || l4d2_gamemode() != 4)
-    if(!MenuFunc_SpecNext[i])
-        PrintToChat(i, "\x04[提示]\x03%s\x04,\x05输入\x03!jg\x05或\x03!join\x05或\x03按鼠标右键\x05加入幸存者.", PlayerName);
-    else
-        PrintToChat(i, "\x04[提示]\x03%s\x04,\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.", PlayerName);
+if (l4d2_gamemode() != 2 || l4d2_gamemode() != 4) {
+    if (!MenuFunc_SpecNext[i])
+        PrintToChat(i, "\x05点击\x04鼠标右键\x05, 或输入\x04!jg\x05或\x04!join\x05加入幸存者.");
+    
+    ......
+}
 ```
 
 
@@ -33,11 +34,12 @@ if(l4d2_gamemode() != 2 || l4d2_gamemode() != 4)
 因此，只需将其改为短路与 && 判断即可修复此bug。
 
 ```c
-if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
-    if(!MenuFunc_SpecNext[i])
-        PrintToChat(i, "\x04[提示]\x03%s\x04,\x05输入\x03!jg\x05或\x03!join\x05或\x03按鼠标右键\x05加入幸存者.", PlayerName);
-    else
-        PrintToChat(i, "\x04[提示]\x03%s\x04,\x05聊天窗输入\x03!jg\x05或\x03!join\x05加入幸存者.", PlayerName);
+if (l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
+    if (!MenuFunc_SpecNext[i])
+        PrintToChat(i, "\x05点击\x04鼠标右键\x05, 或输入\x04!jg\x05或\x04!join\x05加入幸存者.");
+    
+    ......
+}
 ```
 
 
@@ -54,8 +56,8 @@ if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4)
 if(l4d2_gamemode() != 2 && l4d2_gamemode() != 4) {
     ......
 }
-else if(l4d2_GetPlayerCount() <= 8) {
-    PrintToChat(i, "\x04[提示]\x03%s\x05, 当前比赛有空位, 请按\x03 M \x05选择阵营加入.", PlayerName);
+else if (iGetTeamPlayers(TEAM_SURVIVOR, false) + iGetTeamPlayers(TEAM_INFECTED, false) < 8) {
+    PrintToChat(i, "\x05“\x03%s\x05”, 当前比赛有空位, 请按\x04 M \x05选择阵营加入.", PlayerName);
 }
 ```
 
@@ -81,14 +83,14 @@ public Action JoinTeam_Type(int client, int args)
 
 
 
-同时，在 `void vSpawnFakeSurvivorClient()` 方法中，也会根据当前服务器人数，自动添加一个对应的bot玩家。因此也会导致在 “对抗模式” 和 “清道夫模式” 中，出现 4+ 幸存者的情况。此处也修复了此问题。
+同时，在 `Action Timer_BotsUpdate()` 方法中，也会根据当前服务器人数，自动添加一个对应的bot玩家。因此也会导致在 “对抗模式” 和 “清道夫模式” 中，出现 4+ 幸存者的情况。此处也修复了此问题。
 
 ```c
-void vSpawnFakeSurvivorClient()
+public Action Timer_BotsUpdate(Handle timer)
 {
-    if((l4d2_gamemode() == 2 || l4d2_gamemode() == 4) && iGetTeamPlayers(TEAM_SURVIVOR, true) >= 4)
-        return;
-    
+    if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+        return Plugin_Continue;
+
     ......
 }
 ```
