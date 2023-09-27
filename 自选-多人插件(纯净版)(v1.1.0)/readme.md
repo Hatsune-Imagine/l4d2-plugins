@@ -83,10 +83,10 @@ public Action JoinTeam_Type(int client, int args)
 
 
 
-同时，在 `Action Timer_BotsUpdate()` 方法中，也会根据当前服务器人数，自动添加一个对应的bot玩家。因此也会导致在 “对抗模式” 和 “清道夫模式” 中，出现 4+ 幸存者的情况。此处也修复了此问题。
+同时，在 `void vSpawnCheck()` 方法中，也会根据当前服务器人数，自动添加一个对应的bot玩家。因此也会导致在 “对抗模式” 和 “清道夫模式” 中，出现 4+ 幸存者的情况。此处也修复了此问题。
 
 ```c
-public Action Timer_BotsUpdate(Handle timer)
+public Action vSpawnCheck()
 {
     if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
         return Plugin_Continue;

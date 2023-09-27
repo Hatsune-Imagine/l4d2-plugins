@@ -12,7 +12,7 @@
 #define TEAM_INFECTED   3
 #define TEAM_PASSING	4
 
-#define PLUGIN_VERSION	"1.0.9"
+#define PLUGIN_VERSION	"1.1.0"
 #define CVAR_FLAGS		FCVAR_NOTIFY
 
 #define NAME_RoundRespawn "CTerrorPlayer::RoundRespawn"
@@ -527,6 +527,9 @@ public Action CheckClientState(Handle Timer, DataPack hPack)
 	int client = GetClientOfUserId(hPack.ReadCell());
 	bool ClientTakeOverBot = hPack.ReadCell();
 	{
+		if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+			return Plugin_Continue;
+
 		if (!IsClientInGame(client))
 			return Plugin_Continue;
 		
@@ -632,7 +635,7 @@ public void OnClientPostAdminCheck(int client)
 
 	//延迟五秒验证玩家队伍.
 	IsPlayerJoinsVerificationStatus(client);
-		
+
 	if (g_bRoundStarted == true)
 	{
 		delete g_hBotsUpdateTimer;
@@ -662,16 +665,13 @@ public Action iPlayerJoinsSurvivor(Handle timer, any client)
 			{
 				if (!iGetBotOfIdle(client))
 				{
-					if (!iGetBotOfIdle(client))
+					if (ClientTimer_Index[client] == null)
 					{
-						if (ClientTimer_Index[client] == null)
-						{
-							ClientSpawnMaxTimer[client] = 1;
-							DataPack hPack;
-							ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
-							hPack.WriteCell(GetClientUserId(client));
-							hPack.WriteCell(true);
-						}
+						ClientSpawnMaxTimer[client] = 1;
+						DataPack hPack;
+						ClientTimer_Index[client] = CreateDataTimer(1.0, CheckClientState, hPack, TIMER_REPEAT);
+						hPack.WriteCell(GetClientUserId(client));
+						hPack.WriteCell(true);
 					}
 				}
 			}
@@ -729,9 +729,6 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 
 public Action Timer_BotsUpdate(Handle timer)
 {
-	if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
-		return Plugin_Continue;
-
 	g_hBotsUpdateTimer = null;
 
 	if (AreAllInGame() == true)
@@ -755,6 +752,9 @@ bool AreAllInGame()
 
 void vSpawnCheck()
 {
+	if (l4d2_gamemode() == 2 || l4d2_gamemode() == 4)
+		return;
+
 	if (g_bRoundStarted == false)
 		return;
 
