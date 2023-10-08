@@ -6,7 +6,7 @@
 public Plugin myinfo =
 {
 	name = "L4D auto restart",
-	author = "Harry Potter, modified by HatsuneImagine",
+	author = "Harry Potter, HatsuneImagine",
 	description = "make server restart (Force crash) when the last player disconnects from the server",
 	version = "2.7",
 	url	= "https://steamcommunity.com/profiles/76561198026784913"
@@ -46,7 +46,6 @@ public void OnPluginStart()
 	g_hConVarHibernate.AddChangeHook(ConVarChanged_Hibernate);
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
-
 	RegAdminCmd("sm_crash", Cmd_RestartServer, ADMFLAG_BAN, "sm_crash - manually force the server to crash");
 }
 
@@ -99,7 +98,7 @@ public void OnConfigsExecuted()
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(!client || IsFakeClient(client) || (IsClientConnected(client) && !IsClientInGame(client))) return; //連線中尚未進來的玩家離線
+	if(!client || IsFakeClient(client) /*|| (IsClientConnected(client) && !IsClientInGame(client))*/) return;
 	if(client && !CheckPlayerInGame(client)) //檢查是否還有玩家以外的人還在伺服器
 	{
 		g_bNoOneInServer = true;
@@ -148,11 +147,11 @@ Action Timer_RestartServer(Handle timer)
 
 Action Cmd_RestartServer(int client, int args)
 {
-	PrintToChatAll("\x04[提示]\x05正在重启服务器...");
+	ReplyToCommand(client, "正在重启服务器...");
 	SetCommandFlags("crash", GetCommandFlags("crash") &~ FCVAR_CHEAT);
 	ServerCommand("crash");
 
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 
 void UnloadAccelerator()

@@ -11,11 +11,11 @@
 ```c
 Action Cmd_RestartServer(int client, int args)
 {
-	PrintToChatAll("\x04[提示]\x05正在重启服务器...");
+	ReplyToCommand(client, "正在重启服务器...");
 	SetCommandFlags("crash", GetCommandFlags("crash") &~ FCVAR_CHEAT);
 	ServerCommand("crash");
 
-	return Plugin_Handled;
+	return Plugin_Continue;
 }
 ```
 
