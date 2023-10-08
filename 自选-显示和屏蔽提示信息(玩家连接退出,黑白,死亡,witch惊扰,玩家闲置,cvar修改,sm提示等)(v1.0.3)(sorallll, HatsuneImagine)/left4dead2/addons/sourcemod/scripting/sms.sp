@@ -5,9 +5,9 @@
 #include <left4dhooks>
 
 #define PLUGIN_NAME				"Server Message System"
-#define PLUGIN_AUTHOR			"sorallll"
+#define PLUGIN_AUTHOR			"sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		""
-#define PLUGIN_VERSION			"1.0.2"
+#define PLUGIN_VERSION			"1.0.3"
 #define PLUGIN_URL				""
 
 /*****************************************************************************************************/
@@ -152,6 +152,7 @@ stock void CSayText2(int client, int author, const char[] szMessage) {
 ConVar
 	g_cvBlackWhite,
 	g_cvConnected,
+	g_cvConnectedSound,
 	g_cvPlayerDeath,
 	g_cvWitchstartled,
 	g_cvGameIdle,
@@ -166,6 +167,7 @@ bool
 	g_bLateLoad,
 	g_bBlackWhite,
 	g_bConnected,
+	g_bConnectedSound,
 	g_bPlayerDeath,
 	g_bWitchstartled,
 	g_bGameIdle,
@@ -220,6 +222,7 @@ public void OnPluginStart() {
 
 	g_cvBlackWhite =		CreateConVar("sms_bw_notify",						"1",	"黑白提示.");
 	g_cvConnected =			CreateConVar("sms_connected_notify",				"1",	"连接退出提示.");
+	g_cvConnectedSound =	CreateConVar("sms_connected_sound",					"1",	"连接退出声音.");
 	g_cvPlayerDeath =		CreateConVar("sms_playerdeath_notify",				"1",	"死亡提示.");
 	g_cvWitchstartled =		CreateConVar("sms_witchstartled_notify",			"1",	"Witch惊扰提示.");
 	g_cvGameIdle =			CreateConVar("sms_game_idle_notify_block",			"1",	"屏蔽游戏自带的玩家闲置提示.");
@@ -238,6 +241,7 @@ public void OnPluginStart() {
 
 	g_cvBlackWhite.AddChangeHook(CvarChanged);
 	g_cvConnected.AddChangeHook(CvarChanged);
+	g_cvConnectedSound.AddChangeHook(CvarChanged);
 	g_cvPlayerDeath.AddChangeHook(CvarChanged);
 	g_cvWitchstartled.AddChangeHook(CvarChanged);
 	g_cvGameIdle.AddChangeHook(CvarChanged);
@@ -264,6 +268,7 @@ void CvarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
 void GetCvars() {
 	g_bBlackWhite =		g_cvBlackWhite.BoolValue;
 	g_bConnected =		g_cvConnected.BoolValue;
+	g_bConnectedSound =	g_cvConnectedSound.BoolValue;
 	g_bPlayerDeath =	g_cvPlayerDeath.BoolValue;
 	g_bWitchstartled =	g_cvWitchstartled.BoolValue;
 	g_bGameIdle =		g_cvGameIdle.BoolValue;
@@ -377,7 +382,9 @@ void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
 	if (++players < 2)
 		return;
 
-	PlaySound(SOUND_CONNECT);
+	if (g_bConnectedSound)
+		PlaySound(SOUND_CONNECT);
+
 	char _name[MAX_NAME_LENGTH];
 	event.GetString("name", _name, sizeof _name);
 	CPrintToChatAll("{blue}%s {default}正在连接.{olive}(%d/%d)", _name, players, maxplayers);
@@ -410,7 +417,9 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	event.GetString("name", _name, sizeof _name);
 	event.GetString("reason", reason, sizeof reason);
 
-	PlaySound(SOUND_DISCONNECT);
+	if (g_bConnectedSound)
+		PlaySound(SOUND_DISCONNECT);
+
 	CPrintToChatAll("{blue}%s {default}离开游戏{default}({green}%s{default}).{olive}(%d/%d)", _name, reason, players, maxplayers);
 }
 
