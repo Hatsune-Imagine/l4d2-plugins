@@ -82,10 +82,10 @@ public OnPluginStart()
 	hCvarValveSurvivalBonus = FindConVar("vs_survival_bonus");
 	hCvarValveTieBreaker = FindConVar("vs_tiebreak_bonus");
 
-	// HookConVarChange(hCvarBonusPerSurvivorMultiplier, CvarChanged);
-	// HookConVarChange(hCvarPermanentHealthProportion, CvarChanged);
+	HookConVarChange(hCvarBonusPerSurvivorMultiplier, CvarChanged);
+	HookConVarChange(hCvarPermanentHealthProportion, CvarChanged);
 
-	HookEvent("player_left_start_area", OnPlayerLeftStartArea, EventHookMode_PostNoCopy);
+	HookEvent("round_start", RoundStartEvent, EventHookMode_PostNoCopy);
 	HookEvent("player_ledge_grab", OnPlayerLedgeGrab);
 	HookEvent("player_incapacitated", OnPlayerIncapped);
 	HookEvent("player_hurt", OnPlayerHurt);
@@ -114,22 +114,22 @@ public OnPluginEnd()
 	ResetConVar(hCvarValveTieBreaker);
 }
 
-// public OnMapStart()
-// {
-// 	CalculateBonus();
+public OnMapStart()
+{
+	CalculateBonus();
 
-// 	iLostTempHealth[0] = 0;
-// 	iLostTempHealth[1] = 0;
-// 	iSiDamage[0] = 0;
-// 	iSiDamage[1] = 0;
-// 	bTiebreakerEligibility[0] = false;
-// 	bTiebreakerEligibility[1] = false;
-// }
+	iLostTempHealth[0] = 0;
+	iLostTempHealth[1] = 0;
+	iSiDamage[0] = 0;
+	iSiDamage[1] = 0;
+	bTiebreakerEligibility[0] = false;
+	bTiebreakerEligibility[1] = false;
+}
 
-// public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
-// {
-// 	CalculateBonus();
-// }
+public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
+{
+	CalculateBonus();
+}
 
 public OnClientPutInServer(client)
 {
@@ -141,6 +141,15 @@ public OnClientDisconnect(client)
 {
 	SDKUnhook(client, SDKHook_OnTakeDamage, OnTakeDamage);
 	SDKUnhook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
+}
+
+public void RoundStartEvent(Event hEvent, const char[] sEventName, bool bDontBroadcast)
+{
+	for (new i = 0; i <= MAXPLAYERS; i++)
+	{
+		iTempHealth[i] = 0;
+	}
+	bRoundOver = false;
 }
 
 public void CalculateBonus()
@@ -163,24 +172,6 @@ public void CalculateBonus()
 #if SM2_DEBUG
 	PrintToChatAll("\x01Map health bonus: \x05%.1f\x01, temp health bonus: \x05%.1f\x01, perm hp worth: \x03%.1f\x01, temp hp worth: \x03%.1f\x01, pill worth: \x03%i\x01", fMapBonus, fMapTempHealthBonus, fPermHpWorth, fTempHpWorth, iPillWorth);
 #endif
-}
-
-public void OnPlayerLeftStartArea(Event hEvent, const char[] sEventName, bool bDontBroadcast)
-{
-	CalculateBonus();
-
-	iLostTempHealth[0] = 0;
-	iLostTempHealth[1] = 0;
-	iSiDamage[0] = 0;
-	iSiDamage[1] = 0;
-	bTiebreakerEligibility[0] = false;
-	bTiebreakerEligibility[1] = false;
-	
-	for (new i = 0; i <= MAXPLAYERS; i++)
-	{
-		iTempHealth[i] = 0;
-	}
-	bRoundOver = false;
 }
 
 public Native_GetHealthBonus(Handle:plugin, numParams)
