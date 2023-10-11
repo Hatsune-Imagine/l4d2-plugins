@@ -114,21 +114,52 @@ public OnPluginEnd()
 	ResetConVar(hCvarValveTieBreaker);
 }
 
+void InitBonus()
+{
+	iTeamSize = GetConVarInt(FindConVar("survivor_limit"));
+	SetConVarInt(hCvarValveTieBreaker, 0);
+
+	iMapDistance = L4D2_GetMapValueInt("max_distance", L4D_GetVersusMaxCompletionScore());
+	L4D_SetVersusMaxCompletionScore(iMapDistance);
+
+	new Float:fPermHealthProportion = GetConVarFloat(hCvarPermanentHealthProportion);
+	new Float:fTempHealthProportion = 1.0 - fPermHealthProportion;
+	fMapBonus = iMapDistance * (GetConVarFloat(hCvarBonusPerSurvivorMultiplier) * iTeamSize);
+	fMapHealthBonus = fMapBonus * fPermHealthProportion;
+	fMapDamageBonus = fMapBonus * fTempHealthProportion;
+	fMapTempHealthBonus = iTeamSize * 100/* HP */ / fPermHealthProportion * fTempHealthProportion;
+	fPermHpWorth = fMapBonus / iTeamSize / 100 * fPermHealthProportion;
+	fTempHpWorth = fMapBonus * fTempHealthProportion / fMapTempHealthBonus; // this should be almost equal to the perm hp worth, but for accuracy we'll keep it separate
+	iPillWorth = L4D2Util_Clamp(RoundToNearest(50 * (fPermHpWorth / GetConVarFloat(hCvarPillsHpFactor)) / 5) * 5, 5, GetConVarInt(hCvarPillsMaxBonus)); // make it pretty
+#if SM2_DEBUG
+	PrintToChatAll("\x01Map health bonus: \x05%.1f\x01, temp health bonus: \x05%.1f\x01, perm hp worth: \x03%.1f\x01, temp hp worth: \x03%.1f\x01, pill worth: \x03%i\x01", fMapBonus, fMapTempHealthBonus, fPermHpWorth, fTempHpWorth, iPillWorth);
+#endif
+}
+
+Action Timer_InitBonus(Handle timer, bool reset)
+{
+	InitBonus();
+
+	if (reset) {
+		iLostTempHealth[0] = 0;
+		iLostTempHealth[1] = 0;
+		iSiDamage[0] = 0;
+		iSiDamage[1] = 0;
+		bTiebreakerEligibility[0] = false;
+		bTiebreakerEligibility[1] = false;
+	}
+
+	return Plugin_Continue;
+}
+
 public OnMapStart()
 {
-	CalculateBonus();
-
-	iLostTempHealth[0] = 0;
-	iLostTempHealth[1] = 0;
-	iSiDamage[0] = 0;
-	iSiDamage[1] = 0;
-	bTiebreakerEligibility[0] = false;
-	bTiebreakerEligibility[1] = false;
+	CreateTimer(5.0, Timer_InitBonus, true);
 }
 
 public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
 {
-	CalculateBonus();
+	CreateTimer(5.0, Timer_InitBonus, false);
 }
 
 public OnClientPutInServer(client)
@@ -150,28 +181,6 @@ public void RoundStartEvent(Event hEvent, const char[] sEventName, bool bDontBro
 		iTempHealth[i] = 0;
 	}
 	bRoundOver = false;
-}
-
-public void CalculateBonus()
-{
-	iTeamSize = GetConVarInt(FindConVar("survivor_limit"));
-	SetConVarInt(hCvarValveTieBreaker, 0);
-
-	iMapDistance = L4D2_GetMapValueInt("max_distance", L4D_GetVersusMaxCompletionScore());
-	L4D_SetVersusMaxCompletionScore(iMapDistance);
-
-	new Float:fPermHealthProportion = GetConVarFloat(hCvarPermanentHealthProportion);
-	new Float:fTempHealthProportion = 1.0 - fPermHealthProportion;
-	fMapBonus = iMapDistance * (GetConVarFloat(hCvarBonusPerSurvivorMultiplier) * iTeamSize);
-	fMapHealthBonus = fMapBonus * fPermHealthProportion;
-	fMapDamageBonus = fMapBonus * fTempHealthProportion;
-	fMapTempHealthBonus = iTeamSize * 100/* HP */ / fPermHealthProportion * fTempHealthProportion;
-	fPermHpWorth = fMapBonus / iTeamSize / 100 * fPermHealthProportion;
-	fTempHpWorth = fMapBonus * fTempHealthProportion / fMapTempHealthBonus; // this should be almost equal to the perm hp worth, but for accuracy we'll keep it separate
-	iPillWorth = L4D2Util_Clamp(RoundToNearest(50 * (fPermHpWorth / GetConVarFloat(hCvarPillsHpFactor)) / 5) * 5, 5, GetConVarInt(hCvarPillsMaxBonus)); // make it pretty
-#if SM2_DEBUG
-	PrintToChatAll("\x01Map health bonus: \x05%.1f\x01, temp health bonus: \x05%.1f\x01, perm hp worth: \x03%.1f\x01, temp hp worth: \x03%.1f\x01, pill worth: \x03%i\x01", fMapBonus, fMapTempHealthBonus, fPermHpWorth, fTempHpWorth, iPillWorth);
-#endif
 }
 
 public Native_GetHealthBonus(Handle:plugin, numParams)

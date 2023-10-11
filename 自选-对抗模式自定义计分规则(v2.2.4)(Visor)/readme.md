@@ -8,43 +8,42 @@
 
 修复了Left4DHooks更新后，要求 `L4D_GetVersusMaxCompletionScore()` 方法必须在 `OnMapStart()` 方法被调用后才可调用，否则报错。
 
-将调用了 `L4D_GetVersusMaxCompletionScore()` 方法的逻辑放至 `player_left_start_area` 事件所绑定的方法中。从而可保证 `L4D_GetVersusMaxCompletionScore()` 方法一定会在 `OnMapStart()` 方法之后才会被执行。
+将调用 `L4D_GetVersusMaxCompletionScore()` 方法的逻辑指定在 `OnMapStart()` 方法执行5秒后再执行。从而可保证 `L4D_GetVersusMaxCompletionScore()` 方法一定会在 `OnMapStart()` 方法之后才会被执行。
 
 ```c
-public OnPluginStart()
-{
-    ......
-
-    HookEvent("player_left_start_area", OnPlayerLeftStartArea, EventHookMode_PostNoCopy);
-    
-    ......
-}
-
-public void OnPlayerLeftStartArea(Event hEvent, const char[] sEventName, bool bDontBroadcast)
-{
-    CalculateBonus();
-
-    iLostTempHealth[0] = 0;
-    iLostTempHealth[1] = 0;
-    iSiDamage[0] = 0;
-    iSiDamage[1] = 0;
-    bTiebreakerEligibility[0] = false;
-    bTiebreakerEligibility[1] = false;
-    
-    for (new i = 0; i <= MAXPLAYERS; i++)
-    {
-        iTempHealth[i] = 0;
-    }
-    bRoundOver = false;
-}
-
-public void CalculateBonus()
+void InitBonus()
 {
     ......
 
     iMapDistance = L4D2_GetMapValueInt("max_distance", L4D_GetVersusMaxCompletionScore());
     
     ......
+}
+
+Action Timer_InitBonus(Handle timer, bool reset)
+{
+    InitBonus();
+
+    if (reset) {
+        iLostTempHealth[0] = 0;
+        iLostTempHealth[1] = 0;
+        iSiDamage[0] = 0;
+        iSiDamage[1] = 0;
+        bTiebreakerEligibility[0] = false;
+        bTiebreakerEligibility[1] = false;
+    }
+
+    return Plugin_Continue;
+}
+
+public OnMapStart()
+{
+    CreateTimer(5.0, Timer_InitBonus, true);
+}
+
+public CvarChanged(Handle:convar, const String:oldValue[], const String:newValue[])
+{
+    CreateTimer(5.0, Timer_InitBonus, false);
 }
 ```
 
