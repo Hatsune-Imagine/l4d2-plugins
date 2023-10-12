@@ -115,12 +115,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 			return;
 		}
 		
-		// Our job here is done
-		if (commonTotal >= commonLimit) {
-			if (!announcedEventEnd) {
-				CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
-				announcedEventEnd = true;
-			}
+		if (announcedEventEnd) {
 			return;
 		}
 		
@@ -133,8 +128,16 @@ public void OnEntityCreated(int entity, const char[] classname)
 			}
 			
 			int remaining = commonLimit - commonTotal;
-			if (remaining != 0) {
+			if (remaining > 0) {
 				CPrintToChatAll("<{olive}Horde{default}> {red}%i {default}common remaining..", remaining);
+			}
+			else {
+				// Our job here is done
+				if (!announcedEventEnd) {
+					CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
+					announcedEventEnd = true;
+				}
+				return;
 			}
 			
 			checkpointAnnounced[lastCheckpoint] = true;
