@@ -20,13 +20,15 @@ public void OnMapStart() {
         PluginEnable();
     else
         PluginDisable();
-    
 }
 
 void PluginEnable() {
     if (!bHooked) {
         HookEvent("player_incapacitated", PlayerIncap_Event);
         HookEvent("revive_success", ReviveSuccess_Event);
+        HookEvent("round_start", RoundStart_Event);
+        HookEvent("bot_player_replace", Replaced_Event);
+        HookEvent("player_bot_replace", Replaced_Event);
 
         bHooked = true;
     }
@@ -36,6 +38,9 @@ void PluginDisable() {
     if (bHooked) {
         UnhookEvent("player_incapacitated", PlayerIncap_Event);
         UnhookEvent("revive_success", ReviveSuccess_Event);
+        UnhookEvent("round_start", RoundStart_Event);
+        UnhookEvent("bot_player_replace", Replaced_Event);
+        UnhookEvent("player_bot_replace", Replaced_Event);
 
         bHooked = false;
     }

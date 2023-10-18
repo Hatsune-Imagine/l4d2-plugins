@@ -115,7 +115,11 @@ public void OnEntityCreated(int entity, const char[] classname)
 			return;
 		}
 		
-		if (announcedEventEnd) {
+		if (commonLimit < HORDE_MIN_SIZE_AUDIAL_FEEDBACK) {
+			return;
+		}
+
+		if (announcedEventEnd){
 			return;
 		}
 		
@@ -123,21 +127,15 @@ public void OnEntityCreated(int entity, const char[] classname)
 		if (hCvarHordeCheckpointAnnounce.BoolValue && 
 			(commonTotal >= ((lastCheckpoint + 1) * RoundFloat(float(commonLimit / MAX_CHECKPOINTS))))
 		) {
-			if (commonLimit >= HORDE_MIN_SIZE_AUDIAL_FEEDBACK) {
-				EmitSoundToAll(HORDE_SOUND);
-			}
-			
 			int remaining = commonLimit - commonTotal;
 			if (remaining > 0) {
+				EmitSoundToAll(HORDE_SOUND);
 				CPrintToChatAll("<{olive}Horde{default}> {red}%i {default}common remaining..", remaining);
 			}
 			else {
 				// Our job here is done
-				if (!announcedEventEnd) {
-					CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
-					announcedEventEnd = true;
-				}
-				return;
+				CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
+				announcedEventEnd = true;
 			}
 			
 			checkpointAnnounced[lastCheckpoint] = true;
