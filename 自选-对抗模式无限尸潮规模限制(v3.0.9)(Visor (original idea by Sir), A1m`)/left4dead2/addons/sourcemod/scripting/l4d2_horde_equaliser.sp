@@ -104,10 +104,6 @@ public void RoundStartEvent(Event hEvent, const char[] name, bool dontBroadcast)
 
 public void OnEntityCreated(int entity, const char[] classname)
 {
-	if (!L4D_IsVersusMode()) {
-		return;
-	}
-
 	// TO-DO: Find a value that tells wanderers from active event commons?
 	if (strcmp(classname, "infected") == 0 && IsInfiniteHordeActive()) {
 		// Don't count in boomer hordes, alarm cars and wanderers during a Tank fight
@@ -115,11 +111,12 @@ public void OnEntityCreated(int entity, const char[] classname)
 			return;
 		}
 		
-		if (commonLimit < HORDE_MIN_SIZE_AUDIAL_FEEDBACK) {
-			return;
-		}
-
-		if (announcedEventEnd){
+		// Our job here is done
+		if (commonTotal >= commonLimit) {
+			if (!announcedEventEnd){
+				CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
+				announcedEventEnd = true;
+			}
 			return;
 		}
 		
@@ -127,15 +124,13 @@ public void OnEntityCreated(int entity, const char[] classname)
 		if (hCvarHordeCheckpointAnnounce.BoolValue && 
 			(commonTotal >= ((lastCheckpoint + 1) * RoundFloat(float(commonLimit / MAX_CHECKPOINTS))))
 		) {
-			int remaining = commonLimit - commonTotal;
-			if (remaining > 0) {
+			if (commonLimit >= HORDE_MIN_SIZE_AUDIAL_FEEDBACK) {
 				EmitSoundToAll(HORDE_SOUND);
-				CPrintToChatAll("<{olive}Horde{default}> {red}%i {default}common remaining..", remaining);
 			}
-			else {
-				// Our job here is done
-				CPrintToChatAll("<{olive}Horde{default}> {red}No {default}common remaining!");
-				announcedEventEnd = true;
+			
+			int remaining = commonLimit - commonTotal;
+			if (remaining != 0) {
+				CPrintToChatAll("<{olive}Horde{default}> {red}%i {default}common remaining..", remaining);
 			}
 			
 			checkpointAnnounced[lastCheckpoint] = true;
@@ -146,10 +141,6 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 public Action L4D_OnSpawnMob(int &amount)
 {
-	if (!L4D_IsVersusMode()) {
-		return Plugin_Continue;
-	}
-
 	/////////////////////////////////////
 	// - Called on Event Hordes.
 	// - Called on Panic Event Hordes.
