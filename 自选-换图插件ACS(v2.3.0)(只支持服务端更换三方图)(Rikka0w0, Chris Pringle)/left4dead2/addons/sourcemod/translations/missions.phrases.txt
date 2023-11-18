@@ -1,0 +1,59 @@
+"Phrases" 
+{
+	"#L4D360UI_CampaignName_C1"
+	{
+		"en" "Dead Center"
+	}
+	"#L4D360UI_CampaignName_C2"
+	{
+		"en" "Dark Carnival"
+	}
+	"#L4D360UI_CampaignName_C3"
+	{
+		"en" "Swamp Fever"
+	}
+	"#L4D360UI_CampaignName_C4"
+	{
+		"en" "Hard Rain"
+	}
+	"#L4D360UI_CampaignName_C5"
+	{
+		"en" "The Parish"
+	}
+	"#L4D360UI_CampaignName_C6"
+	{
+		"en" "The Passing"
+	}
+	"#L4D360UI_CampaignName_C7"
+	{
+		"en" "The Sacrifice"
+	}
+	"#L4D360UI_CampaignName_C8"
+	{
+		"en" "No Mercy"
+	}
+	"#L4D360UI_CampaignName_C9"
+	{
+		"en" "Crash Course"
+	}
+	"#L4D360UI_CampaignName_C10"
+	{
+		"en" "Death Toll"
+	}
+	"#L4D360UI_CampaignName_C11"
+	{
+		"en" "Dead Air"
+	}
+	"#L4D360UI_CampaignName_C12"
+	{
+		"en" "Blood Harvest"
+	}
+	"#L4D360UI_CampaignName_C13"
+	{
+		"en" "Cold Stream"
+	}
+	"#L4D360UI_CampaignName_C14"
+	{
+		"en" "The Last Stand"
+	}
+}
