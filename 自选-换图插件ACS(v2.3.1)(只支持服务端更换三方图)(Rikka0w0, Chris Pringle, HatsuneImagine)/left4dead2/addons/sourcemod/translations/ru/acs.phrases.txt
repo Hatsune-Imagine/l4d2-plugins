@@ -1,0 +1,111 @@
+﻿"Phrases"
+{
+	"Change map advertise"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Введите {1} в чате, чтобы начать голосование за следующую кампанию."
+	}
+	"Map vote advertise"
+	{
+		"#format"		"{1:s},{2:s}"
+		"ru"			"Чтобы проголосовать за следующую карту, напишите: {1}. Чтобы увидеть все голоса, напишите: {2}."
+	}	
+	
+	"Choose a Map"
+	{
+		"ru"			"Выберите следующую карту"
+	}
+	"Choose a Mission"
+	{
+		"ru"			"Выберите следующую кампанию"
+	}
+	"I dont care"
+	{
+		"ru"			"Мне всё равно"
+	}
+	"All maps"
+	{
+		"ru"			"Все карты"
+	}
+	
+	"Campaign finished"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Кампания {1} завершена."
+	}
+	"Switching campaign to"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Переключение кампании на {1}."
+	}
+	"Switching map to"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Переключение карты на {1}."
+	}	
+	"Switching to the vote winner"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Переход к победителю голосования: {1}."
+	}
+	
+	"Map is now winning the vote"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Карта {1} сейчас выигрывает голосование."
+	}
+	"Mission is now winning the vote"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Кампания {1} сейчас выигрывает голосование."
+	}
+	"No one has voted yet"
+	{
+		"ru"			"Никто ещё не проголосовал."
+	}
+	"Voting is disable"
+	{
+		"ru"			"Голосование на этом сервере отключено."
+	}
+	"Voting is not available"
+	{
+		"ru"			"Голосование возможно только в режиме «Сбор» или финальной карте."
+	}
+	"Votes"
+	{
+		"ru"			"голосов"
+	}
+	"You did not vote"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Вы не голосовали. Чтобы проголосовать, напишите: {1}."
+	}
+	"You voted for"
+	{
+		"#format"		"{1:s},{2:s},{3:s}"
+		"ru"			"Вы голосовали за {1}. Чтобы изменить свой голос, напишите: {2}. Чтобы увидеть все голоса, напишите: {3}"
+	}
+	
+	
+	"The next map is currently"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Следующая карта сейчас: {1}."
+	}
+	"The next campaign is currently"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Следующая кампания сейчас: {1}."
+	}
+
+	"The next map will be one of"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Следующая карта будет одной из: {1}."
+	}
+	"The next campaign will be one of"
+	{
+		"#format"		"{1:s}"
+		"ru"			"Следующая кампания будет одной из: {1}."
+	}
+}

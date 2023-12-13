@@ -1,0 +1,23 @@
+"Phrases"
+{
+	"Switch Map/Mission"
+	{
+		"ru"		"Сменить карту/миссию"
+	}
+	
+	"All maps"
+	{
+		"ru"		"Все карты"
+	}
+	
+	"Choose a Map"
+	{
+		"ru"		"Выберите карту"
+	}
+	
+	"Admin is forcing a map change"
+	{
+		"#format"		"{1:s}"
+		"ru"		"Администратор меняет карту на {1}"
+	}
+}

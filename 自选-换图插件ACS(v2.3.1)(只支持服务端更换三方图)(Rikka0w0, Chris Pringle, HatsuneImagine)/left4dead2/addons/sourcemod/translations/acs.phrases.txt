@@ -8,7 +8,7 @@
 	"Map vote advertise"
 	{
 		"#format"		"{1:s},{2:s}"
-		"en"			"To vote for the next map, type: {1}\n           To see all the votes, type: {2}"
+		"en"			"To vote for the next map, type: {1}. To see all the votes, type: {2}."
 	}	
 	
 	"Choose a Map"
@@ -29,7 +29,7 @@
 	"Campaign finished"
 	{
 		"#format"		"{1:s}"
-		"en"			"Campaign {1} finished"
+		"en"			"Campaign {1} finished."
 	}
 	"Switching campaign to"
 	{
@@ -50,32 +50,38 @@
 	"Map is now winning the vote"
 	{
 		"#format"		"{1:s}"
-		"en"			"Map {1} is now winning the vote"
+		"en"			"Map {1} is now winning the vote."
 	}
 	"Mission is now winning the vote"
 	{
 		"#format"		"{1:s}"
-		"en"			"Campaign {1} is now winning the vote"
+		"en"			"Campaign {1} is now winning the vote."
 	}
-	"No one has voted yet" {
+	"No one has voted yet"
+	{
 		"en"			"No one has voted yet."
 	}
-	"Voting is disable" {
+	"Voting is disable"
+	{
 		"en"			"Voting has been disabled on this server."
 	}
-	"Voting is not available" {
+	"Voting is not available"
+	{
 		"en"			"Voting is only enabled on a Scavenge or finale map."
 	}
-	"Votes" {
+	"Votes"
+	{
 		"en"			"votes"
 	}
-	"You did not vote" {
+	"You did not vote"
+	{
 		"#format"		"{1:s}"
-		"en"			"You did not vote.\nTo vote, type: {1}"
+		"en"			"You did not vote. To vote, type: {1}."
 	}
-	"You voted for" {
+	"You voted for"
+	{
 		"#format"		"{1:s},{2:s},{3:s}"
-		"en"			"You voted for {1}.\n- To change your vote, type: {2}\n- To see all the votes, type: {3}"	
+		"en"			"You voted for {1}. To change your vote, type: {2}. To see all the votes, type: {3}."
 	}
 	
 	

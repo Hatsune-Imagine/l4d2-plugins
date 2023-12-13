@@ -83,7 +83,7 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define PLUGIN_VERSION	"v2.3.0"
+#define PLUGIN_VERSION	"v2.3.1"
 
 //Define the wait time after round before changing to the next map in each game mode
 #define WAIT_TIME_BEFORE_SWITCH_COOP			5.0
@@ -98,7 +98,7 @@
 #define GAMEMODE_SCAVENGE 	LMM_GAMEMODE_SCAVENGE
 #define GAMEMODE_SURVIVAL 	LMM_GAMEMODE_SURVIVAL
 
-#define DISPLAY_MODE_DISABLED		0
+#define DISPLAY_MODE_DISABLED	0
 #define DISPLAY_MODE_HINT		1
 #define DISPLAY_MODE_CHAT		2
 #define DISPLAY_MODE_MENU		3
@@ -112,9 +112,6 @@ LMM_GAMEMODE g_iGameMode;			//Integer to store the gamemode
 int g_iRoundEndCounter;				//Round end event counter for versus
 int g_iCoopFinaleFailureCount;		//Number of times the Survivors have lost the current finale
 bool g_bFinaleWon;				//Indicates whether a finale has be beaten or not
-
-int l4d2_AllowedDie;
-int hCVar_VotingAdDelayfrequency;
 
 //Voting Variables					
 bool g_bClientShownVoteAd[MAXPLAYERS + 1];				//If the client has seen the ad already
@@ -132,7 +129,6 @@ ConVar g_hCVar_VotingEnabled;			//Tells if the voting system is on
 ConVar g_hCVar_VoteWinnerSoundEnabled;	//Sound plays when vote winner changes
 ConVar g_hCVar_VotingAdMode;			//The way to advertise the voting system
 ConVar g_hCVar_VotingAdDelayTime;		//Time to wait before showing advertising
-ConVar g_hCVar_VotingAdDelayfrequency;		//
 ConVar g_hCVar_NextMapMenuOptions;		// Controls what maps will be shown in the next maps menu
 ConVar g_hCVar_NextMapMenuExcludes;		// Excludes certain maps from the next maps menu
 ConVar g_hCVar_NextMapMenuOrder;		// Controls the order of maps shown in the next maps menu
@@ -143,7 +139,6 @@ ConVar g_hCVar_ChMapBroadcastInterval;	//The interval for advertising "!chmap"
 ConVar g_hCVar_ChMapPolicy;				//The behavior of "!chmap" 
 ConVar g_hCVar_PreventEmptyServer;		//If enabled, the server automatically switch to the first available official map when no one is playing a 3-rd map
 
-Handle g_hTimer_DisplayVoteAdToAll;
 Handle g_hTimer_ChMapBroadcast;
 Handle g_hTimer_CheckEmpty;
 
@@ -173,6 +168,10 @@ public void OnLibraryRemoved(const char[] sName)
 		g_bMapChanger = false;
 	}
 }
+
+
+
+
 
 /*=========================================================
 #########       Mission Cycle Data Storage        #########
@@ -383,7 +382,7 @@ void LoadMissionList(LMM_GAMEMODE gamemode) {
 
 			// Ignore comments
 		} else {
-			int numOfStrings = ExplodeString(buffer, ",", buffer_split, LEN_CFG_LINE, LEN_CFG_SEGMENT);
+			int numOfStrings = ExplodeString(buffer, ";", buffer_split, LEN_CFG_LINE, LEN_CFG_SEGMENT);
 			TrimString(buffer_split[0]);	// Mission name
 			if (numOfStrings > 1) {
 				// For future use
@@ -392,12 +391,9 @@ void LoadMissionList(LMM_GAMEMODE gamemode) {
 			int iMission = LMM_FindMissionIndexByName(gamemode, buffer_split[0]);
 			if (iMission >= 0) {	// The mission is valid
 				missionIndexList.Push(iMission);
-			} 
-			/*else 
-			{
-				LogError("Mission \"%s\" (Gamemode: %s) is not in the mission cache or no longer exists!\n", buffer_split[0], gamemodeName);
+			} else {
+				LogMessage("Mission \"%s\" (Gamemode: %s) is not in the mission cache or no longer exists!\n", buffer_split[0], gamemodeName);
 			}
-			*/
 		}
 	}
 	delete missionCycleFile;
@@ -483,12 +479,9 @@ bool LoadCustomCoopFinaleList() {
 		int iMap = LMM_FindMapIndexByName(LMM_GAMEMODE_COOP, missionIndex, buffer);
 		if (iMap > -1) {
 			g_hStr_MyCoopFinales.PushString(buffer);
-		} 
-		/*else 
-		{
+		} else {
 			LogError("Map \"%s\" (From finale.coop.txt) is invalid!\n", buffer);
 		}
-		*/
 	}
 	delete finaleListFile;
 
@@ -649,7 +642,7 @@ public int MissionChooserMenuHandler(Menu menu, MenuAction action, int client, i
 				// Browse map list
 			} else {
 				if (IsVoteInProgress()) {
-					ReplyToCommand(client, "\x04[提示]\x05%t", "Vote in Progress");
+					ReplyToCommand(client, "\x03[ACS]\x04 %t", "Vote in Progress");
 					return 0;
 				}
 			
@@ -734,14 +727,14 @@ public int MapChooserMenuHandler(Menu menu, MenuAction action, int client, int i
 		if (item == MenuCancel_ExitBack) {
 			// Open main menu
 			menu.GetItem(0, menuInfo, sizeof(menuInfo));
-			ExplodeString(menuInfo, ",", buffer_split, 3, MMC_ITEM_LEN_NAME);
+			ExplodeString(menuInfo, ";", buffer_split, 3, MMC_ITEM_LEN_NAME);
 			bool isVote = StringToInt(buffer_split[0]) == 1;
 			int prevLevelMenuPage = StringToInt(buffer_split[1]);
 			ShowMissionChooser(client, true, isVote, prevLevelMenuPage);
 		}
 	} else if (action == MenuAction_DisplayItem) {
 		menu.GetItem(item, menuInfo, sizeof(menuInfo), _, menuName, sizeof(menuName));
-		ExplodeString(menuName, ",", buffer_split, 3, MMC_ITEM_LEN_NAME);
+		ExplodeString(menuName, ";", buffer_split, 3, MMC_ITEM_LEN_NAME);
 		int missionIndex = StringToInt(buffer_split[0]);
 		int mapIndex = StringToInt(buffer_split[1]);
 		LMM_GetMapLocalizedName(g_iGameMode, missionIndex, mapIndex, localizedName, sizeof(localizedName), client);
@@ -752,12 +745,12 @@ public int MapChooserMenuHandler(Menu menu, MenuAction action, int client, int i
 		}
 		
 		if (IsVoteInProgress()) {
-			ReplyToCommand(client, "\x04[提示]\x05%t", "Vote in Progress");
+			ReplyToCommand(client, "\x03[ACS]\x04 %t", "Vote in Progress");
 			return 0;
 		}
 		
 		menu.GetItem(item, menuInfo, sizeof(menuInfo), _, menuName, sizeof(menuName));
-		ExplodeString(menuName, ",", buffer_split, 3, MMC_ITEM_LEN_NAME);
+		ExplodeString(menuName, ";", buffer_split, 3, MMC_ITEM_LEN_NAME);
 		int missionIndex = StringToInt(buffer_split[0]);
 		int mapIndex = StringToInt(buffer_split[1]);	
 
@@ -773,8 +766,7 @@ public int MapChooserMenuHandler(Menu menu, MenuAction action, int client, int i
 }
 
 void ShowChmapVoteToAll(int missionIndex, int mapIndex) {
-	Menu menuVote = CreateMenu(ChampVoteHandler, 
-						MenuAction_Display|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd|MenuAction_End);
+	Menu menuVote = CreateMenu(ChampVoteHandler, MenuAction_Display|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd|MenuAction_End);
 	
 	menuVote.SetTitle("To be translated");
 	char menuInfo[MMC_ITEM_LEN_INFO];
@@ -813,7 +805,7 @@ public int ChampVoteHandler(Menu menu, MenuAction action, int param1, int param2
 		Format(buffer, sizeof(buffer), "%T", menuName, param1);	// param1 = clientIndex
 	 	RedrawMenuItem(buffer);
 	} else if (action == MenuAction_VoteCancel && param1 == VoteCancel_NoVotes) {
-		PrintToChatAll("\x04[提示]\x05%t", "No Votes Cast");
+		PrintToChatAll("\x03[ACS]\x04 %t", "No Votes Cast");
 	} else if (action == MenuAction_VoteEnd) {
 		// param1: The winning item, param2: vote result
 		int votes, totalVotes;	// totalVotes != numOfPlayers
@@ -856,9 +848,9 @@ public int ChampVoteHandler(Menu menu, MenuAction action, int param1, int param2
 		// A multi-argument vote is "always successful", but have to check if its a Yes/No vote.
 		if (percent < limit) {
 			LogAction(-1, -1, "Vote failed.");
-			PrintToChatAll("\x04[提示]\x05%t\x04[\x03%d\x04,\x03%d\x04,\x03%d\x04]", "Vote Failed", RoundToNearest(100.0*limit), RoundToNearest(100.0*percent), playerCount, yesVotes, noVotes, abstention);
+			PrintToChatAll("\x03[ACS]\x04 %t  \x01[%d,%d,%d]", "Vote Failed", RoundToNearest(100.0*limit), RoundToNearest(100.0*percent), playerCount, yesVotes, noVotes, abstention);
 		} else {
-			PrintToChatAll("\x04[提示]\x05%t\x0[\x03%d\x04,\x03%d\x04,\x03%d\x04]", "Vote Successful", RoundToNearest(100.0*percent), playerCount, yesVotes, noVotes, abstention);
+			PrintToChatAll("\x03[ACS]\x04 %t  \x01[%d,%d,%d]", "Vote Successful", RoundToNearest(100.0*percent), playerCount, yesVotes, noVotes, abstention);
 			
 			char menuInfo[MMC_ITEM_LEN_INFO];
 			menu.GetItem(0, menuInfo, sizeof(menuInfo));
@@ -875,8 +867,8 @@ public int ChampVoteHandler(Menu menu, MenuAction action, int param1, int param2
 				for (int client = 1; client <= MaxClients; client++) {
 					if (IsClientInGame(client)) {
 						LMM_GetMissionLocalizedName(g_iGameMode, missionIndex, localizedName, sizeof(localizedName), client);
-						Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", localizedName);
-						PrintToChat(client,"\x04[提示]%t", "Mission is now winning the vote", colorizedName);
+						Format(colorizedName, sizeof(colorizedName), "\x04%s\x01", localizedName);
+						PrintToChat(client,"\x03[ACS]\x01 %t\x01", "Mission is now winning the vote", colorizedName);
 					}
 				}			
 			} else {
@@ -885,14 +877,14 @@ public int ChampVoteHandler(Menu menu, MenuAction action, int param1, int param2
 				for (int client = 1; client <= MaxClients; client++) {
 					if (IsClientInGame(client)) {
 						LMM_GetMapLocalizedName(g_iGameMode, missionIndex, mapIndex, localizedName, sizeof(localizedName), client);
-						Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", localizedName);
-						PrintToChat(client,"\x04[提示]%t", "Map is now winning the vote", colorizedName);
+						Format(colorizedName, sizeof(colorizedName), "\x04%s\x01", localizedName);
+						PrintToChat(client,"\x03[ACS]\x01 %t", "Map is now winning the vote", colorizedName);
 					}
 				}
 			}
 			
-			Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", mapName);
-			PrintToChatAll("\x04[提示]%t", "Changing map", colorizedName);
+			Format(colorizedName, sizeof(colorizedName), "\x04%s\x01", mapName);
+			PrintToChatAll("\x03[ACS]\x01 %t", "Changing map", colorizedName);
 			CreateChangeMapTimer(mapName);
 		}
 	} else if (action == MenuAction_End) {
@@ -988,21 +980,20 @@ public void OnPluginStart() {
 	}
 	
 	//Create custom console variables
-	CreateConVar("l4d2_acs_version", PLUGIN_VERSION, "(ACS)自动换图插件的版本.", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	g_hCVar_VotingEnabled = CreateConVar("l4d2_acs_voting_system_enabled", "1", "启用玩家投票换图插件? 0=禁用, 1=启用.", FCVAR_NOTIFY);
-	g_hCVar_VoteWinnerSoundEnabled = CreateConVar("l4d2_acs_voting_sound_enabled", "1", "打开投票换图菜单时播放声音? 0=禁用, 1=启用.", FCVAR_NOTIFY);
-	g_hCVar_VotingAdMode = CreateConVar("l4d2_acs_voting_ad_mode", "2", "救援关幸存者离开开始区域后更换下一张地图的方式,只显示一次(选项1和2是提示玩家输入指令打开投票菜单). 0=禁用, 1=屏幕中下, 2=聊天窗, 3=自动打开投票菜单.", FCVAR_NOTIFY);
-	g_hCVar_VotingAdDelayTime = CreateConVar("l4d2_acs_voting_ad_delay_time", "30.0", "救援关幸存者离开开始区域后提示预选下一关地图的投票指令.", FCVAR_NOTIFY);
-	g_hCVar_VotingAdDelayfrequency = CreateConVar("l4d2_acs_voting_ad_delay_frequency", "10", "救援关预选下一关地图的投票指令显示多少次.", FCVAR_NOTIFY);
-	g_hCVar_NextMapMenuOptions = CreateConVar("l4d2_acs_next_map_menu_options", "2", "救援关投票换图列表里地图的显示类型. 0=官方和附加地图, 1=仅限官方图, 2=当前地图的类型.", FCVAR_NOTIFY);
-	g_hCVar_NextMapMenuExcludes = CreateConVar("l4d2_acs_next_map_menu_excludes", "1", "救援关投票换图列表里排除当前地图? 0=不排除, 1=排除当前地图.", FCVAR_NOTIFY);
-	g_hCVar_NextMapMenuOrder= CreateConVar("l4d2_acs_next_map_menu_order", "0", "救援关投票菜单中地图的显示顺序. 0=官方图,然后是附加地图, 1=随机.", FCVAR_NOTIFY);
-	g_hCVar_NextMapAdMode = CreateConVar("l4d2_acs_next_map_ad_mode", "2", "救援关公告下一张地图信息的显示方式. 0=禁用, 1=屏幕中下, 2=聊天窗.", FCVAR_NOTIFY);
-	g_hCVar_NextMapAdInterval = CreateConVar("l4d2_acs_next_map_ad_interval", "60.0", "救援关循环公告下一张地图信息的时间(秒).", FCVAR_NOTIFY);
-	g_hCVar_MaxFinaleFailures = CreateConVar("l4d2_acs_max_coop_finale_failures", "1", "战役模式救援关幸存者任务失败多少次后自动换图? 0=禁用.", FCVAR_NOTIFY);
-	g_hCVar_ChMapPolicy =  CreateConVar("l4d2_acs_chmap_policy", "2", " 启用 !chmap 和 !chmap2 投票换图指令?\n 0=禁用(同时禁用公告投票换图指令).\n 1=启用(不投票视为不同意). \n 2=启用(不投票视为同意)", FCVAR_NOTIFY);	
-	g_hCVar_ChMapBroadcastInterval =  CreateConVar("l4d2_acs_chmap_broadcast_interval", "90.0", "设置循环公告投票指令 \"!chmap\" 的时间(秒). 0=禁用.", FCVAR_NOTIFY);	
-	g_hCVar_PreventEmptyServer =  CreateConVar("l4d2_acs_prevent_empty_server", "1", "当服务器是附加战役且没有玩家在服务器时自动切换到第一个可用的官方图. 0=禁用, 1=启用.", FCVAR_NOTIFY);	
+	CreateConVar("acs_version", PLUGIN_VERSION, "Version of Automatic Campaign Switcher (ACS) on this server", FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
+	g_hCVar_VotingEnabled = CreateConVar("acs_voting_system_enabled", "1", "Enables players to vote for the next map or campaign [0 = DISABLED, 1 = ENABLED]", _, true, 0.0, true, 1.0);
+	g_hCVar_VoteWinnerSoundEnabled = CreateConVar("acs_voting_sound_enabled", "1", "Determines if a sound plays when a new map is winning the vote [0 = DISABLED, 1 = ENABLED]", _, true, 0.0, true, 1.0);
+	g_hCVar_VotingAdMode = CreateConVar("acs_voting_ad_mode", "3", "Sets how to advertise voting at the start of the map [0 = DISABLED, 1 = HINT TEXT, 2 = CHAT TEXT, 3 = OPEN VOTE MENU]\n * Note: This is only displayed once during a finale or scavenge map *", _, true, 0.0, true, 3.0);
+	g_hCVar_VotingAdDelayTime = CreateConVar("acs_voting_ad_delay_time", "10.0", "Time, in seconds, to wait after survivors leave the start area to advertise voting as defined in acs_voting_ad_mode\n * Note: If the server is up, changing this in the .cfg file takes two map changes before the change takes place *", _, true, 0.1, false);
+	g_hCVar_NextMapMenuOptions = CreateConVar("acs_next_map_menu_options", "0", "Controls the maps shown in the next map voting menu [0 = Official and addon maps(Default), 1 = Official maps only, 2 = Depending on the type of the current map ]");
+	g_hCVar_NextMapMenuExcludes = CreateConVar("acs_next_map_menu_excludes", "0", "Excludes certain map(s) from the map voting menu [0 = Nothing(Default), 1 = Current map ]");
+	g_hCVar_NextMapMenuOrder= CreateConVar("acs_next_map_menu_order", "0", "Controls the order of maps shown in the next map voting menu [0 = Official then addon maps(Default), 1 = Random ]");
+	g_hCVar_NextMapAdMode = CreateConVar("acs_next_map_ad_mode", "2", "Sets how the next campaign/map is advertised during a finale or scavenge map [0 = DISABLED, 1 = HINT TEXT, 2 = CHAT TEXT]", _, true, 0.0, true, 2.0);
+	g_hCVar_NextMapAdInterval = CreateConVar("acs_next_map_ad_interval", "60.0", "The time, in seconds, between advertisements for the next campaign/map on finales and scavenge maps", _, true, 60.0, false);
+	g_hCVar_MaxFinaleFailures = CreateConVar("acs_max_coop_finale_failures", "0", "The amount of times the survivors can fail a finale in Coop before it switches to the next campaign [0 = INFINITE FAILURES]", _, true, 0.0, false);
+	g_hCVar_ChMapPolicy =  CreateConVar("acs_chmap_policy", "0", "Enable or disable \"!chmap\" and \"!chmap2\" commands\n 0 - Disabled (by default) \n 1 - Enabled, abstention is treated as NO \n 2 - Enabled, abstention is treated as YES. \n Option 2 can be used by trolls and griefers to force a map change as long as nobody else votes!");	
+	g_hCVar_ChMapBroadcastInterval =  CreateConVar("acs_chmap_broadcast_interval", "180.0", "Controls the frequency of the \"!chmap\" advertisement, in second.");	
+	g_hCVar_PreventEmptyServer =  CreateConVar("acs_prevent_empty_server", "1", "If enabled, the server automatically switch to the first available official map when no one is playing a 3-rd map [0 = DISABLED, 1 = ENABLED]", _, true, 0.0, true, 1.0);	
 	
 	//Hook console variable changes
 	HookConVarChange(g_hCVar_VotingEnabled, CVarChange_Voting);
@@ -1015,7 +1006,7 @@ public void OnPluginStart() {
 	HookConVarChange(g_hCVar_ChMapBroadcastInterval, CVarChange_ChMapBroadcastInterval);
 	HookConVarChange(g_hCVar_PreventEmptyServer, CVarChange_PreventEmptyServer);
 	
-	AutoExecConfig(true, "l4d2_acs");
+	AutoExecConfig(true, "acs");
 	
 	//Hook the game events
 	HookEvent("round_end", Event_RoundEnd);
@@ -1025,21 +1016,23 @@ public void OnPluginStart() {
 	
 	//Register custom console commands
 	RegConsoleCmd("sm_maps", Command_ChangeMapVote);
+	RegConsoleCmd("sm_vm", Command_ChangeMapVote);
+	RegConsoleCmd("sm_vmap", Command_ChangeMapVote);
+	RegConsoleCmd("sm_votemap", Command_ChangeMapVote);
 	RegConsoleCmd("sm_chmap", Command_ChangeMapVote);
 	RegConsoleCmd("sm_chmap2", Command_ChangeMapVote2);
-	RegConsoleCmd("sm_mapnext", MapVote);
-	RegConsoleCmd("sm_mapvote", MapVote);
-	RegConsoleCmd("sm_mapvotes", DisplayCurrentVotes);
 	//RegConsoleCmd("sm_acs_maps", Command_MapList);
+
+	RegConsoleCmd("nextmap", MapVote);
+	RegConsoleCmd("mapnext", MapVote);
+	RegConsoleCmd("mapvote", MapVote);
+	RegConsoleCmd("mapvotes", DisplayCurrentVotes);
 }
 
 public Action Command_ChangeMapVote(int iClient, int args) {
-	if (g_hCVar_ChMapPolicy.IntValue < 1) {
-		//PrintToChat(iClient, "\x04[提示]\x05投票换图指令\x03!chmap\x05没有启用.");
-		PrintToChat(iClient, "\x04[提示]\x05%t", "Change chmap advertise", "\x03!chmap\x05");
+	if (g_hCVar_ChMapPolicy.IntValue < 1)
 		return Plugin_Handled;	// Disabled
-	}
-	
+
 	ShowMissionChooser(iClient, (g_iGameMode == GAMEMODE_SCAVENGE || g_iGameMode == GAMEMODE_SURVIVAL), false);
 	
 	//Play a sound to indicate that the user can vote on a map
@@ -1048,12 +1041,9 @@ public Action Command_ChangeMapVote(int iClient, int args) {
 }
 
 public Action Command_ChangeMapVote2(int iClient, int args) {
-	if (g_hCVar_ChMapPolicy.IntValue < 1) {
-		//PrintToChat(iClient, "\x04[提示]\x05投票换图指令\x03!chmap2\x05没有启用.");
-		PrintToChat(iClient, "\x04[提示]\x05%t", "Change chmap advertise", "\x03!chmap2\x05");
+	if (g_hCVar_ChMapPolicy.IntValue < 1)
 		return Plugin_Handled;	// Disabled
-	}
-	
+
 	ShowMissionChooser(iClient, true, false);
 
 	//Play a sound to indicate that the user can vote on a map
@@ -1067,24 +1057,23 @@ public void OnConfigsExecuted() {
 	//Display advertising for the next campaign or map
 	if(g_hCVar_NextMapAdMode.IntValue != DISPLAY_MODE_DISABLED)
 		CreateTimer(g_hCVar_NextMapAdInterval.FloatValue, Timer_AdvertiseNextMap, _, TIMER_FLAG_NO_MAPCHANGE);
-	
+		 
 	if(g_hCVar_VotingEnabled.BoolValue)
-	{
-		delete g_hTimer_DisplayVoteAdToAll;
-		g_hTimer_DisplayVoteAdToAll = CreateTimer(g_hCVar_VotingAdDelayTime.FloatValue, Timer_DisplayVoteAdToAll, _, TIMER_REPEAT);
-	}
+		CreateTimer(g_hCVar_VotingAdDelayTime.FloatValue, Timer_DisplayVoteAdToAll, _, TIMER_REPEAT | TIMER_FLAG_NO_MAPCHANGE);
 }
 
 void MakeChMapBroadcastTimer() {
-	if(g_hCVar_ChMapPolicy.FloatValue != 0 && g_hCVar_ChMapBroadcastInterval.FloatValue > 0)
-	{
-		delete g_hTimer_ChMapBroadcast;
-		g_hTimer_ChMapBroadcast = CreateTimer(g_hCVar_ChMapBroadcastInterval.FloatValue, Timer_WelcomeMessage, INVALID_HANDLE, TIMER_REPEAT);
+	if (g_hTimer_ChMapBroadcast != null) {
+		KillTimer(g_hTimer_ChMapBroadcast);
+		g_hTimer_ChMapBroadcast = null;
 	}
+	
+	if(g_hCVar_ChMapBroadcastInterval.FloatValue > 0)
+		g_hTimer_ChMapBroadcast = CreateTimer(g_hCVar_ChMapBroadcastInterval.FloatValue, Timer_WelcomeMessage, INVALID_HANDLE, TIMER_REPEAT);
 }
 
 public Action Timer_WelcomeMessage(Handle timer, any param) {
-	PrintToChatAll("\x04[提示]\x05%t", "Change map advertise", "\x03!chmap\x05");
+	PrintToChatAll("\x03[ACS]\x01 %t", "Change map advertise", "\x04!chmap\x01");
 	return Plugin_Continue;
 }
 
@@ -1115,11 +1104,11 @@ public void CVarChange_Voting(Handle hCVar, const char[] strOldValue, const char
 	
 	//If the value was changed, then set it and display a message to the server and players
 	if (StringToInt(strNewValue) == 1) {
-		PrintToServer("[提示]已启用投票系统.");
-		PrintToChatAll("[提示]已启用投票系统.");
+		PrintToServer("[ACS] ConVar changed: Voting System ENABLED");
+		PrintToChatAll("[ACS] ConVar changed: Voting System ENABLED");
 	} else {
-		PrintToServer("[提示]已启用投票系统.");
-		PrintToChatAll("[提示]已启用投票系统.");
+		PrintToServer("[ACS] ConVar changed: Voting System DISABLED");
+		PrintToChatAll("[ACS] ConVar changed: Voting System DISABLED");
 	}
 }
 
@@ -1131,11 +1120,11 @@ public void CVarChange_NewVoteWinnerSound(Handle hCVar, const char[] strOldValue
 	
 	//If the value was changed, then set it and display a message to the server and players
 	if (StringToInt(strNewValue) == 1) {
-		PrintToServer("[提示]已启用打开投票菜单时播放声音.");
-		PrintToChatAll("[提示]已启用打开投票菜单时播放声音.");
+		PrintToServer("[ACS] ConVar changed: New vote winner sound ENABLED");
+		PrintToChatAll("[ACS] ConVar changed: New vote winner sound ENABLED");
 	} else {
-		PrintToServer("[提示]已禁用打开投票菜单时播放声音.");
-		PrintToChatAll("[提示]已禁用打开投票菜单时播放声音.");
+		PrintToServer("[ACS] ConVar changed: New vote winner sound DISABLED");
+		PrintToChatAll("[ACS] ConVar changed: New vote winner sound DISABLED");
 	}
 }
 
@@ -1149,28 +1138,25 @@ public void CVarChange_VotingAdMode(Handle hCVar, const char[] strOldValue, cons
 	switch(StringToInt(strNewValue)) {
 		case 0:	{
 			PrintToServer("[ACS] ConVar changed: Voting display mode: DISABLED");
-			PrintToChatAll("[提示] ConVar changed: Voting display mode: DISABLED");
+			PrintToChatAll("[ACS] ConVar changed: Voting display mode: DISABLED");
 		}
 		case 1:	{
 			PrintToServer("[ACS] ConVar changed: Voting display mode: HINT TEXT");
-			PrintToChatAll("[提示] ConVar changed: Voting display mode: HINT TEXT");
+			PrintToChatAll("[ACS] ConVar changed: Voting display mode: HINT TEXT");
 		}
 		case 2:	{
 			PrintToServer("[ACS] ConVar changed: Voting display mode: CHAT TEXT");
-			PrintToChatAll("[提示] ConVar changed: Voting display mode: CHAT TEXT");
+			PrintToChatAll("[ACS] ConVar changed: Voting display mode: CHAT TEXT");
 		}
 		case 3:	{
 			PrintToServer("[ACS] ConVar changed: Voting display mode: OPEN VOTE MENU");
-			PrintToChatAll("[提示] ConVar changed: Voting display mode: OPEN VOTE MENU");
+			PrintToChatAll("[ACS] ConVar changed: Voting display mode: OPEN VOTE MENU");
 		}
 	}
 }
 
 //Callback function for the cvar for voting display delay time
-public void CVarChange_VotingAdDelayTime(Handle hCVar, const char[] strOldValue, const char[] strNewValue)
-{
-	l4d2_CVarChange();
-	
+public void CVarChange_VotingAdDelayTime(Handle hCVar, const char[] strOldValue, const char[] strNewValue) {
 	//If the value was not changed, then do nothing
 	if(StrEqual(strOldValue, strNewValue, false))
 		return;
@@ -1182,18 +1168,13 @@ public void CVarChange_VotingAdDelayTime(Handle hCVar, const char[] strOldValue,
 	if (fDelayTime > 0.1)
 	{
 		PrintToServer("[ACS] ConVar changed: Voting advertisement delay time changed to %f", fDelayTime);
-		PrintToChatAll("[提示] ConVar changed: Voting advertisement delay time changed to %f", fDelayTime);
+		PrintToChatAll("[ACS] ConVar changed: Voting advertisement delay time changed to %f", fDelayTime);
 	}
 	else
 	{
 		PrintToServer("[ACS] ConVar changed: Voting advertisement delay time changed to 0.1");
-		PrintToChatAll("[提示] ConVar changed: Voting advertisement delay time changed to 0.1");
+		PrintToChatAll("[ACS] ConVar changed: Voting advertisement delay time changed to 0.1");
 	}
-}
-
-void l4d2_CVarChange()
-{
-	hCVar_VotingAdDelayfrequency = g_hCVar_VotingAdDelayfrequency.IntValue;
 }
 
 //Callback function for how ACS and the next map is advertised to the players during a finale
@@ -1206,15 +1187,15 @@ public void CVarChange_NewMapAdMode(Handle hCVar, const char[] strOldValue, cons
 	switch(StringToInt(strNewValue)) {
 		case 0:	{
 			PrintToServer("[ACS] ConVar changed: Next map advertisement display mode: DISABLED");
-			PrintToChatAll("[提示] ConVar changed: Next map advertisement display mode: DISABLED");
+			PrintToChatAll("[ACS] ConVar changed: Next map advertisement display mode: DISABLED");
 		}
 		case 1:	{
 			PrintToServer("[ACS] ConVar changed: Next map advertisement display mode: HINT TEXT");
-			PrintToChatAll("[提示] ConVar changed: Next map advertisement display mode: HINT TEXT");
+			PrintToChatAll("[ACS] ConVar changed: Next map advertisement display mode: HINT TEXT");
 		}
 		case 2:	{
 			PrintToServer("[ACS] ConVar changed: Next map advertisement display mode: CHAT TEXT");
-			PrintToChatAll("[提示] ConVar changed: Next map advertisement display mode: CHAT TEXT");
+			PrintToChatAll("[ACS] ConVar changed: Next map advertisement display mode: CHAT TEXT");
 		}
 	}
 }
@@ -1231,10 +1212,10 @@ public void CVarChange_NewMapAdInterval(Handle hCVar, const char[] strOldValue, 
 	//If the value was changed, then set it and display a message to the server and players
 	if (fDelayTime > 60.0) {
 		PrintToServer("[ACS] ConVar changed: Next map advertisement interval changed to %f", fDelayTime);
-		PrintToChatAll("[提示] ConVar changed: Next map advertisement interval changed to %f", fDelayTime);
+		PrintToChatAll("[ACS] ConVar changed: Next map advertisement interval changed to %f", fDelayTime);
 	} else {
 		PrintToServer("[ACS] ConVar changed: Next map advertisement interval changed to 60.0");
-		PrintToChatAll("[提示] ConVar changed: Next map advertisement interval changed to 60.0");
+		PrintToChatAll("[ACS] ConVar changed: Next map advertisement interval changed to 60.0");
 	}
 }
 
@@ -1249,11 +1230,11 @@ public void CVarChange_MaxFinaleFailures(Handle hCVar, const char[] strOldValue,
 	
 	//If the value was changed, then set it and display a message to the server and players
 	if (iMaxFailures > 0) {
-		PrintToServer("[ACS] ConVar changed: Max Coop finale failures changed to %f", iMaxFailures);
-		PrintToChatAll("[提示] ConVar changed: Max Coop finale failures changed to %f", iMaxFailures);
+		PrintToServer("[ACS] ConVar changed: Max Coop finale failures changed to %i", iMaxFailures);
+		PrintToChatAll("[ACS] ConVar changed: Max Coop finale failures changed to %i", iMaxFailures);
 	} else {
 		PrintToServer("[ACS] ConVar changed: Max Coop finale failures changed to 0");
-		PrintToChatAll("[提示] ConVar changed: Max Coop finale failures changed to 0");
+		PrintToChatAll("[ACS] ConVar changed: Max Coop finale failures changed to 0");
 	}
 }
 /*======================================================================================
@@ -1268,13 +1249,10 @@ public void OnMapStart() {
 	PrecacheSound(SOUND_NEW_VOTE_START);
 	PrecacheSound(SOUND_NEW_VOTE_WINNER);
 	
-	l4d2_AllowedDie = 0;
 	g_iRoundEndCounter = 0;			//Reset the round end counter on every map start
 	g_iCoopFinaleFailureCount = 0;	//Reset the amount of Survivor failures
 	g_bFinaleWon = false;			//Reset the finale won variable
 	ResetAllVotes();				//Reset every player's vote
-	l4d2_CVarChange();
-	delete g_hTimer_DisplayVoteAdToAll;
 }
 
 public void OnMapEnd() {
@@ -1416,6 +1394,7 @@ public Action Timer_CheckEmptyServer(Handle timer, any param) {
 		// Some one joined
 		KillEmptyCheckTimer();
 	}
+
 	return Plugin_Continue;
 }
 
@@ -1433,8 +1412,8 @@ void CheckMapForChange() {
 			for (int client = 1; client <= MaxClients; client++) {
 				if (IsClientInGame(client)) {
 					ACS_GetLocalizedMissionName(g_iGameMode, cycleIndex, client, localizedName, sizeof(localizedName));
-					Format(colorizedname, sizeof(colorizedname), "\x03%s\x05", localizedName);
-					PrintToChat(client, "\x04[提示]%t", "Campaign finished", colorizedname);
+					Format(colorizedname, sizeof(colorizedname), "\x04%s\x05", localizedName);
+					PrintToChat(client, "\x03[ACS]\x05 %t", "Campaign finished", colorizedname);
 				}
 			}
 			
@@ -1447,8 +1426,8 @@ void CheckMapForChange() {
 					for (int client = 1; client <= MaxClients; client++) {
 						if (IsClientInGame(client)) {
 							LMM_GetMissionLocalizedName(g_iGameMode, winningMapIndex, localizedName, sizeof(localizedName), client);
-							Format(colorizedname, sizeof(colorizedname), "\x03%s\x05", localizedName);
-							PrintToChat(client, "\x04[提示]%t", "Switching to the vote winner", colorizedname);
+							Format(colorizedname, sizeof(colorizedname), "\x04%s\x05", localizedName);
+							PrintToChat(client, "\x03[ACS]\x05 %t", "Switching to the vote winner", colorizedname);
 						}
 					}
 					
@@ -1456,8 +1435,8 @@ void CheckMapForChange() {
 					
 					return;
 				}
-				//else
-					//LogError("Error: %s is an invalid map name, attempting normal map rotation.", mapName);
+				else
+					LogError("Error: %s is an invalid map name, attempting normal map rotation.", mapName);
 			}
 			
 			//If no map was chosen in the vote, then go with the automatic map rotation
@@ -1472,15 +1451,15 @@ void CheckMapForChange() {
 				for (int client = 1; client <= MaxClients; client++) {
 					if (IsClientInGame(client)) {
 						ACS_GetLocalizedMissionName(g_iGameMode, cycleIndex, client, localizedName, sizeof(localizedName));
-						Format(colorizedname, sizeof(colorizedname), "\x03%s\x05", localizedName);
-						PrintToChat(client, "\x04[提示]%t", "Switching campaign to", colorizedname);
+						Format(colorizedname, sizeof(colorizedname), "\x04%s\x05", localizedName);
+						PrintToChat(client, "\x03[ACS]\x05 %t", "Switching campaign to", colorizedname);
 					}
 				}
 				
 				CreateChangeMapTimer(mapName);
 			}
-			//else
-				//LogError("Error: %s is an invalid map name, unable to switch map.", mapName);
+			else
+				LogError("Error: %s is an invalid map name, unable to switch map.", mapName);
 			
 			return;
 		}
@@ -1505,8 +1484,8 @@ void ChangeScavengeMap() {
 			for (int client = 1; client <= MaxClients; client++) {
 				if (IsClientInGame(client)) {
 					LMM_GetMapLocalizedName(g_iGameMode, missionIndex, mapIndex, localizedName, sizeof(localizedName), client);
-					Format(colorizedname, sizeof(colorizedname), "\x03%s\x05", localizedName);
-					PrintToChat(client, "\x04[提示]%t", "Switching to the vote winner", colorizedname);
+					Format(colorizedname, sizeof(colorizedname), "\x04%s\x05", localizedName);
+					PrintToChat(client, "\x03[ACS]\x05 %t", "Switching to the vote winner", colorizedname);
 				}
 			}
 			
@@ -1514,8 +1493,8 @@ void ChangeScavengeMap() {
 			
 			return;
 		}
-		//else
-			//LogError("Error: %s is an invalid map name, attempting normal map rotation.", mapName);
+		else
+			LogError("Error: %s is an invalid map name, attempting normal map rotation.", mapName);
 	}
 	
 	//If no map was chosen in the vote, then go with the automatic map rotation
@@ -1553,15 +1532,15 @@ void ChangeScavengeMap() {
 					for (int client = 1; client <= MaxClients; client++) {
 						if (IsClientInGame(client)) {
 							LMM_GetMapLocalizedName(g_iGameMode, missionIndex, mapIndex, localizedName, sizeof(localizedName), client);
-							Format(colorizedname, sizeof(colorizedname), "\x03%s\x05", localizedName);
-							PrintToChat(client, "\x04[提示]%t", "Switching map to", colorizedname);
+							Format(colorizedname, sizeof(colorizedname), "\x04%s\x05", localizedName);
+							PrintToChat(client, "\x03[ACS]\x05 %t", "Switching map to", colorizedname);
 						}
 					}	
 
 					CreateChangeMapTimer(mapName);
 				}
-				//else
-					//LogError("Error: %s is an invalid map name, unable to switch map.", mapName);
+				else
+					LogError("Error: %s is an invalid map name, unable to switch map.", mapName);
 				
 				return;
 			}
@@ -1655,7 +1634,7 @@ bool NextMapFromRotation_Scavenge(int& missionIndex_ret, int& mapIndex_ret) {
 		}
 	}
 
-	//LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
+	LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
 	return false;
 }
 
@@ -1701,7 +1680,7 @@ bool NextMapFromRotation(int& cycleIndex_ret) {
 		}
 	}
 
-	//LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
+	LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
 	return false;
 }
 
@@ -1713,11 +1692,23 @@ void DisplayNextMapTo_Scavenge(int client, bool replyCMD) {
 		GetWinnerListForDisplay_Scavenge(client, strbuf, strbuf_len);
 
 		if (replyCMD) {
-			ReplyToCommand(client, "\x04[提示]\x05%t", g_iWinningMapIndices_Len == 1 ? "The next map is currently" : "The next map will be one of", strbuf);
+			ReplyToCommand(client, "\x03[ACS]\x05 %t",
+				g_iWinningMapIndices_Len == 1 ?
+				"The next map is currently" :
+				"The next map will be one of",
+				strbuf);
 		} else if(g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_HINT) {
-			PrintHintText(client, "%t", g_iWinningMapIndices_Len == 1 ? "The next map is currently" : "The next map will be one of", strbuf);
+			PrintHintText(client, "%t",
+				g_iWinningMapIndices_Len == 1 ?
+					"The next map is currently" :
+					"The next map will be one of",
+				strbuf);
 		} else if(g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_CHAT)	{
-			PrintToChat(client, "\x04[提示]\x05%t", g_iWinningMapIndices_Len == 1 ? "The next map is currently" : "The next map will be one of", strbuf);
+			PrintToChat(client, "\x03[ACS]\x05 %t",
+				g_iWinningMapIndices_Len == 1 ?
+					"The next map is currently" :
+					"The next map will be one of",
+				strbuf);
 		}
 	} else {
 		int missionIndex, mapIndex;
@@ -1731,13 +1722,13 @@ void DisplayNextMapTo_Scavenge(int client, bool replyCMD) {
 
 		//Display the next map in the rotation in the appropriate way
 		if (replyCMD) {
-			Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", localizedName);
-			ReplyToCommand(client, "\x04[提示]\x05%t", "The next map is currently", colorizedName);
+			Format(colorizedName, sizeof(colorizedName), "\x04%s\x05", localizedName);
+			ReplyToCommand(client, "\x03[ACS]\x05 %t", "The next map is currently", colorizedName);
 		} else if (g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_HINT) {
 			PrintHintText(client, "%t", "The next map is currently", localizedName);
 		} else if (g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_CHAT) {
-			Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", localizedName);
-			PrintToChat(client, "\x04[提示]\x05%t", "The next map is currently", colorizedName);
+			Format(colorizedName, sizeof(colorizedName), "\x04%s\x05", localizedName);
+			PrintToChat(client, "\x03[ACS]\x05 %t", "The next map is currently", colorizedName);
 		}
 	}
 }
@@ -1751,11 +1742,23 @@ void DisplayNextMapTo(int client, bool replyCMD) {
 		GetWinnerListForDisplay(client, strbuf, strbuf_len);
 		
 		if (replyCMD) {
-			ReplyToCommand(client, "\x04[提示]\x05%t", g_iWinningMapIndices_Len == 1 ? "The next campaign is currently" : "The next campaign will be one of", strbuf);
+			ReplyToCommand(client, "\x03[ACS]\x05 %t",
+				g_iWinningMapIndices_Len == 1 ?
+				"The next campaign is currently" :
+				"The next campaign will be one of",
+				strbuf);
 		} else if(g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_HINT) {
-			PrintHintText(client, "%t", g_iWinningMapIndices_Len == 1 ? "The next campaign is currently" : "The next campaign will be one of", strbuf);
+			PrintHintText(client, "%t",
+				g_iWinningMapIndices_Len == 1 ?
+					"The next campaign is currently" :
+					"The next campaign will be one of",
+				strbuf);
 		} else if(g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_CHAT)	{
-			PrintToChat(client, "\x04[提示]\x05%t", g_iWinningMapIndices_Len == 1 ? "The next campaign is currently" : "The next campaign will be one of", strbuf);
+			PrintToChat(client, "\x03[ACS]\x05 %t",
+				g_iWinningMapIndices_Len == 1 ?
+					"The next campaign is currently" :
+					"The next campaign will be one of",
+				strbuf);
 		}
 	} else {
 		int cycleIndex = 0;
@@ -1769,13 +1772,13 @@ void DisplayNextMapTo(int client, bool replyCMD) {
 		ACS_GetLocalizedMissionName(g_iGameMode, cycleIndex, client, localizedName, sizeof(localizedName));
 
 		if (replyCMD) {
-			Format(colorizedName, sizeof(colorizedName), "\x03%s\x05", localizedName);
-			ReplyToCommand(client, "\x04[提示]%t", "The next campaign is currently", colorizedName);
+			Format(colorizedName, sizeof(colorizedName), "\x04%s\x05", localizedName);
+			ReplyToCommand(client, "\x03[ACS]\x05 %t", "The next campaign is currently", colorizedName);
 		} else if (g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_HINT) {
 			PrintHintText(client, "%t", "The next campaign is currently", localizedName);
 		} else if (g_hCVar_NextMapAdMode.IntValue == DISPLAY_MODE_CHAT) {
 			Format(colorizedName, sizeof(colorizedName), "\x04%s\x05", localizedName);
-			PrintToChat(client, "\x04[提示]%t", "The next campaign is currently", colorizedName);
+			PrintToChat(client, "\x03[ACS]\x05 %t", "The next campaign is currently", colorizedName);
 		}
 	}
 }
@@ -1803,12 +1806,12 @@ void DisplayNextMapToAll() {
 //Command that a player can use to vote/revote for a map/campaign
 public Action MapVote(int iClient, int args) {
 	if(!g_hCVar_VotingEnabled.BoolValue) {
-		ReplyToCommand(iClient, "\x04[提示]\x05%t", "Voting is disable");
+		ReplyToCommand(iClient, "\x03[ACS]\x01 %t", "Voting is disable");
 		return Plugin_Handled;
 	}
 	
 	if(!OnFinaleOrScavengeMap()) {
-		PrintToChat(iClient, "\x04[提示]\x05%t", "Voting is not available");
+		PrintToChat(iClient, "\x03[ACS]\x01 %t", "Voting is not available");
 		return Plugin_Handled;
 	}
 	
@@ -1826,12 +1829,12 @@ public Action DisplayCurrentVotes(int iClient, int args) {
 	char localizedName[LEN_MISSION_NAME];
 
 	if(!g_hCVar_VotingEnabled.BoolValue) {
-		ReplyToCommand(iClient, "\x04[提示]\x05%t", "Voting is disable");
+		ReplyToCommand(iClient, "\x03[ACS]\x01 %t", "Voting is disable");
 		return Plugin_Handled;
 	}
 	
 	if(!OnFinaleOrScavengeMap()) {
-		PrintToChat(iClient, "\x04[提示]\x05%t", "Voting is not available");
+		PrintToChat(iClient, "\x03[ACS]\x01 %t", "Voting is not available");
 		return Plugin_Handled;
 	}
 			
@@ -1844,7 +1847,7 @@ public Action DisplayCurrentVotes(int iClient, int args) {
 			DisplayNextMapTo(iClient, true);
 		}
 	} else {
-		ReplyToCommand(iClient, "\x04[提示]\x05%t", "No one has voted yet");	
+		ReplyToCommand(iClient, "\x03[ACS]\x01 %t", "No one has voted yet");	
 	}
 
 
@@ -1881,6 +1884,7 @@ public Action DisplayCurrentVotes(int iClient, int args) {
 				
 		}
 	}
+
 	return Plugin_Handled;
 }
 
@@ -1889,13 +1893,9 @@ public Action DisplayCurrentVotes(int iClient, int args) {
 ======================================================================================*/
 
 //Timer to show the menu to the players if they have not voted yet
-public Action Timer_DisplayVoteAdToAll(Handle hTimer, any iData)
-{
+public Action Timer_DisplayVoteAdToAll(Handle hTimer, any iData) {
 	if(!g_hCVar_VotingEnabled.BoolValue || !OnFinaleOrScavengeMap())
-	{
-		g_hTimer_DisplayVoteAdToAll = null;
 		return Plugin_Stop;
-	}
 
 	// Check if anyone left the saferoom
 	int entityRes = FindEntityByClassname(-1, "terror_player_manager");	// Resource Entity
@@ -1907,30 +1907,23 @@ public Action Timer_DisplayVoteAdToAll(Handle hTimer, any iData)
 	// If nobody left, keep waiting...
 	if (!survivorLeftSaferoom)
 		return Plugin_Continue;
-		
-	l4d2_AllowedDie += 1;
-	
-	if(l4d2_AllowedDie > hCVar_VotingAdDelayfrequency)
-	{
-		g_hTimer_DisplayVoteAdToAll = null;
-		return Plugin_Stop;
-	}
-	
-	for(int iClient = 1;iClient <= MaxClients; iClient++)
-	{
-		if(!g_bClientShownVoteAd[iClient] && !g_bClientVoted[iClient] && IsClientInGame(iClient) && !IsFakeClient(iClient))
-		{
-			switch(g_hCVar_VotingAdMode.IntValue)
-			{
+
+	for(int iClient = 1;iClient <= MaxClients; iClient++) {
+		if(
+			!g_bClientShownVoteAd[iClient] && !g_bClientVoted[iClient] &&
+			IsClientInGame(iClient) && !IsFakeClient(iClient)
+		){
+			switch(g_hCVar_VotingAdMode.IntValue) {
 				case DISPLAY_MODE_MENU: VoteMenuDraw(iClient);
 				case DISPLAY_MODE_HINT: PrintHintText(iClient, "%t", "Map vote advertise", "!mapvote", "!mapvotes");
-				case DISPLAY_MODE_CHAT: PrintToChat(iClient, "\x04[提示]\x05%t", "Map vote advertise", "\x03!mapvote\x05", "\x03!mapvotes\x05");
+				case DISPLAY_MODE_CHAT: PrintToChat(iClient, "\x03[ACS]\x05 %t", "Map vote advertise", "\x04!mapvote\x05", "\x04!mapvotes\x05");
 			}
-			if(l4d2_AllowedDie > hCVar_VotingAdDelayfrequency)
-				g_bClientShownVoteAd[iClient] = true;
+			
+			g_bClientShownVoteAd[iClient] = true;
 		}
 	}
-	return Plugin_Continue;
+	
+	return Plugin_Stop;
 }
 
 //Draw the menu for voting

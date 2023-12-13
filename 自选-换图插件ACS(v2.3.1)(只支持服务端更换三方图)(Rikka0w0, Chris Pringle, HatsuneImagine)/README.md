@@ -5,9 +5,9 @@
 
 
 
-**注意：安装此版本后，需将旧版插件的数据清除**
+**注意：安装此版本后，需将旧版插件的数据删除**
 
-所需清除的文件：
+所需删除的文件：
 
 ```bash
 left4dead2/addons/sourcemod/configs/missioncycle.coop.txt
@@ -15,13 +15,14 @@ left4dead2/addons/sourcemod/configs/missioncycle.versus.txt
 left4dead2/addons/sourcemod/configs/missioncycle.survival.txt
 left4dead2/addons/sourcemod/configs/missioncycle.scavenge.txt
 left4dead2/addons/sourcemod/configs/finale.coop.txt
-left4dead2/addonlist.txt
 ```
 
-所需清除的文件夹：
+所需删除的文件夹：
 
 ```bash
-left4dead2/downloads/
 left4dead2/missions.cache/
 ```
 
+
+
+<span style="color: #FF0000; ">此插件可能与其他版本的ACS插件命名不同，本插件文件命名为 `acs.sp` `acs.smx`，而部分其他版本ACS插件可能命名为 `l4d2_acs.sp` `l4d2_acs.smx`，请注意如果替换此版本，务必将历史版本删除。</span>

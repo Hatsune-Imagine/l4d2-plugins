@@ -2,58 +2,58 @@
 {
 	"#L4D360UI_CampaignName_C1"
 	{
-		"en" "Dead Center"
+		"ru" "Вымерший центр"
 	}
 	"#L4D360UI_CampaignName_C2"
 	{
-		"en" "Dark Carnival"
+		"ru" "Мрачный карнавал"
 	}
 	"#L4D360UI_CampaignName_C3"
 	{
-		"en" "Swamp Fever"
+		"ru" "Болотная лихорадка"
 	}
 	"#L4D360UI_CampaignName_C4"
 	{
-		"en" "Hard Rain"
+		"ru" "Ужасный ливень"
 	}
 	"#L4D360UI_CampaignName_C5"
 	{
-		"en" "The Parish"
+		"ru" "Приход"
 	}
 	"#L4D360UI_CampaignName_C6"
 	{
-		"en" "The Passing"
+		"ru" "Переход"
 	}
 	"#L4D360UI_CampaignName_C7"
 	{
-		"en" "The Sacrifice"
+		"ru" "Жертва"
 	}
 	"#L4D360UI_CampaignName_C8"
 	{
-		"en" "No Mercy"
+		"ru" "Нет милосердию"
 	}
 	"#L4D360UI_CampaignName_C9"
 	{
-		"en" "Crash Course"
+		"ru" "Роковой полёт"
 	}
 	"#L4D360UI_CampaignName_C10"
 	{
-		"en" "Death Toll"
+		"ru" "Похоронный звон"
 	}
 	"#L4D360UI_CampaignName_C11"
 	{
-		"en" "Dead Air"
+		"ru" "Смерть в воздухе"
 	}
 	"#L4D360UI_CampaignName_C12"
 	{
-		"en" "Blood Harvest"
+		"ru" "Кровавая жатва"
 	}
 	"#L4D360UI_CampaignName_C13"
 	{
-		"en" "Cold Stream"
+		"ru" "Холодный ручей"
 	}
 	"#L4D360UI_CampaignName_C14"
 	{
-		"en" "The Last Stand"
+		"ru" "Последний рубеж"
 	}
 }

@@ -2,7 +2,7 @@
 {
 	"#L4D360UI_CampaignName_C1"
 	{
-		"fr" "Dead Cfrter"
+		"fr" "Dead Center"
 	}
 	"#L4D360UI_CampaignName_C2"
 	{
@@ -51,5 +51,9 @@
 	"#L4D360UI_CampaignName_C13"
 	{
 		"fr" "Cold Stream"
+	}
+	"#L4D360UI_CampaignName_C14"
+	{
+		"fr" "The Last Stand"
 	}
 }

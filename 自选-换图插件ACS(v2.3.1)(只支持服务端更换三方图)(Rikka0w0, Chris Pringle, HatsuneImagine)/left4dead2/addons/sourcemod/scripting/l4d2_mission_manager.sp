@@ -9,7 +9,7 @@ public Plugin myinfo = {
 	name = "L4D2 Mission Manager",
 	author = "Rikka0w0",
 	description = "Mission manager for L4D2, provide information about map orders for other plugins",
-	version = "v1.0.0",
+	version = "v1.0.1",
 	url = "http://forums.alliedmods.net/showthread.php?t=308725"
 }
 
@@ -224,6 +224,8 @@ public int Native_GetCurrentGameMode(Handle plugin, int numParams) {
 	else if(StrEqual(strGameMode, "community4", false))	//Nightmare
 		gamemode = LMM_GAMEMODE_SURVIVAL;
 	else if(StrEqual(strGameMode, "community5", false))	//Death's Door
+		gamemode = LMM_GAMEMODE_COOP;
+	else if(StrEqual(strGameMode, "nightmaredifficulty", false))	//Nightmare Difficulty
 		gamemode = LMM_GAMEMODE_COOP;
 	else
 		gamemode = LMM_GAMEMODE_UNKNOWN;
@@ -754,7 +756,7 @@ public SMCResult MissionParser_EndSection(SMCParser smc) {
 					if (g_hStr_InvalidMissionNames.FindString(g_MissionParser_MissionName) < 0) {
 						g_hStr_InvalidMissionNames.PushString(g_MissionParser_MissionName);
 					}
-					//LogError("Mission %s contains invalid \"%s\" section", g_MissionParser_MissionName, gamemodeName);
+					LogMessage("Mission %s contains invalid \"%s\" section", g_MissionParser_MissionName, gamemodeName);
 					return SMCParse_HaltFail;
 				}
 				
@@ -765,7 +767,7 @@ public SMCResult MissionParser_EndSection(SMCParser smc) {
 					if (g_hStr_InvalidMissionNames.FindString(g_MissionParser_MissionName) < 0) {
 						g_hStr_InvalidMissionNames.PushString(g_MissionParser_MissionName);
 					}
-					//LogError("Mission %s contains invalid map: \"%s\", gamemode: \"%s\"", g_MissionParser_MissionName, mapFile, gamemodeName);
+					LogMessage("Mission %s contains invalid map: \"%s\", gamemode: \"%s\"", g_MissionParser_MissionName, mapFile, gamemodeName);
 					return SMCParse_HaltFail;
 				}
 				numOfValidMaps++;
@@ -774,7 +776,7 @@ public SMCResult MissionParser_EndSection(SMCParser smc) {
 			if (numOfValidMaps < 1) {
 				char gamemodeName[LEN_GAMEMODE_NAME];
 				LMM_GamemodeToString(g_MissionParser_CurGameMode, gamemodeName, sizeof(gamemodeName));
-				//LogError("Mission %s does not contain any valid map in gamemode: \"%s\"", g_MissionParser_MissionName, gamemodeName);
+				LogMessage("Mission %s does not contain any valid map in gamemode: \"%s\"", g_MissionParser_MissionName, gamemodeName);
 				return SMCParse_Continue;
 			}
 			
@@ -838,7 +840,7 @@ void CacheMissions() {
 	dirList = OpenDirectory("missions", true, NULL_STRING);
 
 	if (dirList == null) {
-        //LogError("[SM] Plugin is not running! Could not locate mission folder");
+        LogError("[SM] Plugin is not running! Could not locate mission folder");
         SetFailState("Could not locate mission folder");
 	} else {	
 		if (!DirExists("missions.cache")) {
@@ -875,7 +877,7 @@ void ParseMissions() {
 	dirList = OpenDirectory("missions.cache", true, NULL_STRING);
 	
 	if (dirList == null) {
-		//LogError("The \"missions.cache\" folder was not found!");
+		LogError("The \"missions.cache\" folder was not found!");
 	} else {
 		// Create the parser
 		SMCParser parser = SMC_CreateParser();
@@ -898,7 +900,7 @@ void ParseMissions() {
 				SMCError err = parser.ParseFile(missionCache);
 				if (err != SMCError_Okay) {
 					g_hStr_InvalidMissionNames.PushString(missionCache);
-					//LogError("An error occured while parsing %s, code:%d", missionCache, err);
+					LogMessage("An error occured while parsing %s, code:%d", missionCache, err);
 				}
 			}
 		}
@@ -1029,12 +1031,12 @@ void ParseLocalization(LMM_GAMEMODE gamemode) {
 	BuildPath(Path_SM, mapsPhrasesEnglish, sizeof(mapsPhrasesEnglish), "translations/maps.phrases.txt");
 	
 	if (!FileExists(missonsPhrasesEnglish)) {
-		//LogError("Mission name localization file %s does not exist!", missonsPhrasesEnglish);
+		LogError("Mission name localization file %s does not exist!", missonsPhrasesEnglish);
 		// TO-DO:
 	}
 	
 	if (!FileExists(mapsPhrasesEnglish)) {
-		//LogError("Map name localization file %s does not exist!", mapsPhrasesEnglish);
+		LogError("Map name localization file %s does not exist!", mapsPhrasesEnglish);
 		// TO-DO:
 	}
 	
@@ -1055,7 +1057,7 @@ void ParseLocalization(LMM_GAMEMODE gamemode) {
 	
 	SMCError err = parser.ParseFile(missonsPhrasesEnglish);
 	if (err != SMCError_Okay) {
-		//LogError("An error occured while parsing missions.phrases.txt(English), code:%d", err);
+		LogError("An error occured while parsing missions.phrases.txt(English), code:%d", err);
 	}
 	
 	g_MissionNameLocalization_ParsingMissionLocalization = false;
@@ -1063,7 +1065,7 @@ void ParseLocalization(LMM_GAMEMODE gamemode) {
 	
 	err = parser.ParseFile(mapsPhrasesEnglish);
 	if (err != SMCError_Okay) {
-		//LogError("An error occured while parsing maps.phrases.txt(English), code:%d", err);
+		LogError("An error occured while parsing maps.phrases.txt(English), code:%d", err);
 	}
 }
 
