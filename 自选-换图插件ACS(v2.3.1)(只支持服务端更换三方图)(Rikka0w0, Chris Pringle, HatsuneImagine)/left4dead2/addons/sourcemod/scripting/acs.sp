@@ -766,7 +766,7 @@ public int MapChooserMenuHandler(Menu menu, MenuAction action, int client, int i
 }
 
 void ShowChmapVoteToAll(int missionIndex, int mapIndex) {
-	Menu menuVote = CreateMenu(ChampVoteHandler, MenuAction_Display|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd|MenuAction_End);
+	Menu menuVote = CreateMenu(ChmapVoteHandler, MenuAction_Display|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd|MenuAction_End);
 	
 	menuVote.SetTitle("To be translated");
 	char menuInfo[MMC_ITEM_LEN_INFO];
@@ -778,7 +778,7 @@ void ShowChmapVoteToAll(int missionIndex, int mapIndex) {
 	menuVote.DisplayVoteToAll(20);
 }
 
-public int ChampVoteHandler(Menu menu, MenuAction action, int param1, int param2) {
+public int ChmapVoteHandler(Menu menu, MenuAction action, int param1, int param2) {
 	if (action == MenuAction_Display) {
 		// Localize title
 		char localizedName[LEN_LOCALIZED_NAME];
@@ -1634,7 +1634,7 @@ bool NextMapFromRotation_Scavenge(int& missionIndex_ret, int& mapIndex_ret) {
 		}
 	}
 
-	LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
+	LogMessage("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
 	return false;
 }
 
@@ -1680,7 +1680,7 @@ bool NextMapFromRotation(int& cycleIndex_ret) {
 		}
 	}
 
-	LogError("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
+	LogMessage("ACS was unable to locate the current map (%s) in the map cycle!", strCurrentMap);
 	return false;
 }
 
