@@ -9,8 +9,8 @@
 #define PLUGIN_VERSION			"2.0.8"
 #define PLUGIN_URL				"http://forums.alliedmods.net/showthread.php?t=87759"
 
-ConVar cv_unreserveMode;
-int unreserveMode;
+ConVar cv_unreserveMode, cv_unreserveTrigger;
+int unreserveMode, unreserveTrigger;
 char reservationID[20];
 
 public Plugin myinfo = {
@@ -24,9 +24,11 @@ public Plugin myinfo = {
 public void OnPluginStart() {
 	SetConVarInt(FindConVar("sv_reservation_timeout"), 10);
 	CreateConVar("l4d_unreserve_version", PLUGIN_VERSION, "Version of the Lobby Unreserve plugin.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
-	cv_unreserveMode = CreateConVar("l4d_unreserve_full", "1", "Unreserve Mode.\n0 = Disabled.\n1 = Automatically unreserve when full, and automatically restores the lobby reservation when there is a vacancy.\n2 = Automatically unreserve when full, and no longer automatically restores the lobby reservation.", FCVAR_SPONLY|FCVAR_NOTIFY);
+	cv_unreserveMode = CreateConVar("l4d_unreserve_mode", "1", "Unreserve Mode.\n0 = Disabled.\n1 = Automatically unreserve when full, and automatically restores the lobby reservation when there is a vacancy.\n2 = Automatically unreserve when full, and no longer automatically restores the lobby reservation.", FCVAR_SPONLY|FCVAR_NOTIFY);
+	cv_unreserveTrigger = CreateConVar("l4d_unreserve_trigger", "0", "Unreserve Trigger. When player number reaches the following number, the server unreserves.\n-1 = Get lobby slots num from server RAM.\n0 = Versus and Scavenge are 8, other gamemodes are 4.\n>0 = Any user-defined num greater than zero.");
 
 	cv_unreserveMode.AddChangeHook(CvarChanged);
+	cv_unreserveTrigger.AddChangeHook(CvarChanged);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 	RegAdminCmd("sm_unreserve", cmdUnreserve, ADMFLAG_BAN, "sm_unreserve - manually force removes the lobby reservation");
 	RegAdminCmd("sm_reserve", cmdReserve, ADMFLAG_BAN, "sm_reserve - manually restores the lobby reservation");
@@ -50,6 +52,7 @@ void CvarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
 
 void GetCvars() {
 	unreserveMode = GetConVarInt(cv_unreserveMode);
+	unreserveTrigger = GetConVarInt(cv_unreserveTrigger);
 }
 
 Action cmdUnreserve(int client, int args) {
@@ -122,8 +125,15 @@ bool IsServerEmpty(int client) {
 }
 
 bool IsServerLobbyFull(int client) {
-	// int slots = LoadFromAddress(L4D_GetPointer(POINTER_SERVER) + view_as<Address>(L4D_GetServerOS() ? 380 : 384), NumberType_Int32);
-	int slots = L4D_IsVersusMode() || L4D2_IsScavengeMode() ? 8 : 4;
+	int slots;
+
+	if (unreserveTrigger < 0)
+		slots = LoadFromAddress(L4D_GetPointer(POINTER_SERVER) + view_as<Address>(L4D_GetServerOS() ? 380 : 384), NumberType_Int32);
+	else if (unreserveTrigger == 0)
+		slots = L4D_IsVersusMode() || L4D2_IsScavengeMode() ? 8 : 4;
+	else
+		slots = unreserveTrigger;
+
 	return GetConnectedPlayer(client) >= slots;
 }
 
