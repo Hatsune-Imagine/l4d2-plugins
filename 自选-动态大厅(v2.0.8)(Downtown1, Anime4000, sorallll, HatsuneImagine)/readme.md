@@ -8,6 +8,65 @@
 
 ---
 
+##### v2.0.8 更新日志（2023-12-14）：
+
+新增 “移除大厅模式” 配置：
+
+```c
+// 移除大厅模式.
+// 0 = 关闭.
+// 1 = 在大厅满员后自动移除大厅, 且在有空位时自动恢复大厅.
+// 2 = 在大厅满员后自动移除大厅, 且不再自动恢复大厅.
+// -
+// Default: "1"
+l4d_unreserve_full "2"
+```
+
+
+
+可配置为移除大厅后不再自动恢复。此模式下可根除加入服务器时出现 “会话不可用” 的情况。但这意味着您服务器的玩家匹配将完全依赖 Steam Master Server。如果 Steam Master Server 中保存的您的服务器大厅id被删除，则将不会有新玩家匹配进入，只能等待所有玩家离开服务器 或 重启服务器后，再重新创建大厅加入。
+
+
+
+备注：
+
+> sv_allow_lobby_connect_only参数主要起到此功能：
+>
+> 当服务器无人时，是否给第一个直接加入（connect命令加入 或 通过openserverbrowser列表加入 或 通过Steam组服务器列表加入）的玩家，自动创建一个大厅。
+>
+> 
+>
+> 如果为1（默认值），则第一个玩家直接加入时，会看到一个“正在创建大厅...”的界面，然后这个大厅的权限是根据"sv_steamgroup_exclusive"的值来决定的。
+>
+> - 如果sv_steamgroup_exclusive是0，则会创建一个权限为“公共游戏”的大厅
+>   -- 在客户端控制台里能看到此内容：“Server using 'public' lobbies, ......”
+>
+>   
+>
+> - 如果sv_steamgroup_exclusive是1，则会创建一个权限为“仅限好友”的大厅
+>   -- 在客户端控制台里能看到此内容：“Server using 'friends' lobbies, ......”
+>
+>   
+>
+> - 如果sv_steamgroup_exclusive是2，则会创建一个权限为“私人游戏”的大厅
+>   -- 在客户端控制台里能看到此内容：“Server using 'private' lobbies, ......”
+>
+>   
+>
+> 如果为0，则第一个玩家直接加入时，不会看到“正在创建大厅...”的界面，游戏不会为其自动创建大厅。
+>
+> ---
+>
+> 如果需要直接加入服务器时自动为你创建权限为 “公共游戏” 的大厅，则在服务器配置文件中不需要手动指定sv_allow_lobby_connect_only的值和sv_steamgroup_exclusive的值。
+>
+> 因为sv_allow_lobby_connect_only的默认值就是1，而sv_steamgroup_exclusive的默认值就是0。
+
+
+
+
+
+---
+
 ##### v2.0.7 更新日志（2023-09-13）：
 
 当服务器开启匹配且在游玩战役模式时，当玩家人数达到4人后，此插件会移除服务器中设置的大厅id，此时服务器将处于unreserved模式，以便其他玩家能正常通过 `connect` 或 `openserverbrowser列表` 或 `steam组服务器列表` 方式加入。而当服务器长时间处于unreserved状态时，steam会认为此大厅已失效，并将此大厅id从 Steam Master Server 删除。从而造成，当此服务器有玩家退出，此时人数 < 4人时，此插件将之前保存的大厅id重新设置到服务器中，而此大厅id已经被 Steam Master Server 删除，因此此时其他玩家再加入时，查询 Steam Master Server 发现此大厅id已不存在，因此弹出 “此会话已不可用” 的提示。
