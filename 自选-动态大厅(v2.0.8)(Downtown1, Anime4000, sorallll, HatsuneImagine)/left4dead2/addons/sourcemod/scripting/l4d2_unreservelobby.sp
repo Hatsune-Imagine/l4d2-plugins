@@ -25,7 +25,7 @@ public void OnPluginStart() {
 	SetConVarInt(FindConVar("sv_reservation_timeout"), 10);
 	CreateConVar("l4d_unreserve_version", PLUGIN_VERSION, "Version of the Lobby Unreserve plugin.", FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	cv_unreserveMode = CreateConVar("l4d_unreserve_mode", "1", "Unreserve Mode.\n0 = Disabled.\n1 = Automatically unreserve when full, and automatically restores the lobby reservation when there is a vacancy.\n2 = Automatically unreserve when full, and no longer automatically restores the lobby reservation.", FCVAR_SPONLY|FCVAR_NOTIFY);
-	cv_unreserveTrigger = CreateConVar("l4d_unreserve_trigger", "0", "Unreserve Trigger. When player number reaches the following number, the server unreserves.\n-1 = Get lobby slots num from server RAM.\n0 = Versus and Scavenge are 8, other gamemodes are 4.\n>0 = Any user-defined num greater than zero.");
+	cv_unreserveTrigger = CreateConVar("l4d_unreserve_trigger", "0", "Unreserve Trigger. When player number reaches the following number, the server unreserves.\n0 = Versus and Scavenge are 8, other gamemodes are 4.\n>0 = Any user-defined num greater than zero.", FCVAR_SPONLY|FCVAR_NOTIFY);
 
 	cv_unreserveMode.AddChangeHook(CvarChanged);
 	cv_unreserveTrigger.AddChangeHook(CvarChanged);
