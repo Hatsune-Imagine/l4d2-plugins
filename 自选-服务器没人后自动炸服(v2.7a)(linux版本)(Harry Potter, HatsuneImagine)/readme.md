@@ -9,13 +9,19 @@
 做出了一点小修改，新增了 `sm_crash` 指令，管理员可在服务器控制台中输入  `sm_crash` 或在游戏聊天框中输入 `/crash` 或 `!crash` 来使得服务器强制崩溃。
 
 ```c
+public void OnPluginStart()
+{
+    RegAdminCmd("sm_crash", Cmd_RestartServer, ADMFLAG_BAN, "sm_crash - manually force the server to crash");
+
+    ......
+}
+
 Action Cmd_RestartServer(int client, int args)
 {
-	ReplyToCommand(client, "正在重启服务器...");
-	SetCommandFlags("crash", GetCommandFlags("crash") &~ FCVAR_CHEAT);
-	ServerCommand("crash");
+    PrintToChatAll("正在重启服务器...");
+    CreateTimer(2.0, Timer_RestartServer);
 
-	return Plugin_Continue;
+    return Plugin_Continue;
 }
 ```
 
