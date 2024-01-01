@@ -8,7 +8,7 @@ public Plugin myinfo =
 	name = "L4D auto restart",
 	author = "Harry Potter, HatsuneImagine",
 	description = "make server restart (Force crash) when the last player disconnects from the server",
-	version = "2.7a",
+	version = "2.7b",
 	url	= "https://steamcommunity.com/profiles/76561198026784913"
 };
 
@@ -148,7 +148,8 @@ Action Timer_RestartServer(Handle timer)
 Action Cmd_RestartServer(int client, int args)
 {
 	PrintToChatAll("正在重启服务器...");
-	CreateTimer(2.0, Timer_RestartServer);
+	UnloadAccelerator();
+	CreateTimer(5.0, Timer_RestartServer);
 
 	return Plugin_Continue;
 }

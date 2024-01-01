@@ -14,6 +14,7 @@
 *							versus mode and scavenge mode now.
 *	24/08/2023 Version 1.3.4 - Fixed a bug that players have to enable auto bhop manually after changing the chapter. Using
 *							'player_disconnect' event instead of 'OnClientDisconnect()' function.
+*	01/01/2024 Version 1.3.5 - Add a cvar to control whether allow players to enable auto bhop in competitive modes.
 */
 
 #pragma semicolon 1
@@ -23,8 +24,9 @@
 #include <sdktools>
 
 #define MAXCLIENTS 32
-#define PLUGIN_VER "1.3.4"
+#define PLUGIN_VER "1.3.5"
 
+ConVar cv_autoBhopCompetitive;
 bool g_AutoBhop[MAXCLIENTS + 1];
 
 public Plugin myinfo =
@@ -41,15 +43,29 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	cv_autoBhopCompetitive = CreateConVar("l4d2_auto_bhop_allow_competitive", "1", "Allow players enable auto bhop in competitive mode.");
+
 	RegConsoleCmd("sm_bh", Cmd_Autobhop);
 	RegConsoleCmd("sm_onrb", Cmd_Autobhop);
 	RegConsoleCmd("sm_bhop", Cmd_Autobhop);
 
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
+
+	AutoExecConfig(true, "l4d2_auto_bhop");
 }
 
 public Action Cmd_Autobhop(int client, int args)
 {
+	if (!cv_autoBhopCompetitive.BoolValue && l4d2_gamemode() == 2) {
+		ReplyToCommand(client, "对抗模式不可用.");
+		return Plugin_Handled;
+	}
+
+	if (!cv_autoBhopCompetitive.BoolValue && l4d2_gamemode() == 4) {
+		ReplyToCommand(client, "清道夫模式不可用.");
+		return Plugin_Handled;
+	}
+
 	if (client == 0)
 	{
 		if (!IsDedicatedServer())
@@ -61,22 +77,12 @@ public Action Cmd_Autobhop(int client, int args)
 	if (!IsClientInGame(client))
 		return Plugin_Handled;
 
-	if(l4d2_gamemode() == 2) {
-		ReplyToCommand(client, "对抗模式不可用");
-		return Plugin_Handled;
-	}
-
-	if(l4d2_gamemode() == 4) {
-		ReplyToCommand(client, "清道夫模式不可用");
-		return Plugin_Handled;
-	}
-
 	g_AutoBhop[client] = !g_AutoBhop[client];
 
 	if (g_AutoBhop[client])
-		PrintToChat(client, "\x04[提示]\x03自动连跳开启.");
+		PrintToChat(client, "\x03已开启\x05自动连跳.");
 	else
-		PrintToChat(client, "\x04[提示]\x03自动连跳关闭.");
+		PrintToChat(client, "\x03已关闭\x05自动连跳.");
 
 	return Plugin_Handled;
 }

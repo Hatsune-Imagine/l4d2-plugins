@@ -19,7 +19,8 @@ public void OnPluginStart()
 Action Cmd_RestartServer(int client, int args)
 {
     PrintToChatAll("正在重启服务器...");
-    CreateTimer(2.0, Timer_RestartServer);
+    UnloadAccelerator();
+    CreateTimer(5.0, Timer_RestartServer);
 
     return Plugin_Continue;
 }
