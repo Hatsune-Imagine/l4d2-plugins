@@ -19,10 +19,11 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
+	HookEvent("round_start", RoundStart_Event);
 	commandGodFlags = GetCommandFlags("god");
 }
 
-public void OnMapStart()
+void RoundStart_Event(Event event, const char[] name, bool dontBroadcast) 
 {
 	SetCommandFlags("god", commandGodFlags & ~FCVAR_NOTIFY);
 	SetConVarInt(FindConVar("god"), 1);
