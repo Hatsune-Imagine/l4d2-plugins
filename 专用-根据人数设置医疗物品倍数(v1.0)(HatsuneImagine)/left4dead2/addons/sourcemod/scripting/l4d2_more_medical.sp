@@ -55,7 +55,7 @@ int GetAllPlayerCount()
 	int count = 0;
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientConnected(i) && !IsFakeClient(i))
-				count++;
+			count++;
 	
 	return count;
 }

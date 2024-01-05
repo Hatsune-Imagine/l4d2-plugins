@@ -1,0 +1,9 @@
+"Phrases"
+{
+	"tip"
+	{
+		"chi"		"{olive}您无法投票踢出服务器管理员!"
+		"zho"		"{olive}您無法投票踢出伺服器管理員!"
+		"en"		"{olive}You can not vote kick server admins!"
+	}
+}
