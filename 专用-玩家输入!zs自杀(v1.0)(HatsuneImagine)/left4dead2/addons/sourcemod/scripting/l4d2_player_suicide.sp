@@ -15,7 +15,7 @@ public Plugin myinfo =
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
-public void OnPluginStart() 
+public void OnPluginStart()
 {
 	RegConsoleCmd("sm_zs", PlayerSuicide, "玩家自杀.");
 	RegConsoleCmd("sm_kl", PlayerSuicide, "玩家自杀.");

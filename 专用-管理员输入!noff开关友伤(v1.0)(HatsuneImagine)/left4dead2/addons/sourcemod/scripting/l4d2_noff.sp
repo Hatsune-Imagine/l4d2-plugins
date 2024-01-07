@@ -23,7 +23,7 @@ public Plugin myinfo =
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
-public void OnPluginStart() 
+public void OnPluginStart()
 {
 	RegAdminCmd("sm_noff", DisableFF, ADMFLAG_ROOT, "管理员开启或关闭队友伤害.");
 	RegAdminCmd("sm_black", DisableFF, ADMFLAG_ROOT, "管理员开启或关闭队友伤害.");

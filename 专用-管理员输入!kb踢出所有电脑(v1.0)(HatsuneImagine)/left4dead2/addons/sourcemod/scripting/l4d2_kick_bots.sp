@@ -14,7 +14,7 @@ public Plugin myinfo =
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
-public void OnPluginStart() 
+public void OnPluginStart()
 {
 	RegAdminCmd("sm_kb", KickBots, ADMFLAG_ROOT, "管理员踢出所有电脑.");
 }

@@ -14,7 +14,7 @@ public Plugin myinfo =
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
-public void OnPluginStart() 
+public void OnPluginStart()
 {
 	RegAdminCmd("sm_restart", RestartMap, ADMFLAG_ROOT, "管理员重启当前章节.");
 }

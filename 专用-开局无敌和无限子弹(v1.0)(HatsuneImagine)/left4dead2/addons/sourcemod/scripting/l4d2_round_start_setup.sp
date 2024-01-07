@@ -23,7 +23,7 @@ public void OnPluginStart()
 	commandGodFlags = GetCommandFlags("god");
 }
 
-void RoundStart_Event(Event event, const char[] name, bool dontBroadcast) 
+void RoundStart_Event(Event event, const char[] name, bool dontBroadcast)
 {
 	SetCommandFlags("god", commandGodFlags & ~FCVAR_NOTIFY);
 	SetConVarInt(FindConVar("god"), 1);
