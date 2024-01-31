@@ -4,7 +4,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 public Plugin myinfo = 
 {
@@ -15,18 +15,27 @@ public Plugin myinfo =
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
-public void OnClientConnected(int client)
+public void OnPluginStart()
+{
+	HookEvent("player_connect",		Event_PlayerConnect);
+	HookEvent("player_disconnect",	Event_PlayerDisconnect, EventHookMode_Pre);
+}
+
+void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
 {
 	SetMoreMedical(RoundToCeil(GetAllPlayerCount() / 4.0));
 }
 
-public void OnClientDisconnect(int client)
+void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
 	SetMoreMedical(RoundToCeil(GetAllPlayerCount() / 4.0));
 }
 
 void SetMoreMedical(int count)
 {
+	if (count <= 0)
+		return;
+
 	char gameMode[32];
 	GetConVarString(FindConVar("mp_gamemode"), gameMode, sizeof(gameMode));
 	if (StrContains(gameMode, "versus") > -1 || StrContains(gameMode, "scavenge") > -1)
@@ -42,7 +51,6 @@ void SetMoreMedical(int count)
 void SetEntCount(const char[] entName, const char[] entCount)
 {
 	int edictIndex = FindEntityByClassname(-1, entName);
-	
 	while(edictIndex != -1)
 	{
 		DispatchKeyValue(edictIndex, "count", entCount);
@@ -56,6 +64,6 @@ int GetAllPlayerCount()
 	for (int i = 1; i <= MaxClients; i++)
 		if (IsClientConnected(i) && !IsFakeClient(i))
 			count++;
-	
+
 	return count;
 }
