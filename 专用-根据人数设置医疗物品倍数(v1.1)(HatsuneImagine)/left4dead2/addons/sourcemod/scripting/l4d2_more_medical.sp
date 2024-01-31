@@ -17,8 +17,8 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	HookEvent("player_connect",		Event_PlayerConnect);
-	HookEvent("player_disconnect",	Event_PlayerDisconnect, EventHookMode_Pre);
+	HookEvent("player_connect", Event_PlayerConnect);
+	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 }
 
 void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
