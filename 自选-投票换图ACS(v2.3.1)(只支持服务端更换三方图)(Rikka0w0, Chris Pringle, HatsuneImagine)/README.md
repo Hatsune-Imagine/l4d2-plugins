@@ -1,4 +1,4 @@
-# 换图插件ACS
+# 投票换图ACS
 
 
 做出了部分修改，将原本 `l4d2_mission_manager.sp` 中获取三方图名称的取值由 `Name` 改为 `DisplayTitle` , 从而可使得换图菜单内，地图的显示名称与实际地图名称一致。
