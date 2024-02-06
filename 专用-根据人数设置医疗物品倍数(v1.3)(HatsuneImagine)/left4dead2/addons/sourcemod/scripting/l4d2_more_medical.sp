@@ -4,7 +4,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.2"
+#define VERSION "1.3"
 
 int currentMultiple = 1;
 
@@ -26,16 +26,33 @@ public void OnPluginStart()
 
 void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
-	CreateTimer(10.0, DelayTimer);
+	currentMultiple = 1;
+	CreateTimer(1.0, DelayTimer);
 }
 
 void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
 {
+	int client = GetClientOfUserId(event.GetInt("userid"));
+
+	if (!client)
+		return;
+
+	if (IsFakeClient(client))
+		return;
+
 	CreateTimer(1.0, DelayTimer);
 }
 
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
+	int client = GetClientOfUserId(event.GetInt("userid"));
+
+	if (!client)
+		return;
+
+	if (IsFakeClient(client))
+		return;
+
 	CreateTimer(1.0, DelayTimer);
 }
 
@@ -53,28 +70,26 @@ void SetMoreMedical(int count)
 	if (count == currentMultiple)
 		return;
 
-	currentMultiple = count;
-
 	char gameMode[32];
 	GetConVarString(FindConVar("mp_gamemode"), gameMode, sizeof(gameMode));
 	if (StrContains(gameMode, "versus") > -1 || StrContains(gameMode, "scavenge") > -1)
 		return;
 
-	char entCount[2];
-	IntToString(count, entCount, sizeof(entCount));
-	SetEntCount("weapon_defibrillator_spawn", entCount);	//电击器
-	SetEntCount("weapon_first_aid_kit_spawn", entCount);	//医疗包
-	SetEntCount("weapon_pain_pills_spawn", entCount);		//止痛药
-	SetEntCount("weapon_adrenaline_spawn", entCount);		//肾上腺素
+	currentMultiple = count;
+
+	SetEntCount("weapon_defibrillator_spawn", count);	//电击器
+	SetEntCount("weapon_first_aid_kit_spawn", count);	//医疗包
+	SetEntCount("weapon_pain_pills_spawn", count);		//止痛药
+	SetEntCount("weapon_adrenaline_spawn", count);		//肾上腺素
 }
 
-void SetEntCount(const char[] entName, const char[] entCount)
+void SetEntCount(const char[] entName, int count)
 {
 	int edictIndex = FindEntityByClassname(-1, entName);
 	while (edictIndex != -1)
 	{
 		if (IsValidEntity(edictIndex))
-			DispatchKeyValue(edictIndex, "count", entCount);
+			DispatchKeyValueInt(edictIndex, "count", count);
 
 		edictIndex = FindEntityByClassname(edictIndex, entName);
 	}
