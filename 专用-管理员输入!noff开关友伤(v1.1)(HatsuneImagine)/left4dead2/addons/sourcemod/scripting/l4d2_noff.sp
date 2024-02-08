@@ -3,16 +3,14 @@
 #include <sourcemod>
 #include <sdkhooks>
 
-#define DMG_CUSTOM_FIRE      2056
-#define DMG_CUSTOM_ONFIRE    268435464
-#define DMG_CUSTOM_PIPEBOMB  134217792
-#define DMG_CUSTOM_PROPANE   16777280
-#define DMG_CUSTOM_OXYGEN    33554432
-#define DMG_CUSTOM_GRENADE   1107296256
+#define DMG_CUSTOM_PIPEBOMB             134217792
+#define DMG_CUSTOM_PROPANE              16777280
+#define DMG_CUSTOM_OXYGEN               33554432
+#define DMG_CUSTOM_GRENADE_LAUNCHER     1107296256
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
-bool bFF = true;
+bool enabled = true;
 
 public Plugin myinfo = 
 {
@@ -31,9 +29,8 @@ public void OnPluginStart()
 
 public Action DisableFF(int client, int args)
 {
-	bFF = !bFF;
-	PrintToChatAll("\x03%s\x05幸存者队友伤害.", bFF ? "已开启" : "已关闭");
-
+	enabled = args == 1 ? GetCmdArgInt(1) >= 1 : !enabled;
+	PrintToChatAll("\x03%s\x05生还者队友伤害.", enabled ? "已开启" : "已关闭");
 	return Plugin_Continue;
 }
 
@@ -44,7 +41,7 @@ public void OnClientPutInServer(int client)
 
 public Action OnTakeDamage(int client, int &attacker, int &inflictor, float &damage, int &damagetype)
 { 
-	if (!bFF)
+	if (!enabled)
 	{
 		if(IsValidClient(client) && GetClientTeam(client) == 2)
 		{
@@ -60,9 +57,8 @@ public Action OnTakeDamage(int client, int &attacker, int &inflictor, float &dam
 
 bool IsOtherDamageTypes(int damagetype)
 {
-	return damagetype == DMG_BURN || damagetype == DMG_CUSTOM_FIRE || damagetype == DMG_CUSTOM_ONFIRE //火焰伤害.
-	|| damagetype == DMG_CUSTOM_PIPEBOMB || damagetype == DMG_CUSTOM_PROPANE || damagetype == DMG_CUSTOM_OXYGEN //土制炸弹,煤气罐,氧气罐爆炸伤害.
-	|| damagetype == DMG_CUSTOM_GRENADE;//榴弹发射器伤害.
+	return damagetype == DMG_CUSTOM_PIPEBOMB || damagetype == DMG_CUSTOM_PROPANE || damagetype == DMG_CUSTOM_OXYGEN //土制炸弹,煤气罐,氧气罐爆炸伤害.
+	|| damagetype == DMG_CUSTOM_GRENADE_LAUNCHER;//榴弹发射器伤害.
 }
 
 bool IsValidClient(int client)

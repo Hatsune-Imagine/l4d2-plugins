@@ -3,7 +3,7 @@
 #include <sourcemod>
 #include <sdkhooks>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 bool enabled;
 
@@ -23,7 +23,7 @@ public void OnPluginStart()
 
 public Action MoreAmmo(int client, int args)
 {
-	enabled = !enabled;
+	enabled = args == 1 ? GetCmdArgInt(1) >= 1 : !enabled;
 
 	if (enabled) {
 		SetConVarInt(FindConVar("ammo_smg_max"), 950);

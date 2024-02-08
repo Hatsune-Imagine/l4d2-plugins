@@ -2,11 +2,25 @@
 
 
 
-1. 将前置依赖 `l4d2_source_keyvalues` 和 `l4d2_nativevote` 升级至最新版。
+原作者来源：https://github.com/umlka/l4d2/tree/main/map_changer
+
+
+
+需要前置插件：
+
+`l4d2_source_key_values`：https://github.com/fdxx/l4d2_source_keyvalues
+
+`l4d2_nativevote`：https://github.com/fdxx/l4d2_nativevote
 
 
 
 ---
+
+部分修改如下：
+
+1. 将前置依赖 `l4d2_source_keyvalues` 和 `l4d2_nativevote` 升级至最新版。
+
+
 
 2. 修复 `l4d2_map_vote` 不适配最新版 `l4d2_nativevote` 的问题。当投票下一张地图时，只有索引最小的玩家能看到投票窗口，其他玩家看不到投票窗口且无法支持或反对的bug（且投票窗口中只有1个槽位，索引最小的玩家支持或反对后投票框则关闭）。
 

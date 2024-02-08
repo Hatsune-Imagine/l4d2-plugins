@@ -4,7 +4,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 
 int currentMultiple = 1;
 
@@ -20,7 +20,7 @@ public Plugin myinfo =
 public void OnPluginStart()
 {
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
-	HookEvent("player_connect", Event_PlayerConnect);
+	HookEvent("player_connect", Event_PlayerConnect, EventHookMode_Post);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 }
 
@@ -33,32 +33,24 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-
-	if (!client)
+	if (!client || IsFakeClient(client))
 		return;
 
-	if (IsFakeClient(client))
-		return;
-
-	CreateTimer(1.0, DelayTimer);
+	SetMoreMedical(RoundToCeil((GetAllPlayerCount(client) + 1) / 4.0));
 }
 
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
-
-	if (!client)
+	if (!client || IsFakeClient(client))
 		return;
 
-	if (IsFakeClient(client))
-		return;
-
-	CreateTimer(1.0, DelayTimer);
+	SetMoreMedical(RoundToCeil(GetAllPlayerCount(client) / 4.0));
 }
 
 Action DelayTimer(Handle timer)
 {
-	SetMoreMedical(RoundToCeil(GetAllPlayerCount() / 4.0));
+	SetMoreMedical(RoundToCeil(GetAllPlayerCount(-1) / 4.0));
 	return Plugin_Continue;
 }
 
@@ -95,11 +87,11 @@ void SetEntCount(const char[] entName, int count)
 	}
 }
 
-int GetAllPlayerCount()
+int GetAllPlayerCount(int client)
 {
 	int count = 0;
 	for (int i = 1; i <= MaxClients; i++)
-		if (IsClientConnected(i) && !IsFakeClient(i))
+		if (i != client && IsClientConnected(i) && !IsFakeClient(i))
 			count++;
 
 	return count;
