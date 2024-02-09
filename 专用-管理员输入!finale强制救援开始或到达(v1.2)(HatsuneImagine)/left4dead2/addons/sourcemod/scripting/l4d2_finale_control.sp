@@ -4,7 +4,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 char scriptUnlockFinaleBuffer[256], scriptUnblockRescueBuffer[256];
 char scriptUnlockFinale[][] =
@@ -29,23 +29,36 @@ public Plugin myinfo =
 {
 	name = "L4D2 Finale Control",
 	author = "HatsuneImagine",
-	description = "Manually force the finale to start or call the rescue event.",
+	description = "Manually force the finale to start or force the rescue to arrive.",
 	version = VERSION,
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
 public void OnPluginStart()
 {
-	RegAdminCmd("sm_finale", CmdFinale, ADMFLAG_ROOT, "管理员开始或呼叫救援.");
+	RegAdminCmd("sm_finale", CmdFinale, ADMFLAG_ROOT, "管理员强制救援开始或到达.");
 	ImplodeStrings(scriptUnlockFinale, sizeof(scriptUnlockFinale), "\n", scriptUnlockFinaleBuffer, sizeof(scriptUnlockFinaleBuffer));
 	ImplodeStrings(scriptUnblockRescue, sizeof(scriptUnblockRescue), "\n", scriptUnblockRescueBuffer, sizeof(scriptUnblockRescueBuffer));
+	LoadTranslations("l4d2_finale_control.phrases");
 }
 
 public Action CmdFinale(int client, int args)
 {
-	if (args != 1)
+	if (args < 1)
 	{
-		ReplyToCommand(client, "[SM] Usage: sm_finale <action: start | rescue>");
+		char title[64];
+		char item1[64];
+		char item2[64];
+		Format(title, sizeof(title), "%T", "menu_title", client);
+		Format(item1, sizeof(item1), "%T", "finale_start", client);
+		Format(item2, sizeof(item2), "%T", "finale_rescue", client);
+
+		Menu menu = new Menu(MenuHandler_Finale);
+		menu.SetTitle(title);
+		menu.AddItem("1", item1);
+		menu.AddItem("2", item2);
+		menu.Display(client, MENU_TIME_FOREVER);
+
 		return Plugin_Continue;
 	}
 
@@ -60,6 +73,32 @@ public Action CmdFinale(int client, int args)
 		ReplyToCommand(client, "[SM] Usage: sm_finale <action: start | rescue>");
 
 	return Plugin_Continue;
+}
+
+int MenuHandler_Finale(Menu menu, MenuAction action, int client, int param)
+{
+	switch (action)
+	{
+		case MenuAction_End:
+			delete menu;
+
+		case MenuAction_Select:
+		{
+			char item[2];
+			menu.GetItem(param, item, sizeof(item));
+			switch (item[0])
+			{
+				case '1':
+					StartFinale(client);
+				case '2':
+					TriggerRescue(client);
+				default:
+					delete menu;
+			}
+		}
+	}
+
+	return 0;
 }
 
 void StartFinale(int client)
@@ -222,6 +261,8 @@ void StartFinale(int client)
 		UnlockFinaleNav();
 		AcceptEntityInput(ent, "ForceFinaleStart");
 	}
+	else
+		ReplyToCommand(client, "%T", "finale_only", client);
 }
 
 void TriggerRescue(int client)
@@ -246,6 +287,8 @@ void TriggerRescue(int client)
 		UnblockRescueVehicleNav();
 		AcceptEntityInput(ent, "FinaleEscapeStarted");
 	}
+	else
+		ReplyToCommand(client, "%T", "finale_only", client);
 }
 
 void UnlockFinaleNav()

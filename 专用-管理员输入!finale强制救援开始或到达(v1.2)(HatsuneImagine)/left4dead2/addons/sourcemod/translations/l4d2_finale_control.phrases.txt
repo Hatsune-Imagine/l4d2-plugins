@@ -1,0 +1,30 @@
+"Phrases"
+{
+	"menu_title"
+	{
+		"en"		"Finale Options"
+		"chi"		"救援选项"
+		"zho"		"救援選項"
+	}
+
+	"finale_start"
+	{
+		"en"		"Force Finale Start"
+		"chi"		"强制救援开始"
+		"zho"		"强制救援開始"
+	}
+
+	"finale_rescue"
+	{
+		"en"		"Force Finale Rescue"
+		"chi"		"强制救援到达"
+		"zho"		"强制救援到達"
+	}
+
+	"finale_only"
+	{
+		"en"		"Only available in finale levels"
+		"chi"		"仅在救援关可用"
+		"zho"		"僅在救援關可用"
+	}
+}
