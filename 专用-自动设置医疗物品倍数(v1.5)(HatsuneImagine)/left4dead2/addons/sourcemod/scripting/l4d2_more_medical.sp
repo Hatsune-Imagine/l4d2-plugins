@@ -4,8 +4,9 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.4"
+#define VERSION "1.5"
 
+bool mapLoaded;
 int currentMultiple = 1;
 
 public Plugin myinfo = 
@@ -19,43 +20,55 @@ public Plugin myinfo =
 
 public void OnPluginStart()
 {
-	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
-	HookEvent("player_connect", Event_PlayerConnect, EventHookMode_Post);
+	HookEvent("round_start", Event_RoundStart);
+	HookEvent("round_end", Event_RoundEnd);
+	HookEvent("player_connect", Event_PlayerConnect);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 }
 
 void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
+	mapLoaded = true;
 	currentMultiple = 1;
 	CreateTimer(1.0, DelayTimer);
 }
 
+void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
+{
+	mapLoaded = false;
+}
+
 void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (!client || IsFakeClient(client))
+	char networkid[5];
+	event.GetString("networkid", networkid, sizeof networkid);
+	if (strcmp(networkid, "BOT") == 0)
 		return;
 
-	SetMoreMedical(RoundToCeil((GetAllPlayerCount(client) + 1) / 4.0));
+	CreateTimer(1.0, DelayTimer);
 }
 
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(event.GetInt("userid"));
-	if (!client || IsFakeClient(client))
+	char networkid[5];
+	event.GetString("networkid", networkid, sizeof networkid);
+	if (strcmp(networkid, "BOT") == 0)
 		return;
 
-	SetMoreMedical(RoundToCeil(GetAllPlayerCount(client) / 4.0));
+	CreateTimer(1.0, DelayTimer);
 }
 
 Action DelayTimer(Handle timer)
 {
-	SetMoreMedical(RoundToCeil(GetAllPlayerCount(-1) / 4.0));
+	SetMoreMedical(RoundToCeil(GetAllPlayerCount() / 4.0));
 	return Plugin_Continue;
 }
 
 void SetMoreMedical(int count)
 {
+	if (!mapLoaded)
+		return;
+
 	if (count <= 0)
 		return;
 
@@ -87,11 +100,11 @@ void SetEntCount(const char[] entName, int count)
 	}
 }
 
-int GetAllPlayerCount(int client)
+int GetAllPlayerCount()
 {
 	int count = 0;
 	for (int i = 1; i <= MaxClients; i++)
-		if (i != client && IsClientConnected(i) && !IsFakeClient(i))
+		if (IsClientConnected(i) && !IsFakeClient(i))
 			count++;
 
 	return count;
