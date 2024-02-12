@@ -23,8 +23,8 @@
 
 	"finale_only"
 	{
-		"en"		"Only available in finale levels"
-		"chi"		"仅在救援关可用"
-		"zho"		"僅在救援關可用"
+		"en"		"Not available in current level"
+		"chi"		"当前关卡不可用"
+		"zho"		"當前關卡不可用"
 	}
 }
