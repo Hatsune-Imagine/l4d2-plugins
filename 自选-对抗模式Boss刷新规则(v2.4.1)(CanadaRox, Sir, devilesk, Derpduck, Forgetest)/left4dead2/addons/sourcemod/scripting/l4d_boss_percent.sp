@@ -270,7 +270,7 @@ public void LeftStartAreaEvent(Event event, const char[] name, bool dontBroadcas
 {
 	if (!g_ReadyUpAvailable)
 	{
-		// PrintBossPercents();
+		PrintBossPercents();
 
 		// If it's the first round of a Dark Carnival: Remix map, we want to save our boss percentages so we can set them next round
 		if (g_bIsRemix && !InSecondHalfOfRound())
@@ -287,7 +287,7 @@ public void LeftStartAreaEvent(Event event, const char[] name, bool dontBroadcas
  */
 public void OnRoundIsLive()
 {
-	// PrintBossPercents();
+	PrintBossPercents();
 
 	// If it's the first round of a Dark Carnival: Remix map, we want to save our boss percentages so we can set them next round
 	if (g_bIsRemix && !InSecondHalfOfRound())

@@ -132,10 +132,6 @@ public void RoundStartEvent(Event event, const char[] name, bool dontBroadcast) 
 }
 
 public Action AdjustBossFlow(Handle timer) {
-	if (L4D_GetGameModeType() != 2) {
-		return Plugin_Stop;
-	}
-
 	if (InSecondHalfOfRound()) {
 		return Plugin_Stop;
 	}
