@@ -20,11 +20,4 @@
 		"chi"		"强制救援到达"
 		"zho"		"强制救援到達"
 	}
-
-	"finale_only"
-	{
-		"en"		"Not available in current level"
-		"chi"		"当前关卡不可用"
-		"zho"		"當前關卡不可用"
-	}
 }
