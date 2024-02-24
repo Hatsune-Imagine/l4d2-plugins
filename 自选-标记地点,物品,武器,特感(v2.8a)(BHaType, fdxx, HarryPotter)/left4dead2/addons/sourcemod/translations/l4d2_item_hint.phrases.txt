@@ -52,7 +52,7 @@
 	{
 		//不能翻譯的句子
 		//因爲Spot_Maker是一個Entity，只能設定一個caption内容
-		//因此只能根據伺服器語言顯示
+		//因此只能根據伺服器語言全局顯示(LANG_SERVER)，或者根據創建標記的玩家游戲語言全局顯示(client)
 		"#format"	"{1:N}"
 		"en"		"{1} Marked Here"
 		"zho"		"{1} 標記了這裏"
