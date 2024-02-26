@@ -1,0 +1,72 @@
+"Phrases"
+{
+	"kill"
+	{
+		"en"		"KILL!"
+		"chi"		"击杀!"
+		"zho"		"擊殺!"
+	}
+
+	"headshot"
+	{
+		"en"		"HEADSHOT!"
+		"chi"		"爆头!"
+		"zho"		"爆頭!"
+	}
+
+	"you"
+	{
+		"en"		"your"
+		"chi"		"你"
+		"zho"		"你"
+	}
+
+	"head"
+	{
+		"en"		"'s head"
+		"chi"		" 的头部"
+		"zho"		" 的頭部"
+	}
+
+	"chest"
+	{
+		"en"		"'s chest"
+		"chi"		" 的胸部"
+		"zho"		" 的胸部"
+	}
+
+	"stomach"
+	{
+		"en"		"'s stomach"
+		"chi"		" 的腹部"
+		"zho"		" 的腹部"
+	}
+
+	"left_arm"
+	{
+		"en"		"'s left arm"
+		"chi"		" 的左臂"
+		"zho"		" 的左臂"
+	}
+
+	"right_arm"
+	{
+		"en"		"'s right arm"
+		"chi"		" 的右臂"
+		"zho"		" 的右臂"
+	}
+
+	"left_leg"
+	{
+		"en"		"'s left leg"
+		"chi"		" 的左腿"
+		"zho"		" 的左腿"
+	}
+
+	"right_leg"
+	{
+		"en"		"'s right leg"
+		"chi"		" 的右腿"
+		"zho"		" 的右腿"
+	}
+}
