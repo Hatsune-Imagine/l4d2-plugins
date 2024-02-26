@@ -4,7 +4,7 @@
 #include <sdkhooks>
 #include <sdktools>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 public Plugin myinfo = 
 {
@@ -19,16 +19,14 @@ public void OnPluginStart()
 {
 	RegConsoleCmd("sm_zs", PlayerSuicide, "玩家自杀.");
 	RegConsoleCmd("sm_kl", PlayerSuicide, "玩家自杀.");
+	RegConsoleCmd("sm_kill", PlayerSuicide, "玩家自杀.");
 }
 
 public Action PlayerSuicide(int client, int args)
 {
 	if (IsPlayerAlive(client)) {
 		ForcePlayerSuicide(client);
-
-		char playerName[32];
-		GetClientName(client, playerName, sizeof(playerName));
-		PrintToChatAll("\x03%s\x05自杀了.", playerName);
+		PrintToChatAll("\x03%N\x05自杀了.", client);
 	}
 
 	return Plugin_Continue;
