@@ -14,11 +14,18 @@
 		"zho"		"爆頭!"
 	}
 
-	"you"
+	"you_hit"
 	{
-		"en"		"your"
-		"chi"		"你"
-		"zho"		"你"
+		"en"		"You hit "
+		"chi"		"你攻击了 "
+		"zho"		"你攻擊了 "
+	}
+
+	"hit_you"
+	{
+		"en"		" hit your"
+		"chi"		" 攻击了你"
+		"zho"		" 攻擊了你"
 	}
 
 	"head"

@@ -6,7 +6,7 @@
 #define PLUGIN_NAME 				"[L4D/L4D2] Broadcast"
 #define PLUGIN_AUTHOR 				"Voiderest, Edited by Ernecio"
 #define PLUGIN_DESCRIPTION 			"Displays extra info for kills and friendly fire."
-#define PLUGIN_VERSION 				"0.9.7"
+#define PLUGIN_VERSION 				"0.9.7b"
 #define PLUGIN_URL 					"<URL>"
 
 #define CVAR_FLAGS 					FCVAR_NOTIFY
@@ -27,8 +27,8 @@ Handle broadcast 			= INVALID_HANDLE;
 Handle broadcast_con 		= INVALID_HANDLE;
 Handle broadcast_attack 	= INVALID_HANDLE;
 Handle broadcast_victim 	= INVALID_HANDLE;
-Handle kill_timers			[MAXPLAYERS+1][3];
-int kill_counts				[MAXPLAYERS+1][3];
+Handle kill_timers			[MAXPLAYERS+1][2];
+int kill_counts				[MAXPLAYERS+1][2];
 
 public void OnPluginStart() 
 {
@@ -72,7 +72,7 @@ void printkillinfo(int attacker, bool headshot)
 	{
 		murder = kill_counts[attacker][0];
 		
-		if (murder > 1)
+		if (murder >= 1)
 		{
 			PrintCenterText(attacker, "%t +%d", "headshot", murder);
 			KillTimer(kill_timers[attacker][0]);
@@ -83,24 +83,24 @@ void printkillinfo(int attacker, bool headshot)
 		}
 		
 		kill_timers[attacker][0] = CreateTimer(5.0, KillCountTimer, (attacker * 10));
-		kill_counts[attacker][0] = murder+1;
+		kill_counts[attacker][0] = murder + 1;
 	}
 	else if (intbroad == 1)
 	{
-		murder = kill_counts[attacker][1];
+		murder = kill_counts[attacker][0];
 		
 		if (murder >= 1)
 		{
 			PrintCenterText(attacker, "%t +%d", "kill", murder);
-			KillTimer(kill_timers[attacker][1]);
+			KillTimer(kill_timers[attacker][0]);
 		}
 		else
 		{
 			PrintCenterText(attacker, "%t", "kill");
 		}
 		
-		kill_timers[attacker][1] = CreateTimer(5.0, KillCountTimer, ((attacker * 10) + 1));
-		kill_counts[attacker][1] = murder+1;
+		kill_timers[attacker][0] = CreateTimer(5.0, KillCountTimer, (attacker * 10));
+		kill_counts[attacker][0] = murder + 1;
 	}
 }
 
@@ -110,7 +110,7 @@ public Action KillCountTimer(Handle timer, any info)
 	info = info - id;
 	id = id / 10;
 	
-	kill_counts [id] [info] = 0;
+	kill_counts[id][info] = 0;
 	
 	return Plugin_Continue;
 }
@@ -132,9 +132,9 @@ public Action Event_Player_Hurt(Handle event, const char[] name, bool dontBroadc
 		return Plugin_Continue;
 	}
 	
-	int id = kill_counts[attacker][2];
-	kill_timers[attacker][2] = CreateTimer(5.0, KillCountTimer, ((attacker * 10) + 2));
-	kill_counts[attacker][2] = client;
+	int id = kill_counts[attacker][1];
+	kill_timers[attacker][1] = CreateTimer(5.0, KillCountTimer, ((attacker * 10) + 1));
+	kill_counts[attacker][1] = client;
 	
 	char hit[32];
 	switch (GetEventInt(event, "hitgroup"))
@@ -177,26 +177,26 @@ public Action Event_Player_Hurt(Handle event, const char[] name, bool dontBroadc
 	
 	if ((ff_attack == 1 || ff_attack == 2) && (id != client))
 	{
-		PrintHintText(attacker, "You hit %N.", client);
+		PrintHintText(attacker, "%t%N.", "you_hit", client);
 	}
 	
 	if (ff_attack == 2 || ff_attack == 3)
 	{
-		PrintToChat(attacker, "You hit %N%t.", client, hit);
+		PrintToChat(attacker, "%t%N%t.", "you_hit", client, hit);
 	}
 	else if (ff_con == 1)
 	{
-		PrintToConsole(attacker, "You hit %N%t.", client, hit);
+		PrintToConsole(attacker, "%t%N%t.", "you_hit", client, hit);
 	}
 	
 	// ReplaceString(hit, 32, "'s", "r");
 	if (ff_victim == 1)
 	{
-		PrintToChat(client, "%N hit %t%t.", attacker, "you", hit);
+		PrintToChat(client, "%N%t%t.", attacker, "hit_you", hit);
 	}
 	else if (ff_con == 1)
 	{
-		PrintToConsole(client, "%N hit %t%t.", attacker, "you", hit);
+		PrintToConsole(client, "%N%t%t.", attacker, "hit_you", hit);
 	}
 	
 	return Plugin_Continue;
