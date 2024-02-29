@@ -20,4 +20,11 @@
 		"chi"		"强制救援到达"
 		"zho"		"强制救援到達"
 	}
+
+	"finale_escape"
+	{
+		"en"		"Force Finale Escape"
+		"chi"		"强制救援完成"
+		"zho"		"强制救援完成"
+	}
 }
