@@ -437,9 +437,9 @@
 		"chi"			"高尔夫球棍!"
 	}
 
-	"Pitckfork"
+	"Pitchfork"
 	{
-		"en"			"Pitckfork!"
+		"en"			"Pitchfork!"
 		"zho"			"草叉!"
 		"chi"			"干草叉!"
 	}
@@ -512,5 +512,12 @@
 		"en"			"Witch Bride!"
 		"zho"			"新娘 Witch!"
 		"chi"			"Witch Bride!"
+	}	
+	
+	"Unknown Infected"
+	{
+		"en"			"Unknown Infected"
+		"zho"			"未知的特感!"
+		"chi"			"未知的特感!"
 	}
 }
