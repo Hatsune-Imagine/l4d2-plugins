@@ -6,7 +6,7 @@
 #define PLUGIN_NAME 				"[L4D/L4D2] Broadcast"
 #define PLUGIN_AUTHOR 				"Voiderest, Edited by Ernecio"
 #define PLUGIN_DESCRIPTION 			"Displays extra info for kills and friendly fire."
-#define PLUGIN_VERSION 				"0.9.7b"
+#define PLUGIN_VERSION 				"0.9.7c"
 #define PLUGIN_URL 					"<URL>"
 
 #define CVAR_FLAGS 					FCVAR_NOTIFY
@@ -141,34 +141,36 @@ public Action Event_Player_Hurt(Handle event, const char[] name, bool dontBroadc
 	{
 		case 1:
 		{
-			hit="head";
+			hit = "head";
 		}
 		case 2:
 		{
-			hit="chest";
+			hit = "chest";
 		}
 		case 3:
 		{
-			hit="stomach";
+			hit = "stomach";
 		}
 		case 4:
 		{
-			hit="left_arm";
+			hit = "left_arm";
 		}
 		case 5:
 		{
-			hit="right_arm";
+			hit = "right_arm";
 		}
 		case 6:
 		{
-			hit="left_leg";
+			hit = "left_leg";
 		}
 		case 7:
 		{
-			hit="right_leg";
+			hit = "right_leg";
 		}
 		default:
-		{}
+		{
+			hit = "body";
+		}
 	}
 	
 	//char buf[128];

@@ -23,7 +23,7 @@
 
 	"hit_you"
 	{
-		"en"		" hit your"
+		"en"		" hit you"
 		"chi"		" 攻击了你"
 		"zho"		" 攻擊了你"
 	}
@@ -75,5 +75,12 @@
 		"en"		"'s right leg"
 		"chi"		" 的右腿"
 		"zho"		" 的右腿"
+	}
+
+	"body"
+	{
+		"en"		""
+		"chi"		""
+		"zho"		""
 	}
 }
