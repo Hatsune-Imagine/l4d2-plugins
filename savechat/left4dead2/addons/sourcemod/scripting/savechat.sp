@@ -98,28 +98,6 @@ void StringToLowerCase(char[] szInput) {
 
 public void OnMapEnd() {
 	g_iRoundCount = 0;
-
-	char time[32];
-	FormatTime(time, sizeof time, "%H:%M:%S %Y/%m/%d", -1);
-
-	LogTo("+-------------------------------------------+");
-	LogTo("|                  地图结束                  |");
-	LogTo("+-------------------------------------------+");
-	LogTo("[%s] \"%s\"", time, g_sMap);
-}
-
-public void OnMapStart() {
-	FormatTime(g_sMsg, sizeof g_sMsg, "%Y%m%d", -1);
-	BuildPath(Path_SM, g_sLogPath, sizeof g_sLogPath, "/logs/chat%s-%i.log", g_sMsg, g_cvHostport.IntValue);
-
-	char time[32];
-	GetCurrentMap(g_sMap, sizeof g_sMap);
-	FormatTime(time, sizeof time, "%H:%M:%S %Y/%m/%d", -1);
-
-	LogTo("+-------------------------------------------+");
-	LogTo("|                  地图开始                  |");
-	LogTo("+-------------------------------------------+");
-	LogTo("[%s] \"%s\"", time, g_sMap);
 }
 
 void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
@@ -133,6 +111,9 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 
 	char time[32];
 	FormatTime(time, sizeof time, "%H:%M:%S %Y/%m/%d", -1);
+	GetCurrentMap(g_sMap, sizeof g_sMap);
+	LogTo("+-------------------------------------------+");
+	LogTo("[%s] \"%s\"", time, g_sMap);
 	LogTo("[%s] 第 %d 回合开始", time, g_iRoundCount);
 }
 
