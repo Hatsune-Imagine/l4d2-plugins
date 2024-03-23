@@ -4,7 +4,7 @@
 #define PLUGIN_NAME				"L4D2 Map vote"
 #define PLUGIN_AUTHOR			"fdxx, sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		""
-#define PLUGIN_VERSION			"1.0"
+#define PLUGIN_VERSION			"1.1"
 #define PLUGIN_URL				""
 
 #define TRANSLATION_MISSIONS	"missions.phrases.txt"
@@ -607,7 +607,7 @@ void NextMap_Handler(L4D2NativeVote vote, VoteAction action, int param1, int par
 			CPrintToChatAll("{blue}%N {default}已投票", param1);
 
 		case VoteAction_End: {
-			if (vote.YesCount > vote.PlayerCount / 2) {
+			if (vote.YesCount > vote.NoCount) {
 				vote.SetPass("设置中...");
 
 				char buffer[128];
@@ -824,7 +824,7 @@ void ChangeMap_Handler(L4D2NativeVote vote, VoteAction action, int param1, int p
 			CPrintToChatAll("{blue}%N {default}已投票", param1);
 
 		case VoteAction_End: {
-			if (vote.YesCount > vote.PlayerCount / 2) {
+			if (vote.YesCount > vote.NoCount) {
 				vote.SetPass("加载中...");
 
 				char buffer[128];
