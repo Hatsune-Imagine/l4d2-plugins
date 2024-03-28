@@ -34,10 +34,9 @@ public Action Cmd_Autobhop(int client, int args)
 2. 新增  `l4d2_auto_bhop_default` 配置，可配置加入的玩家是否默认开启自动连跳。
 
 ```c
-void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast)
+public void OnClientConnected(int client)
 {
-    int client = GetClientOfUserId(event.GetInt("userid"));
-    if (client && cv_autoBhopDefault.BoolValue)
+    if (cv_autoBhopDefault.BoolValue)
         g_AutoBhop[client] = true;
 }
 ```
@@ -60,6 +59,7 @@ public void OnPluginStart()
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-    g_AutoBhop[client] = false;
+    if (client)
+        g_AutoBhop[client] = false;
 }
 ```
