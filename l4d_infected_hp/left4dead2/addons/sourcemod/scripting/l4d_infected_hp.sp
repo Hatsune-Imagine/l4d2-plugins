@@ -3,7 +3,7 @@
 
 #include <sourcemod>
 
-#define PLUGIN_VERSION 				"1.0.3.1a"
+#define PLUGIN_VERSION 				"1.0.3.1b"
 #define INFECTED_NAMES				7
 #define CVAR_FLAGS 					FCVAR_NOTIFY
 #define CVAR_FLAGS_PLUGIN_VERSION 	CVAR_FLAGS|FCVAR_DONTRECORD
@@ -95,7 +95,7 @@ public void OnPluginStart()
 	
 	CreateConVar("l4d_infectedhp_version", PLUGIN_VERSION, "L4D Infected HP version", CVAR_FLAGS_PLUGIN_VERSION);
 	hPluginEnable 	= CreateConVar("l4d_infectedhp", 			"1", 		"plugin on/off (on:1 / off:0)", CVAR_FLAGS, true, 0.0, true, 1.0);
-	hBarLEN 		= CreateConVar("l4d_infectedhp_bar", 		"70", 		"length of health bar (min:10 / max:200)", CVAR_FLAGS, true, 10.0, true, 200.0);
+	hBarLEN 		= CreateConVar("l4d_infectedhp_bar", 		"60", 		"length of health bar (min:10 / max:200)", CVAR_FLAGS, true, 10.0, true, 200.0);
 	hCharHealth 	= CreateConVar("l4d_infectedhp_health", 	"|", 		"show health character", CVAR_FLAGS);
 	hCharDamage 	= CreateConVar("l4d_infectedhp_damage", 	"-", 		"show damage character", CVAR_FLAGS);
 	hShowType 		= CreateConVar("l4d_infectedhp_type", 		"0", 		"health bar type (center text:0 / hint text:1)", CVAR_FLAGS, true, 0.0, true, 1.0);
