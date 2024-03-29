@@ -6,7 +6,7 @@
 #define PLUGIN_NAME 				"[L4D/L4D2] Broadcast"
 #define PLUGIN_AUTHOR 				"Voiderest, Edited by Ernecio"
 #define PLUGIN_DESCRIPTION 			"Displays extra info for kills and friendly fire."
-#define PLUGIN_VERSION 				"0.9.7c"
+#define PLUGIN_VERSION 				"0.9.7d"
 #define PLUGIN_URL 					"<URL>"
 
 #define CVAR_FLAGS 					FCVAR_NOTIFY
@@ -176,29 +176,34 @@ public Action Event_Player_Hurt(Handle event, const char[] name, bool dontBroadc
 	//char buf[128];
 	//Format(buf, 128, "%N hit %N%s.", attacker, client, hit);
 	//PrintToServer(buf);
+
+	if (client == attacker)
+	{
+		return Plugin_Continue;
+	}
 	
 	if ((ff_attack == 1 || ff_attack == 2) && (id != client))
 	{
-		PrintHintText(attacker, "%t%N.", "you_hit", client);
+		PrintHintText(attacker, "%t%N", "you_hit", client);
 	}
 	
 	if (ff_attack == 2 || ff_attack == 3)
 	{
-		PrintToChat(attacker, "%t%N%t.", "you_hit", client, hit);
+		PrintToChat(attacker, "%t%N%t", "you_hit", client, hit);
 	}
 	else if (ff_con == 1)
 	{
-		PrintToConsole(attacker, "%t%N%t.", "you_hit", client, hit);
+		PrintToConsole(attacker, "%t%N%t", "you_hit", client, hit);
 	}
 	
 	// ReplaceString(hit, 32, "'s", "r");
 	if (ff_victim == 1)
 	{
-		PrintToChat(client, "%N%t%t.", attacker, "hit_you", hit);
+		PrintToChat(client, "%N%t%t", attacker, "hit_you", hit);
 	}
 	else if (ff_con == 1)
 	{
-		PrintToConsole(client, "%N%t%t.", attacker, "hit_you", hit);
+		PrintToConsole(client, "%N%t%t", attacker, "hit_you", hit);
 	}
 	
 	return Plugin_Continue;
