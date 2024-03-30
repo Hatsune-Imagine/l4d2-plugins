@@ -19,12 +19,12 @@
 	// Warning: {lightgreen}、{red}、{blue}, 2 of 3 colors can not be used at the same sentence
 	"messages"  //display message to everyone (Non-admin)
 	{
-		"playerjoin"		"{blue}{PLAYERNAME} {default}已连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
-		"playerdisc"		"{blue}{PLAYERNAME} {default}已退出. {olive}({DISC_REASON})"
+		"playerjoin"		"{blue}{PLAYERNAME} {default}正在连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
+		"playerdisc"		"{blue}{PLAYERNAME} {default}离开游戏. {olive}({DISC_REASON})"
 	}
 	"messages_admin"  //only display message to adm
 	{
-		"playerjoin"		"{blue}{PLAYERNAME} {default}已连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
-		"playerdisc"		"{blue}{PLAYERNAME} {default}已退出. {olive}({DISC_REASON})"
+		"playerjoin"		"{blue}{PLAYERNAME} {default}正在连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
+		"playerdisc"		"{blue}{PLAYERNAME} {default}离开游戏. {olive}({DISC_REASON})"
 	}
 }
