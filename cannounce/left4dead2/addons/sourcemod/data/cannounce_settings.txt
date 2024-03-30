@@ -19,12 +19,12 @@
 	// Warning: {lightgreen}、{red}、{blue}, 2 of 3 colors can not be used at the same sentence
 	"messages"  //display message to everyone (Non-admin)
 	{
-		"playerjoin"		"{blue}Player {green}{PLAYERNAME} {blue}connected{default}. ({green}{PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY}{default})"
-		"playerdisc"		"{red}Player {green}{PLAYERNAME} {red}disconnected{default}. ({green}{DISC_REASON}{default})"
+		"playerjoin"		"{blue}{PLAYERNAME} {default}已连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
+		"playerdisc"		"{blue}{PLAYERNAME} {default}已退出. {olive}({DISC_REASON})"
 	}
 	"messages_admin"  //only display message to adm
 	{
-		"playerjoin"		"{blue}Player {green}{PLAYERNAME} {blue}connected{default}. ({green}{PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY}{default}) IP: {green}{PLAYERIP}{default} {olive}<ID:{STEAMID}>"
-		"playerdisc"		"{red}Player {green}{PLAYERNAME} {red}disconnected{default}. ({green}{DISC_REASON}{default}) IP: {green}{PLAYERIP}{default} {olive}<ID:{STEAMID}>"
+		"playerjoin"		"{blue}{PLAYERNAME} {default}已连接. {olive}({PLAYERCOUNTRY}, {PLAYERREGION}, {PLAYERCITY})"
+		"playerdisc"		"{blue}{PLAYERNAME} {default}已退出. {olive}({DISC_REASON})"
 	}
 }
