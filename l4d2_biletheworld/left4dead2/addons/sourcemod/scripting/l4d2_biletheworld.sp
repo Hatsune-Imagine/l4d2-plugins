@@ -7,7 +7,7 @@
 #include <sdktools>
 #include <sdkhooks>
 #include <left4dhooks>
-#define PLUGIN_VERSION 	"1.0i-2024/3/2"
+#define PLUGIN_VERSION 	"1.0h-2024/2/24"
 #define PLUGIN_NAME		"l4d2_biletheworld"
 #define DEBUG 0
 
@@ -25,7 +25,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 {
 	EngineVersion test = GetEngineVersion();
 
-	if( test != Engine_Left4Dead2 )
+	if (test != Engine_Left4Dead2)
 	{
 		strcopy(error, err_max, "Plugin only supports Left 4 Dead 2.");
 		return APLRes_SilentFailure;
@@ -66,10 +66,10 @@ static const char WITCH_NAME[]		= "witch";
 float TRACE_TOLERANCE = 25.0;
 float BILE_POS_HEIGHT_FIX = 70.0;
 
-ConVar g_hCvarEnable, g_hCvarEnableVersus, 
+ConVar g_hCvarEnable, g_hCvarEnableCompetitive, 
 	g_hCvarBoomerDeathType, g_hCvarBoomerDeath_Radius, 
 	g_hCvarVomitJarSelf, g_hCvarVomitJarTeammate, g_hCvarVomitJar_Radius, g_hCvarVomitJar_TeammateHp;
-bool g_bCvarEnable, g_bCvarEnableVersus, g_bCvarVomitJarSelf, g_bCvarVomitJarTeammate;
+bool g_bCvarEnable, g_bCvarEnableCompetitive, g_bCvarVomitJarSelf, g_bCvarVomitJarTeammate;
 int g_iCvarBoomerDeathType;
 float g_fCvarBoomerDeath_Radius, g_fCvarVomitJar_Radius, g_fCvarVomitJar_TeammateHp;
 
@@ -77,19 +77,19 @@ static int    ge_iType[MAXENTITIES+1];
 
 public void OnPluginStart()
 {
-	g_hCvarEnable               = CreateConVar( PLUGIN_NAME ... "_enable",              "1",    "0=Plugin off, 1=Plugin on.", CVAR_FLAGS, true, 0.0, true, 1.0);
-	g_hCvarEnableVersus         = CreateConVar( PLUGIN_NAME ... "_enable_versus",       "1",    "0=Disable in versus, 1=Enable in versus.", CVAR_FLAGS, true, 0.0, true, 1.0);
-	g_hCvarBoomerDeathType      = CreateConVar( PLUGIN_NAME ... "_boomer_death_apply",  "15",   "Turn on Bile the World on Boomer Death to, 1=Common Infected, 2=S.I., 4=Witch, 8=Tank. Add numbers together (0=Disabe, 15=All)", FCVAR_NOTIFY, true, 0.0, true, 15.0); 
-	g_hCvarBoomerDeath_Radius   = CreateConVar( PLUGIN_NAME ... "_boomer_death_radius", "250",  "Bile Range on Boomer Death.", FCVAR_NOTIFY, true, 0.0); 
-	g_hCvarVomitJarSelf         = CreateConVar( PLUGIN_NAME ... "_vomit_jar_self",      "1",    "If 1, Turn on Bile the World on Vomit Jar to self.", FCVAR_NOTIFY, true, 0.0, true, 1.0); 
-	g_hCvarVomitJarTeammate     = CreateConVar( PLUGIN_NAME ... "_vomit_jar_teammate",  "1",    "If 1, Turn on Bile the World on Vomit Jar to teammate.", FCVAR_NOTIFY, true, 0.0, true, 1.0); 
-	g_hCvarVomitJar_Radius      = CreateConVar( PLUGIN_NAME ... "_vomit_jar_radius",    "150",  "Bile Range on Vomit Jar.", FCVAR_NOTIFY, true, 0.0); 
-	g_hCvarVomitJar_TeammateHp  = CreateConVar( PLUGIN_NAME ... "_vomit_teammate_hp",   "30",   "How much hp reduce, if player throws Vomit Jar to survivors. (0=off)", FCVAR_NOTIFY, true, 0.0); 
+	g_hCvarEnable               = CreateConVar(PLUGIN_NAME ... "_enable",              "1",    "0=Plugin off, 1=Plugin on.", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvarEnableCompetitive    = CreateConVar(PLUGIN_NAME ... "_enable_competitive",  "1",    "0=Plugin off in competitive modes, 1=Plugin on in competitive modes.", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvarBoomerDeathType      = CreateConVar(PLUGIN_NAME ... "_boomer_death_apply",  "15",   "Turn on Bile the World on Boomer Death to, 1=Common Infected, 2=S.I., 4=Witch, 8=Tank. Add numbers together (0=Disabe, 15=All)", FCVAR_NOTIFY, true, 0.0, true, 15.0); 
+	g_hCvarBoomerDeath_Radius   = CreateConVar(PLUGIN_NAME ... "_boomer_death_radius", "250",  "Bile Range on Boomer Death.", FCVAR_NOTIFY, true, 0.0); 
+	g_hCvarVomitJarSelf         = CreateConVar(PLUGIN_NAME ... "_vomit_jar_self",      "1",    "If 1, Turn on Bile the World on Vomit Jar to self.", FCVAR_NOTIFY, true, 0.0, true, 1.0); 
+	g_hCvarVomitJarTeammate     = CreateConVar(PLUGIN_NAME ... "_vomit_jar_teammate",  "1",    "If 1, Turn on Bile the World on Vomit Jar to teammate.", FCVAR_NOTIFY, true, 0.0, true, 1.0); 
+	g_hCvarVomitJar_Radius      = CreateConVar(PLUGIN_NAME ... "_vomit_jar_radius",    "150",    "Bile Range on Vomit Jar.", FCVAR_NOTIFY, true, 0.0); 
+	g_hCvarVomitJar_TeammateHp  = CreateConVar(PLUGIN_NAME ... "_vomit_teammate_hp",   "30",    "How much hp reduce, if player throws Vomit Jar to survivors. (0=off)", FCVAR_NOTIFY, true, 0.0); 
 	AutoExecConfig(true, PLUGIN_NAME);
 
 	GetCvars();
 	g_hCvarEnable.AddChangeHook(ConVarChanged_Cvars);
-	g_hCvarEnableVersus.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvarEnableCompetitive.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarBoomerDeathType.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarBoomerDeath_Radius.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarVomitJarSelf.AddChangeHook(ConVarChanged_Cvars);
@@ -108,7 +108,7 @@ public void ConVarChanged_Cvars(Handle convar, const char[] oldValue, const char
 void GetCvars()
 {
 	g_bCvarEnable = g_hCvarEnable.BoolValue;
-	g_bCvarEnableVersus = g_hCvarEnableVersus.BoolValue;
+	g_bCvarEnableCompetitive = g_hCvarEnableCompetitive.BoolValue;
 	g_iCvarBoomerDeathType = g_hCvarBoomerDeathType.IntValue;
 	g_fCvarBoomerDeath_Radius = g_hCvarBoomerDeath_Radius.FloatValue;
 	g_bCvarVomitJarSelf = g_hCvarVomitJarSelf.BoolValue;
@@ -122,7 +122,7 @@ public void OnEntityCreated(int entity, const char[] classname)
 	if (!IsValidEntityIndex(entity))
 		return;
 
-	if(g_bCvarVomitJarSelf == false && g_bCvarVomitJarTeammate == false) return;
+	if (g_bCvarVomitJarSelf == false && g_bCvarVomitJarTeammate == false) return;
 
 	if (StrEqual(classname, CLASSNAME_VOMITJAR))
 	{
@@ -132,8 +132,8 @@ public void OnEntityCreated(int entity, const char[] classname)
 
 void event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-	if(!g_bCvarEnable || g_iCvarBoomerDeathType == 0) return;
-	if(!g_bCvarEnableVersus && L4D_IsVersusMode()) return;
+	if (!g_bCvarEnable || g_iCvarBoomerDeathType == 0) return;
+	if (!g_bCvarEnableCompetitive && (L4D_IsVersusMode() || L4D2_IsScavengeMode())) return;
 
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (!client || !IsClientInGame(client) || GetClientTeam(client) != TEAM_INFECTED || GetZombieClass(client) != ZC_BOOMER)
@@ -162,11 +162,11 @@ void HurtEntity(int victim, int client, float damage)
 
 void OnSpawnPost(int entity)
 {
-	if( !IsValidEntity(entity) ) return;
+	if (!IsValidEntity(entity)) return;
 	 
 	int client = GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity");
 
-	if(client <= 0 || !IsClientInGame(client)) 
+	if (client <= 0 || !IsClientInGame(client)) 
 		return;
 		
 	ge_iType[entity] = GetClientUserId(client);
@@ -177,7 +177,7 @@ public void OnEntityDestroyed(int entity)
 {
 	if (!IsValidEntityIndex(entity)) return;
 
-	if(g_bCvarVomitJarSelf == false && g_bCvarVomitJarTeammate == false) return;
+	if (g_bCvarVomitJarSelf == false && g_bCvarVomitJarTeammate == false) return;
 
 	char class[STRINGLENGTH_CLASSES];
 	GetEntityClassname(entity, class, sizeof(class));
@@ -206,7 +206,7 @@ public void OnEntityDestroyed(int entity)
 void VomitSplash(bool BoomerDeath, float pos[3], int client)
 {		
 	float targetpos[3];
-	if(client <= 0 || client > MaxClients || !IsClientInGame(client)) client = 0;
+	if (client <= 0 || client > MaxClients || !IsClientInGame(client)) client = 0;
 	
 	if (BoomerDeath)
 	{
@@ -220,13 +220,13 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 
 			int class = GetZombieClass(i);
 			//PrintToChatAll("%d %d", class, g_iCvarBoomerDeathType);
-			if(class == ZC_TANK)
+			if (class == ZC_TANK)
 			{
-				if(!(g_iCvarBoomerDeathType & TANK)) continue;
+				if (!(g_iCvarBoomerDeathType & TANK)) continue;
 			}
 			else
 			{
-				if(!(g_iCvarBoomerDeathType & SI)) continue;
+				if (!(g_iCvarBoomerDeathType & SI)) continue;
 			}
 			
 			GetEntityAbsOrigin(i, targetpos);
@@ -238,12 +238,12 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 			L4D2_CTerrorPlayer_OnHitByVomitJar(i, (client == 0) ? i : client);
 		}
 
-		if(client == 0) return;
+		if (client == 0) return;
 
-		if(g_iCvarBoomerDeathType & WITCH)
+		if (g_iCvarBoomerDeathType & WITCH)
 		{
 			int witch = -1;
-			while((witch = FindEntityByClassname(witch, WITCH_NAME)) != -1)
+			while ((witch = FindEntityByClassname(witch, WITCH_NAME)) != -1)
 			{
 				if (!IsValidEntity(witch))
 					continue;	
@@ -258,10 +258,10 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 			}
 		}
 
-		if(g_iCvarBoomerDeathType & CI)
+		if (g_iCvarBoomerDeathType & CI)
 		{
 			int common = -1;
-			while((common = FindEntityByClassname(common, INFECTED_NAME)) != -1)
+			while ((common = FindEntityByClassname(common, INFECTED_NAME)) != -1)
 			{
 				if (!IsValidEntity(common))
 					continue;	
@@ -278,7 +278,7 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 	}
 	else
 	{
-		if(g_bCvarVomitJarSelf && client > 0 && GetClientTeam(client) == TEAM_SURVIVOR)
+		if (g_bCvarVomitJarSelf && client > 0 && GetClientTeam(client) == TEAM_SURVIVOR)
 		{
 			GetEntityAbsOrigin(client, targetpos);
 			if (GetVectorDistance(pos, targetpos) <= g_fCvarVomitJar_Radius && IsVisibleTo(pos, targetpos))
@@ -287,7 +287,7 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 			}
 		}
 		
-		if(g_bCvarVomitJarTeammate)
+		if (g_bCvarVomitJarTeammate)
 		{
 			for (int i = 1; i <= MaxClients; i++)
 			{
@@ -303,7 +303,7 @@ void VomitSplash(bool BoomerDeath, float pos[3], int client)
 				}
 				
 				L4D_CTerrorPlayer_OnVomitedUpon(i, (client == 0) ? i : client);
-				if(client > 0 && GetClientTeam(client) == TEAM_SURVIVOR) HurtEntity(client, client, g_fCvarVomitJar_TeammateHp);
+				if (client > 0 && GetClientTeam(client) == TEAM_SURVIVOR) HurtEntity(client, client, g_fCvarVomitJar_TeammateHp);
 			}
 		}
 	}

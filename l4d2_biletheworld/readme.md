@@ -6,4 +6,4 @@
 
 
 
-新增 `l4d2_biletheworld_enable_versus` ConVar，可配置是否在对抗模式启用此功能。
+新增 `l4d2_biletheworld_enable_competitive` 配置，可配置是否在对抗模式和清道夫模式启用此功能。

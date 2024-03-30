@@ -2,8 +2,9 @@
 #pragma newdecls required
 #include <sourcemod>
 #include <sdktools>
+#include <sdkhooks>
 
-#define PLUGIN_VERSION			"1.5h-2023/9/12"
+#define PLUGIN_VERSION			"1.8h-2024/3/28"
 #define PLUGIN_NAME			    "l4d2_cs_kill_hud"
 #define DEBUG 0
 
@@ -16,17 +17,19 @@ public Plugin myinfo =
 	url = "https://steamcommunity.com/profiles/76561198026784913/"
 }
 
+int ZC_TANK;
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
-    EngineVersion test = GetEngineVersion();
+	EngineVersion test = GetEngineVersion();
 
-    if( test != Engine_Left4Dead2 )
-    {
-        strcopy(error, err_max, "Plugin only supports Left 4 Dead 2.");
-        return APLRes_SilentFailure;
-    }
+	if( test != Engine_Left4Dead2 )
+	{
+		strcopy(error, err_max, "Plugin only supports Left 4 Dead 2.");
+		return APLRes_SilentFailure;
+	}
 
-    return APLRes_Success;
+	ZC_TANK = 8;
+	return APLRes_Success;
 }
 
 #define CVAR_FLAGS                    FCVAR_NOTIFY
@@ -38,21 +41,21 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 #define CLASSNAME_INFECTED            "infected"
 #define CLASSNAME_WITCH               "witch"
 
-#define HUD_LEFT_TOP	0
-#define HUD_LEFT_BOT	1
-#define HUD_MID_TOP		2
-#define HUD_MID_BOT		3
-#define HUD_RIGHT_TOP	4
-#define HUD_RIGHT_BOT	5
-#define HUD_TICKER		6
-#define HUD_FAR_LEFT	7
-#define HUD_FAR_RIGHT	8
-#define HUD_MID_BOX		9
-#define HUD_SCORE_TITLE	10
-#define HUD_SCORE_1		11
-#define HUD_SCORE_2		12
-#define HUD_SCORE_3		13
-#define HUD_SCORE_4		14
+//	#define HUD_LEFT_TOP	0
+//	#define HUD_LEFT_BOT	1
+//	#define HUD_MID_TOP		2
+//	#define HUD_MID_BOT		3
+//	#define HUD_RIGHT_TOP	4
+//	#define HUD_RIGHT_BOT	5
+//	#define HUD_TICKER		6
+//	#define HUD_FAR_LEFT	7
+//	#define HUD_FAR_RIGHT	8
+//	#define HUD_MID_BOX		9	<-- 此插件占用
+//	#define HUD_SCORE_TITLE	10	<-- 此插件占用
+//	#define HUD_SCORE_1		11	<-- 此插件占用
+//	#define HUD_SCORE_2		12	<-- 此插件占用
+//	#define HUD_SCORE_3		13	<-- 此插件占用
+//	#define HUD_SCORE_4		14	<-- 此插件占用
 
 #define MAX_SIZE_HUD	15
 
@@ -76,10 +79,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 #define HUD_FLAG_NOTVISIBLE		(1<<14) //	if you want to keep the slot data but keep it from displaying
 
 ConVar g_hCvarEnable, g_hCvarKillInfoNumber, g_hCvarHudDecrease, g_hCvarBlockMessage, 
-	g_hCvarHUDBlink, g_hCvarHUDBackground;
+	g_hCvar_HUD_X, g_hCvar_HUD_Y, g_hCvar_HUD_Width, g_hCvar_HUD_Height, g_hCvar_HUD_TextAlign, g_hCvar_HUD_Team, g_hCvarHUDBlink, g_hCvarHUDBackground;
 bool g_bCvarEnable, g_bCvarBlockMessage, g_bCvarHUDBlink, g_bCvarHUDBackground;
-int g_iCvarKillInfoNumber;
-float g_fCvarHudDecrease;
+int g_iCvarKillInfoNumber, g_iCvar_HUD_TextAlign, g_iCvar_HUD_Team;
+float g_fCvarHudDecrease, g_fCvar_HUD_X, g_fCvar_HUD_Y, g_fCvar_HUD_Width, g_fCvar_HUD_Height;
 
 static StringMap g_weapon_name;
 ArrayList g_hud_killinfo;
@@ -149,7 +152,7 @@ static const char g_kill_type[][] =
 
 	"︻╦̵̵͇̿̿̿̿╤───",    //5 sniper
 
-	"☆BOMB☆",          //6 pipe bomb
+	"☆BOMB☆",          //6 pipe bomb, explosive
 
 	"__∫∫∫∫__",      //7 inferno, entityflame
 
@@ -157,11 +160,11 @@ static const char g_kill_type[][] =
 
 	"︻■■■■ ●",	    //9 grenade_launcher_projectile
 
-	"(●｀・ω・)=Ｏ",	     //10 killed by push
+	"(●｀・ω・)=Ｏ",	     //10 killed by push, shove melee
 
 	"↼■╦══",	     //11 killed by mini gun
 
-	"X_X",           //12 killed by world
+	"X_X",           //12 killed by world, worldspawn, trigger_hurt
 
 	"*皿*彡",         //13 killed by special infected,
 
@@ -174,12 +177,16 @@ static const char g_kill_type[][] =
 	"☠",         //17 killed by common infected
 
 	"<ʖ͡=::::::⊃",         //18 killed by chainsaw
+
+	"⬇ X_X",         //19 Die due to falling from roof
+
+	"SYSTEM X_X",         //20 ForcePlayerSuicide / SI committed suicide / Tank committed suicide
 };
 
-#define KILL_HUD_BASE 8
-#define KILL_INFO_MAX 7
+#define KILL_HUD_BASE 9
+#define KILL_INFO_MAX 6
 
-static const float g_HUDpos[][] =
+static float g_HUDpos[][] =
 {
 	//{x, y, 寬, 高}
     {0.00,0.00,0.00,0.00}, // 0
@@ -190,10 +197,11 @@ static const float g_HUDpos[][] =
     {0.00,0.00,0.00,0.00},
     {0.00,0.00,0.00,0.00},
     {0.00,0.00,0.00,0.00},
+	{0.00,0.00,0.00,0.00},
 
     // kill list
-    {0.50,0.06,0.49,0.04}, // 8
-    {0.50,0.10,0.49,0.04},
+	// {x, y, 寬, 高} <= 會根據插件指令改變
+    {0.50,0.10,0.49,0.04}, // 9
     {0.50,0.14,0.49,0.04}, // 10
     {0.50,0.18,0.49,0.04},
     {0.50,0.22,0.49,0.04},
@@ -214,18 +222,28 @@ enum struct HUD
 	}
 }
 
+StringMap 
+	g_smSpecialWeapons,
+	g_smIgnoreWallWeapons;
+
 public void OnPluginStart()
 {
 	g_weapon_name = new StringMap();
 	g_hud_killinfo = new ArrayList(128);
 	LoadEventWeaponName();
 
-	g_hCvarEnable 			= CreateConVar( PLUGIN_NAME ... "_enable",        				"1",   "0=Plugin off, 1=Plugin on.", CVAR_FLAGS, true, 0.0, true, 1.0);
-	g_hCvarKillInfoNumber 	= CreateConVar( PLUGIN_NAME ... "_number",        				"5",   "Numbers of kill list on hud (Default: 5, MAX: 7)", CVAR_FLAGS, true, 1.0, true, 7.0);
-	g_hCvarHudDecrease 		= CreateConVar( PLUGIN_NAME ... "_notice_time",   				"7.0", "Time in seconds to erase kill list on hud.", CVAR_FLAGS, true, 1.0);
-	g_hCvarBlockMessage 	= CreateConVar( PLUGIN_NAME ... "_disable_standard_message", 	"1",   "If 1, disable offical player death message (the red font of kill info)", CVAR_FLAGS, true, 0.0, true, 1.0);
-	g_hCvarHUDBlink         = CreateConVar( PLUGIN_NAME ... "_blink", 						"1",   "If 1, Makes the text blink from white to red.", CVAR_FLAGS, true, 0.0, true, 1.0);
-	g_hCvarHUDBackground    = CreateConVar( PLUGIN_NAME ... "_background", 					"0",   "If 1, Shows the text inside a black transparent background.\nNote: the background may not draw properly when initialized as \"0\", start the map with \"1\" to render properly.\n", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvarEnable 			= CreateConVar( PLUGIN_NAME ... "_enable",        				"1",   	"0=Plugin off, 1=Plugin on.", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvarKillInfoNumber 	= CreateConVar( PLUGIN_NAME ... "_number",        				"5",   	"Numbers of kill list on hud (Default: 5, MAX: 6)", CVAR_FLAGS, true, 1.0, true, 6.0);
+	g_hCvarHudDecrease 		= CreateConVar( PLUGIN_NAME ... "_notice_time",   				"7.0", 	"Time in seconds to erase kill list on hud.", CVAR_FLAGS, true, 1.0);
+	g_hCvarBlockMessage 	= CreateConVar( PLUGIN_NAME ... "_disable_standard_message", 	"1",   	"If 1, disable offical player death message (the red font of kill info)", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvar_HUD_X           = CreateConVar( PLUGIN_NAME ... "_x",             				"0.50",  "X (horizontal) position of the kill list.\nNote: setting it to less than 0.0 may cut/hide the text at screen.", CVAR_FLAGS, true, -1.0, true, 1.0);
+	g_hCvar_HUD_Y           = CreateConVar( PLUGIN_NAME ... "_y",             				"0.10",  "Y (vertical) position of the kill list.\nNote: setting it to less than 0.0 may cut/hide the text at screen.", CVAR_FLAGS, true, -1.0, true, 1.0);
+	g_hCvar_HUD_Width       = CreateConVar( PLUGIN_NAME ... "_width",         				"0.49", "Text area Width.", CVAR_FLAGS, true, 0.0, true, 2.0);
+	g_hCvar_HUD_Height      = CreateConVar( PLUGIN_NAME ... "_height",        				"0.04",	"Text area Height.", CVAR_FLAGS, true, 0.0, true, 2.0);
+	g_hCvar_HUD_TextAlign   = CreateConVar( PLUGIN_NAME ... "_text_align",    				"3",    "Aligns the text horizontally.\n1 = LEFT, 2 = CENTER, 3 = RIGHT.", CVAR_FLAGS, true, 1.0, true, 3.0);
+	g_hCvar_HUD_Team        = CreateConVar( PLUGIN_NAME ... "_team",          				"0",    "Which team should see the text.\n0 = ALL, 1 = SURVIVOR, 2 = INFECTED.", CVAR_FLAGS, true, 0.0, true, 2.0);
+	g_hCvarHUDBlink         = CreateConVar( PLUGIN_NAME ... "_blink", 						"1",   	"If 1, Makes the text blink from white to red.", CVAR_FLAGS, true, 0.0, true, 1.0);
+	g_hCvarHUDBackground    = CreateConVar( PLUGIN_NAME ... "_background", 					"0",   	"If 1, Shows the text inside a black transparent background.\nNote: the background may not draw properly when initialized as \"0\", start the map with \"1\" to render properly.\n", CVAR_FLAGS, true, 0.0, true, 1.0);
 	CreateConVar(                       	PLUGIN_NAME ... "_version",       PLUGIN_VERSION, PLUGIN_NAME ... " Plugin Version", CVAR_FLAGS_PLUGIN_VERSION);
 	AutoExecConfig(true,                	PLUGIN_NAME);
 
@@ -234,10 +252,29 @@ public void OnPluginStart()
 	g_hCvarKillInfoNumber.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarHudDecrease.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarBlockMessage.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_X.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_Y.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_Width.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_Height.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_TextAlign.AddChangeHook(ConVarChanged_Cvars);
+	g_hCvar_HUD_Team.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarHUDBlink.AddChangeHook(ConVarChanged_Cvars);
 	g_hCvarHUDBackground.AddChangeHook(ConVarChanged_Cvars);
 
-	HookEvent("player_death",Event_PlayerDeathInfo,EventHookMode_Pre);
+	HookEvent("player_death",Event_PlayerDeathInfo_Pre, EventHookMode_Pre);
+	HookEvent("player_death",Event_PlayerDeathInfo_Post);
+
+	g_smSpecialWeapons = new StringMap();
+	g_smSpecialWeapons.SetValue("pipe_bomb", true);
+	g_smSpecialWeapons.SetValue("inferno", true);
+	g_smSpecialWeapons.SetValue("entityflame", true);
+	g_smSpecialWeapons.SetValue("boomer", true);
+	g_smSpecialWeapons.SetValue("player", true);
+
+	g_smIgnoreWallWeapons = new StringMap();
+	g_smIgnoreWallWeapons.SetValue("grenade_launcher_projectile", true);
+	g_smIgnoreWallWeapons.SetValue("melee", true);
+	g_smIgnoreWallWeapons.SetValue("chainsaw", true);
 }
 
 //Cvars-------------------------------
@@ -253,16 +290,43 @@ void GetCvars()
 	g_iCvarKillInfoNumber = g_hCvarKillInfoNumber.IntValue;
 	g_fCvarHudDecrease = g_hCvarHudDecrease.FloatValue;
 	g_bCvarBlockMessage = g_hCvarBlockMessage.BoolValue;
+	g_fCvar_HUD_X = g_hCvar_HUD_X.FloatValue;
+	g_fCvar_HUD_Y = g_hCvar_HUD_Y.FloatValue;
+	g_fCvar_HUD_Width = g_hCvar_HUD_Width.FloatValue;
+	g_fCvar_HUD_Height = g_hCvar_HUD_Height.FloatValue;
+	g_iCvar_HUD_TextAlign = g_hCvar_HUD_TextAlign.IntValue;
+	g_iCvar_HUD_Team = g_hCvar_HUD_Team.IntValue;
 	g_bCvarHUDBlink = g_hCvarHUDBlink.BoolValue;
 	g_bCvarHUDBackground = g_hCvarHUDBackground.BoolValue;
 
-	g_iHUDFlags = HUD_FLAG_ALIGN_RIGHT;
+	g_iHUDFlags = HUD_FLAG_TEXT;
+
+	switch (g_iCvar_HUD_TextAlign)
+	{
+		case 1: g_iHUDFlags |= HUD_FLAG_ALIGN_LEFT;
+		case 2: g_iHUDFlags |= HUD_FLAG_ALIGN_CENTER;
+		case 3: g_iHUDFlags |= HUD_FLAG_ALIGN_RIGHT;
+	}
+
+	switch (g_iCvar_HUD_Team)
+	{
+		case 1: g_iHUDFlags |= HUD_FLAG_TEAM_SURVIVORS;
+		case 2: g_iHUDFlags |= HUD_FLAG_TEAM_INFECTED;
+	}
 
 	if(!g_bCvarHUDBackground)
 		g_iHUDFlags |= HUD_FLAG_NOBG;
 
 	if(g_bCvarHUDBlink)
 		g_iHUDFlags |= HUD_FLAG_BLINK;
+
+	for (int slot = KILL_HUD_BASE; slot < MAX_SIZE_HUD; slot++)
+	{
+		g_HUDpos[slot][0] = g_fCvar_HUD_X ;
+		g_HUDpos[slot][1] = g_fCvar_HUD_Y + (slot-KILL_HUD_BASE) * 0.04;
+		g_HUDpos[slot][2] = g_fCvar_HUD_Width;
+		g_HUDpos[slot][3] = g_fCvar_HUD_Height;
+	}
 }
 
 //Sourcemod API Forward-------------------------------
@@ -283,12 +347,21 @@ public void OnConfigsExecuted()
 	for (int slot = KILL_HUD_BASE; slot < MAX_SIZE_HUD; slot++)
 		RemoveHUD(slot);
 
-	g_hud_killinfo.Clear();
+	delete g_hud_killinfo;
+	g_hud_killinfo = new ArrayList(128);
 }
 
 //Event-------------------------------
 
-void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
+void Event_PlayerDeathInfo_Pre(Event event, const char[] name, bool dontBroadcast)
+{
+	if( !g_bCvarEnable )
+		return;
+
+	if(g_bCvarBlockMessage) event.BroadcastDisabled = true; // by prehook, set this to prevent the red font of kill info.
+}
+
+void Event_PlayerDeathInfo_Post(Event event, const char[] name, bool dontBroadcast)
 {
 	if( !g_bCvarEnable )
 		return;
@@ -305,58 +378,10 @@ void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
 
 	int entityid = event.GetInt("entityid");
 	bool headshot = event.GetBool("headshot");
+	int damagetype = event.GetInt("type");
 
-	if(g_bCvarBlockMessage) event.BroadcastDisabled = true; // by prehook, set this to prevent the red font of kill info.
-
-	static char killinfo[128];
-	if( bIsAttackerPlayer == false)
-	{
-		if(bIsVictimPlayer == true) // something killed player
-		{
-			int attackid = event.GetInt("attackerentid");
-			if(IsWitch(attackid))
-			{
-				FormatEx(killinfo,sizeof(killinfo),"    %s  %N",g_kill_type[16],victim);
-			}
-			else if(IsCommonInfected(attackid))
-			{
-				FormatEx(killinfo,sizeof(killinfo),"    %s  %N",g_kill_type[17],victim);
-			}
-			else
-			{
-				FormatEx(killinfo,sizeof(killinfo),"    %s  %N",g_kill_type[12],victim);
-			}
-			
-			DisplayKillList(killinfo);
-		}
-
-		return;
-	}
-
-	if( GetClientTeam(attacker) == TEAM_INFECTED 
-		&& bIsVictimPlayer && GetClientTeam(victim) == TEAM_SURVIVOR ) // infected kill survivor
-	{
-		static char attacker_name[64];
-		if( IsFakeClient(attacker) )
-		{
-			FormatEx(attacker_name, sizeof(attacker_name), "%N", attacker);
-			int index = StrContains(attacker_name,")");
-			if( index != -1 )
-				FormatEx(attacker_name,sizeof(attacker_name),"%s", attacker_name[index + 1]);
-		}
-		else
-		{
-			FormatEx(attacker_name, sizeof(attacker_name), "%N", attacker);
-		}
-
-		FormatEx(killinfo,sizeof(killinfo),"%s  %s  %N",attacker_name,g_kill_type[13],victim);
-		DisplayKillList(killinfo);
-		return;
-	}
-
-	static char weapon_type[64], victim_name[64];
-	event.GetString("weapon",weapon_type,sizeof(weapon_type));
-	//PrintToChatAll("weapon: %s", weapon_type);
+	//調整受害者人名
+	static char victim_name[64];
 	if(bIsVictimPlayer)
 	{
 		if( IsFakeClient(victim) )
@@ -383,9 +408,116 @@ void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
 		}
 	}
 
-	// add kill type
-	if( strncmp(weapon_type, "world", 5, false) == 0 || // "wordl", "worldspawn"
-		strncmp(weapon_type, "trigger_hurt", 12, false) == 0 ) // "trigger_hurt"
+	//某個東西殺死了玩家
+	static char killinfo[128];
+	if( bIsAttackerPlayer == false)
+	{
+		if(bIsVictimPlayer == true) // something killed player
+		{
+			int attackid = event.GetInt("attackerentid");
+			if(IsWitch(attackid))
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[16],victim_name);
+			}
+			else if(IsCommonInfected(attackid))
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[17],victim_name);
+			}
+			else if(damagetype & DMG_BURN)
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[7],victim_name);
+			}
+			else if(damagetype & DMG_FALL)
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[19],victim_name);
+			}
+			else if(damagetype & DMG_BLAST)
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[6],victim_name);
+			}
+			else 
+			{
+				FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[12],victim_name);
+			}
+			
+			DisplayKillList(killinfo);
+		}
+
+		return;
+	}
+
+	int victimTeam, attackerTeam;
+	if(bIsVictimPlayer) victimTeam = GetClientTeam(victim);
+	if(bIsAttackerPlayer) attackerTeam = GetClientTeam(attacker);
+
+	static char weapon_type[64];
+	event.GetString("weapon", weapon_type,sizeof(weapon_type));
+	//PrintToChatAll("weapon: %s", weapon_type);
+
+	// 受害者玩家被系統處死判斷
+	if(bIsAttackerPlayer && bIsVictimPlayer && attacker == victim)
+	{
+		switch(victimTeam)
+		{
+			case TEAM_SURVIVOR:
+			{
+				if(damagetype == (DMG_PREVENT_PHYSICS_FORCE + DMG_NEVERGIB) && strcmp(weapon_type, "world", false) == 0) // 傷害類型: 6144, 武器: world, 原因: ForcePlayerSuicide
+				{
+					FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[20],victim_name);
+					DisplayKillList(killinfo);
+					return;
+				}
+			}
+			case TEAM_INFECTED:
+			{
+				int zombie = GetEntProp(victim, Prop_Send, "m_zombieClass");
+				if(damagetype & DMG_FALL) // 特感墬樓傷害自己死掉
+				{
+					FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[19],victim_name);
+					DisplayKillList(killinfo);
+					return;
+				}
+				else if(zombie != ZC_TANK && damagetype == (DMG_PREVENT_PHYSICS_FORCE + DMG_NEVERGIB) && strcmp(weapon_type, "world", false) == 0) // 傷害類型: 6144, 武器: world, 原因: ForcePlayerSuicide 或 特感自動被導演處死
+				{
+					FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[20],victim_name);
+					DisplayKillList(killinfo);
+					return;
+				}
+				else if(zombie == ZC_TANK && damagetype == DMG_BULLET && strcmp(weapon_type, "tank_claw", false) == 0) // 傷害類型: 2, 武器: tank_claw, 原因: Tank卡住自動被處死
+				{
+					FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[20],victim_name);
+					DisplayKillList(killinfo);
+					return;
+				}
+			}
+		}
+	}
+
+	// 特感殺死人類
+	if( bIsAttackerPlayer && attackerTeam == TEAM_INFECTED 
+		&& bIsVictimPlayer && victimTeam == TEAM_SURVIVOR )
+	{
+		static char attacker_name[64];
+		if( IsFakeClient(attacker) )
+		{
+			FormatEx(attacker_name, sizeof(attacker_name), "%N", attacker);
+			int index = StrContains(attacker_name,")");
+			if( index != -1 )
+				FormatEx(attacker_name,sizeof(attacker_name),"%s", attacker_name[index + 1]);
+		}
+		else
+		{
+			FormatEx(attacker_name, sizeof(attacker_name), "%N", attacker);
+		}
+
+		FormatEx(killinfo,sizeof(killinfo),"%s  %s  %s",attacker_name,g_kill_type[13],victim_name);
+		DisplayKillList(killinfo);
+		return;
+	}
+
+	// 取得武器圖案
+	if( strncmp(weapon_type, "world", 5, false) == 0 || // "world", "worldspawn" (倒地流血死亡或其他自然死亡)
+		strncmp(weapon_type, "trigger_hurt", 12, false) == 0 ) // "trigger_hurt", "trigger_hurt_ghost" (地圖上的即死傷害)
 	{
 		FormatEx(killinfo,sizeof(killinfo),"    %s  %s",g_kill_type[12],victim_name);
 		DisplayKillList(killinfo);
@@ -398,11 +530,7 @@ void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
 	static char sWeaponType[64];
 	g_weapon_name.GetString(weapon_type, sWeaponType, sizeof(sWeaponType));
 
-	if(strcmp(weapon_type, "pipe_bomb", false) == 0 ||
-		strcmp(weapon_type, "inferno", false) == 0 ||
-		strcmp(weapon_type, "entityflame", false) == 0 ||
-		strcmp(weapon_type, "boomer", false) == 0 ||
-		strcmp(weapon_type, "player", false) == 0 )
+	if(g_smSpecialWeapons.ContainsKey(weapon_type) ) //不需要穿牆跟爆頭提示
 	{
 		FormatEx(killinfo,sizeof(killinfo),"%N  %s  %s",attacker, sWeaponType, victim_name);
 	}
@@ -410,17 +538,16 @@ void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(bIsVictimPlayer)
 		{
-
 			if( headshot )
 			{
-				if( IsPlayerKilledBehindWall(attacker, victim) )
+				if( !g_smIgnoreWallWeapons.ContainsKey(weapon_type) && IsPlayerKilledBehindWall(attacker, victim) )
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s %s  %s",attacker,g_kill_type[14],g_kill_type[15],sWeaponType,victim_name);
 				else
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s  %s",attacker,g_kill_type[15],sWeaponType,victim_name);
 			}
 			else
 			{
-				if( IsPlayerKilledBehindWall(attacker, victim) )
+				if( !g_smIgnoreWallWeapons.ContainsKey(weapon_type) && IsPlayerKilledBehindWall(attacker, victim) )
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s  %s",attacker,g_kill_type[14],sWeaponType,victim_name);
 				else
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s  %s",attacker,sWeaponType,victim_name);
@@ -430,14 +557,14 @@ void Event_PlayerDeathInfo(Event event, const char[] name, bool dontBroadcast)
 		{
 			if( headshot )
 			{
-				if( IsEntityKilledBehindWall(attacker, entityid) )
+				if( !g_smIgnoreWallWeapons.ContainsKey(weapon_type) && IsEntityKilledBehindWall(attacker, entityid) )
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s %s  %s",attacker,g_kill_type[14],g_kill_type[15],sWeaponType,victim_name);
 				else
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s  %s",attacker,g_kill_type[15],sWeaponType,victim_name);
 			}
 			else
 			{
-				if( IsEntityKilledBehindWall(attacker, entityid) )
+				if( !g_smIgnoreWallWeapons.ContainsKey(weapon_type) && IsEntityKilledBehindWall(attacker, entityid) )
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s %s  %s",attacker,g_kill_type[14],sWeaponType,victim_name);
 				else
 					FormatEx(killinfo,sizeof(killinfo),"%N  %s  %s",attacker,sWeaponType,victim_name);
