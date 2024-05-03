@@ -4,7 +4,7 @@
 #pragma semicolon 1
 
 #define PLUGIN_NAME 				"[L4D/L4D2] Broadcast"
-#define PLUGIN_AUTHOR 				"Voiderest, Edited by Ernecio"
+#define PLUGIN_AUTHOR 				"Voiderest, Edited by Ernecio, HatsuneImagine"
 #define PLUGIN_DESCRIPTION 			"Displays extra info for kills and friendly fire."
 #define PLUGIN_VERSION 				"0.9.7d"
 #define PLUGIN_URL 					"<URL>"

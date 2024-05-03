@@ -3,7 +3,7 @@
 
 #include <sourcemod>
 
-#define PLUGIN_VERSION 				"1.0.3.1b"
+#define PLUGIN_VERSION 				"1.0.4"
 #define INFECTED_NAMES				7
 #define CVAR_FLAGS 					FCVAR_NOTIFY
 #define CVAR_FLAGS_PLUGIN_VERSION 	CVAR_FLAGS|FCVAR_DONTRECORD
@@ -11,7 +11,7 @@
 public Plugin myinfo =
 {
 	name 		= "[L4D1 AND L4D2] Infected HP",
-	author 		= "NiCo-op, Edited By Ernecio (Satanael) & Dragokas",
+	author 		= "NiCo-op, Edited By Ernecio (Satanael) & Dragokas, HatsuneImagine",
 	description = "L4D Infected HP",
 	version 	= PLUGIN_VERSION,
 	url 		= "http://nico-op.forjp.net/"
@@ -337,13 +337,13 @@ public void OnWitchKilled(Event hEvent, const char[] sName, bool bDontBroadcast)
 public void OnWitchHurt(Event hEvent, const char[] sName, bool bDontBroadcast)
 {
 	if (!nShowWitch) return;
-	
-	int entity = hEvent.GetInt("entityid");
-	if (witchHP[entity] == -1) return;
 
+	int entity = hEvent.GetInt("entityid");
+	if (!IsWitch(entity) || witchHP[entity] == -1) return;
+	
 	int attacker = GetClientOfUserId(hEvent.GetInt("attacker"));
 	if (!attacker || !IsClientInGame(attacker) || GetClientTeam(attacker) != 2) return;
-	
+
 	int damage = hEvent.GetInt("amount");
 	int nowHP = witchHP[entity] - damage;
 	int maxHP = witchMAX[entity];
@@ -355,4 +355,15 @@ public void OnWitchHurt(Event hEvent, const char[] sName, bool bDontBroadcast)
 	
 	if (maxHP < 1)	maxHP = 1;
 	ShowHealthGauge(attacker, maxHP, nowHP, "Witch");
+}
+
+bool IsWitch(int iEntity)
+{
+	if (iEntity <= MaxClients || !IsValidEdict(iEntity)) {
+		return false;
+	}
+	
+	char edictClassName[64];
+	GetEdictClassname(iEntity, edictClassName, sizeof(edictClassName));
+	return (strncmp(edictClassName, "witch", 5) == 0);
 }
