@@ -1,24 +1,24 @@
-#define REP_SKEET				(1 << 0)
-#define REP_HURTSKEET			(1 << 1)
-#define REP_LEVEL				(1 << 2)
-#define REP_HURTLEVEL			(1 << 3)
-#define REP_CROWN				(1 << 4)
-#define REP_DRAWCROWN			(1 << 5)
-#define REP_TONGUECUT			(1 << 6)
-#define REP_SELFCLEAR			(1 << 7)
-#define REP_SELFCLEARSHOVE		(1 << 8)
-#define REP_ROCKSKEET			(1 << 9)
-#define REP_DEADSTOP			(1 << 10)
-#define REP_POP					(1 << 11)
-#define REP_SHOVE				(1 << 12)
-#define REP_HUNTERDP			(1 << 13)
-#define REP_JOCKEYDP			(1 << 14)
-#define REP_DEATHCHARGE			(1 << 15)
-#define REP_INSTACLEAR			(1 << 16)		// 65536
-#define REP_BHOPSTREAK			(1 << 17)		// 131072
-#define REP_CARALARM			(1 << 18)		// 262144
-#define REP_POPSTOP				(1 << 19)		// 524288
-#define REP_VOMIT				(1 << 20)		// 1048576
+#define REP_SKEET				(1 << 0) 		// Skeet hunter/jokcey
+#define REP_HURTSKEET			(1 << 1) 		// Hurt Skeet hunter/jokcey (Less damage)
+#define REP_LEVEL				(1 << 2) 		// Level Charger
+#define REP_HURTLEVEL			(1 << 3) 		// HurtLevel Charger (Less damage)
+#define REP_CROWN				(1 << 4) 		// Crown Witch and no one get hurt
+#define REP_DRAWCROWN			(1 << 5) 		// DrawCrown Witch and no one get hurt
+#define REP_TONGUECUT			(1 << 6) 		// Cut Smoker Tongue
+#define REP_SELFCLEAR			(1 << 7) 		// Self Clear Smoker Tongue
+#define REP_SELFCLEARSHOVE		(1 << 8) 		// Self Clear Shove Smoker Tongue
+#define REP_ROCKSKEET			(1 << 9) 		// Skeet Tank Rock
+#define REP_DEADSTOP			(1 << 10) 		// DeadStop hunter/jokcey
+#define REP_POP					(1 << 11) 		// POP a Boomer
+#define REP_SHOVE				(1 << 12) 		// Shove a Special Infecteed
+#define REP_HUNTERDP			(1 << 13) 		// Hunter DP (High Damage Pounce)
+#define REP_JOCKEYDP			(1 << 14) 		// Jockey DP (High Ride)
+#define REP_DEATHCHARGE			(1 << 15) 		// 32768, Charger Death Charge
+#define REP_INSTACLEAR			(1 << 16)		// 65536, Insta Clear (Save teammate quickly)
+#define REP_BHOPSTREAK			(1 << 17)		// 131072, Bunny hop
+#define REP_CARALARM			(1 << 18)		// 262144, Trigger Car Alarm
+#define REP_POPSTOP				(1 << 19)		// 524288, Shove Boomer before vomit
+#define REP_VOMIT				(1 << 20)		// 1048576, Boomer Perfect Vomit (Vomit 4+ survivors)
 
 //Report Flag
 //1:SKEET; 2: HURTSKEET, 4:LEVEL, 8:HURTLEVEL; 16:CROWN, 32:DRAWCROWN; 64:TONGUECUT, 128:SELFCLEAR
@@ -93,7 +93,7 @@
 #include <left4dhooks>
 #include <multicolors>
 
-#define PLUGIN_VERSION "1.6h-2024/4/19"
+#define PLUGIN_VERSION "1.8h-2024/4/30"
 #define DEBUG 0
 
 #define IS_VALID_CLIENT(%1)		(%1 > 0 && %1 <= MaxClients)
@@ -476,34 +476,34 @@ public APLRes:AskPluginLoad2(Handle:myself, bool:late, String:error[], err_max)
 {
 	RegPluginLibrary("skill_detect");
 	
-	g_hForwardSkeet =				CreateGlobalForward("OnSkeet", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetMelee =			CreateGlobalForward("OnSkeetMelee", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetSniper =			CreateGlobalForward("OnSkeetSniper", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetMagnum =			CreateGlobalForward("OnSkeetMagnum", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetShotGun =		CreateGlobalForward("OnSkeetShotgun", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetGL =				CreateGlobalForward("OnSkeetGL", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetHurt =			CreateGlobalForward("OnSkeetHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetMeleeHurt =		CreateGlobalForward("OnSkeetMeleeHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetSniperHurt = 	CreateGlobalForward("OnSkeetSniperHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetMagnumHurt = 	CreateGlobalForward("OnSkeetMagnumHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
-	g_hForwardSkeetShotGunHurt =	CreateGlobalForward("OnSkeetShotgunHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeet =				CreateGlobalForward("OnSkeet", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetMelee =			CreateGlobalForward("OnSkeetMelee", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetSniper =			CreateGlobalForward("OnSkeetSniper", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetMagnum =			CreateGlobalForward("OnSkeetMagnum", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetShotGun =		CreateGlobalForward("OnSkeetShotgun", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetGL =				CreateGlobalForward("OnSkeetGL", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetHurt =			CreateGlobalForward("OnSkeetHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetMeleeHurt =		CreateGlobalForward("OnSkeetMeleeHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetSniperHurt = 	CreateGlobalForward("OnSkeetSniperHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetMagnumHurt = 	CreateGlobalForward("OnSkeetMagnumHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSkeetShotGunHurt =	CreateGlobalForward("OnSkeetShotgunHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardSIShove =				CreateGlobalForward("OnSpecialShoved", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardHunterDeadstop =		CreateGlobalForward("OnHunterDeadstop", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardJocekyDeadstop =		CreateGlobalForward("OnJocekyDeadstop", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardBoomerPop =			CreateGlobalForward("OnBoomerPop", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Float );
 	g_hForwardBoomerPopStop =		CreateGlobalForward("OnBoomerPopStop", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Float );
-	g_hForwardLevel =				CreateGlobalForward("OnChargerLevel", ET_Ignore, Param_Cell, Param_Cell );
-	g_hForwardLevelHurt =			CreateGlobalForward("OnChargerLevelHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardLevel =				CreateGlobalForward("OnChargerLevel", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardLevelHurt =			CreateGlobalForward("OnChargerLevelHurt", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardCrown =				CreateGlobalForward("OnWitchCrown", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardDrawCrown =			CreateGlobalForward("OnWitchDrawCrown", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardTongueCut =			CreateGlobalForward("OnTongueCut", ET_Ignore, Param_Cell, Param_Cell );
-	g_hForwardSmokerSelfClear = 	CreateGlobalForward("OnSmokerSelfClear", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
+	g_hForwardSmokerSelfClear = 	CreateGlobalForward("OnSmokerSelfClear", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell );
 	g_hForwardRockSkeeted =			CreateGlobalForward("OnTankRockSkeeted", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardRockEaten =			CreateGlobalForward("OnTankRockEaten", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardHunterDP =			CreateGlobalForward("OnHunterHighPounce", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Float, Param_Float, Param_Cell, Param_Cell );
 	g_hForwardJockeyDP =			CreateGlobalForward("OnJockeyHighPounce", ET_Ignore, Param_Cell, Param_Cell, Param_Float, Param_Cell );
 	g_hForwardDeathCharge =			CreateGlobalForward("OnDeathCharge", ET_Ignore, Param_Cell, Param_Cell, Param_Float, Param_Float, Param_Cell );
-	g_hForwardClear =				CreateGlobalForward("OnSpecialClear", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Float, Param_Float, Param_Cell );
+	g_hForwardClear =				CreateGlobalForward("OnSpecialClear", ET_Ignore, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Float, Param_Float, Param_Cell, Param_Cell );
 	g_hForwardVomitLanded =			CreateGlobalForward("OnBoomerVomitLanded", ET_Ignore, Param_Cell, Param_Cell );
 	g_hForwardBHopStreak =			CreateGlobalForward("OnBunnyHopStreak", ET_Ignore, Param_Cell, Param_Cell, Param_Float );
 	g_hForwardAlarmTriggered =		CreateGlobalForward("OnCarAlarmTriggered", ET_Ignore, Param_Cell, Param_Cell, Param_Cell );
@@ -804,7 +804,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 						if ( GetTrieValue(g_hTrieWeapons, weaponB, weaponTypeB) && weaponTypeB == WPTYPE_GL )
 						{
 							if ( GetConVarBool(g_hCvarAllowGLSkeet) ) {
-								HandleSkeet( attacker, victim, WPTYPE_GL, 1, -1, zClass == ZC_HUNTER );
+								HandleSkeet( attacker, victim, WPTYPE_GL, 1, -1, zClass == ZC_HUNTER, hitgroup == HITGROUP_HEAD );
 							}
 						}
 					}
@@ -827,7 +827,9 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 										if ( GetConVarBool(g_hCvarAllowSniper) ) {
 											HandleSkeet( attacker, victim, WPTYPE_SNIPER,
 												g_iHunterShotCount[victim][attacker],
-												_, zClass == ZC_HUNTER );
+												_, 
+												zClass == ZC_HUNTER,
+												hitgroup == HITGROUP_HEAD );
 										}
 										ResetHunter(victim);
 									}
@@ -836,10 +838,11 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 										// hurt skeet
 										if ( GetConVarBool(g_hCvarAllowSniper) ) {
 											HandleNonSkeet( attacker, victim, damage,
-												( g_iHunterOverkill[victim] + g_iHunterShotDmgTeam[victim] >
-												g_iPounceInterrupt ), WPTYPE_SNIPER,
+												( g_iHunterOverkill[victim] + g_iHunterShotDmgTeam[victim] > g_iPounceInterrupt ), 
+												WPTYPE_SNIPER,
 												g_iHunterShotCount[victim][attacker],
-												zClass == ZC_HUNTER );
+												zClass == ZC_HUNTER,
+												hitgroup == HITGROUP_HEAD );
 										}
 										ResetHunter(victim);
 									}
@@ -863,7 +866,9 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 										if ( GetConVarBool(g_hCvarAllowMagnum) ) {
 											HandleSkeet( attacker, victim, WPTYPE_MAGNUM,
 												g_iHunterShotCount[victim][attacker],
-												_, zClass == ZC_HUNTER );
+												_, 
+												zClass == ZC_HUNTER,
+												hitgroup == HITGROUP_HEAD );
 										}
 										ResetHunter(victim);
 									}
@@ -872,10 +877,11 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 										// hurt skeet
 										if ( GetConVarBool(g_hCvarAllowMagnum) ) {
 											HandleNonSkeet( attacker, victim, damage,
-												( g_iHunterOverkill[victim] + g_iHunterShotDmgTeam[victim] >
-												g_iPounceInterrupt ), WPTYPE_MAGNUM,
+												( g_iHunterOverkill[victim] + g_iHunterShotDmgTeam[victim] > g_iPounceInterrupt ), 
+												WPTYPE_MAGNUM,
 												g_iHunterShotCount[victim][attacker],
-												zClass == ZC_HUNTER );
+												zClass == ZC_HUNTER,
+												hitgroup == HITGROUP_HEAD );
 										}
 										ResetHunter(victim);
 									}
@@ -898,7 +904,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 						{
 							g_iHunterShotDmgTeam[victim] = 0;
 							if ( GetConVarBool(g_hCvarAllowMelee) && health == 0 ) {
-								HandleSkeet( attacker, victim, WPTYPE_MELEE, 1, _, zClass == ZC_HUNTER );
+								HandleSkeet( attacker, victim, WPTYPE_MELEE, 1, _, zClass == ZC_HUNTER, hitgroup == HITGROUP_HEAD );
 							}
 							ResetHunter(victim);
 							//g_bHunterKilledPouncing[victim] = true;
@@ -907,7 +913,7 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 						{
 							// hurt skeet (always overkill)
 							if ( GetConVarBool(g_hCvarAllowMelee) ) {
-								HandleNonSkeet( attacker, victim, damage, true, WPTYPE_MELEE, 1, zClass == ZC_HUNTER );
+								HandleNonSkeet( attacker, victim, damage, true, WPTYPE_MELEE, 1, zClass == ZC_HUNTER, hitgroup == HITGROUP_HEAD );
 							}
 							ResetHunter(victim);
 						}
@@ -943,10 +949,10 @@ public Action: Event_PlayerHurt( Handle:event, const String:name[], bool:dontBro
 							// charger was killed, was it a full level?
 							DebugPrint("health: %d, damage: %d, chip-level: %d", health, damage, iChargeHealth * 0.8);
 							if ( damage >= (iChargeHealth * 0.5) ) {
-								HandleLevel( attacker, victim );
+								HandleLevel( attacker, victim, hitgroup == HITGROUP_HEAD );
 							}
 							else {
-								HandleLevelHurt( attacker, victim, damage );
+								HandleLevelHurt( attacker, victim, damage, hitgroup == HITGROUP_HEAD );
 							}
 						}
 					}
@@ -1177,6 +1183,7 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 {
 	new victim = GetClientOfUserId( event.GetInt("userid") );
 	new attacker = GetClientOfUserId( event.GetInt("attacker") ); 
+	bool headshot = event.GetBool("headshot");
 
 	if ( IS_VALID_INFECTED(victim) )
 	{
@@ -1203,26 +1210,26 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 					) {
 						// team skeet
 						HandleSkeet( -2, victim, weaponType, g_iHunterShotCount[victim][attacker], attacker,
-							zClass == ZC_HUNTER );
+							zClass == ZC_HUNTER, headshot );
 					}
 					else if ( g_iHunterShotDmg[victim][attacker] >= g_iPounceInterrupt )
 					{
 						// single player skeet
 						HandleSkeet( attacker, victim, weaponType, g_iHunterShotCount[victim][attacker],
-							-1, zClass == ZC_HUNTER );
+							-1, zClass == ZC_HUNTER, headshot );
 					}
 					else if ( g_iHunterOverkill[victim] > 0 )
 					{
 						// overkill? might've been a skeet, if it wasn't on a hurt hunter (only for shotguns)
 						HandleNonSkeet( attacker, victim, g_iHunterShotDmgTeam[victim],
 							( g_iHunterOverkill[victim] + g_iHunterShotDmgTeam[victim] > g_iPounceInterrupt ),
-							weaponType, 1, zClass == ZC_HUNTER);
+							weaponType, 1, zClass == ZC_HUNTER, headshot);
 					}
 					else
 					{
 						// not a skeet at all
 						HandleNonSkeet( attacker, victim, g_iHunterShotDmg[victim][attacker], false,
-							weaponType, 1, zClass == ZC_HUNTER);
+							weaponType, 1, zClass == ZC_HUNTER, headshot);
 					}
 				}
 				else {
@@ -1232,7 +1239,9 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 						HandleClear( attacker, victim, g_iSpecialVictim[victim],
 								zClass,
 								( GetEngineTime() - g_fPinTime[victim][0]),
-								-1.0
+								-1.0,
+								false,
+								true
 							);
 					}
 				}
@@ -1253,7 +1262,7 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 							g_iSmokerVictim[victim] == attacker &&
 							g_iSmokerVictimDamage[victim] >= GetConVarInt(g_hCvarSelfClearThresh) ) 
 					{
-							HandleSmokerSelfClear( attacker, victim );
+							HandleSmokerSelfClear( attacker, victim, false, headshot );
 					}
 					else if ( g_iSmokerVictim[victim] > 0 &&
 								g_iSmokerVictim[victim] != attacker )
@@ -1264,7 +1273,8 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 								ZC_SMOKER,
 								(g_fPinTime[smoker][1] > 0.0) ? ( GetEngineTime() - g_fPinTime[smoker][1]) : -1.0,
 								( GetEngineTime() - g_fPinTime[smoker][0]),
-								false
+								false,
+								headshot
 							);
 					}
 					else
@@ -1279,7 +1289,7 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 							g_iSmokerVictim[victim] == attacker &&
 							g_iSmokerVictimDamage[victim] >= GetConVarInt(g_hCvarSelfClearThresh) ) 
 					{
-							HandleSmokerSelfClear( attacker, victim );
+							HandleSmokerSelfClear( attacker, victim, false, headshot );
 					}
 					else
 					{
@@ -1299,7 +1309,9 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 					HandleClear( attacker, victim, g_iSpecialVictim[victim],
 							ZC_JOCKEY,
 							( GetEngineTime() - g_fPinTime[victim][0]),
-							-1.0
+							-1.0,
+							false,
+							headgshot
 						);
 				}
 			}
@@ -1319,7 +1331,9 @@ public Action: Event_PlayerDeath( Event event, const char[] name, bool dontBroad
 					HandleClear( attacker, victim, g_iSpecialVictim[victim],
 							ZC_CHARGER,
 							(g_fPinTime[victim][1] > 0.0) ? ( GetEngineTime() - g_fPinTime[victim][1]) : -1.0,
-							( GetEngineTime() - g_fPinTime[victim][0])
+							( GetEngineTime() - g_fPinTime[victim][0]),
+							false,
+							headshot
 						);
 				}
 			}
@@ -1383,7 +1397,8 @@ public Action: Event_PlayerShoved( Handle:event, const String:name[], bool:dontB
 							ZC_HUNTER,
 							( GetEngineTime() - g_fPinTime[victim][0]),
 							-1.0,
-							true
+							true,
+							false
 						);
 				}
 			}
@@ -1394,7 +1409,8 @@ public Action: Event_PlayerShoved( Handle:event, const String:name[], bool:dontB
 							ZC_JOCKEY,
 							( GetEngineTime() - g_fPinTime[victim][0]),
 							-1.0,
-							true
+							true,
+							false
 						);
 				}
 			}
@@ -2504,7 +2520,8 @@ public Action: Event_TonguePullStopped (Handle:event, const String:name[], bool:
 			ZC_SMOKER,
 			(g_fPinTime[smoker][1] > 0.0) ? ( GetEngineTime() - g_fPinTime[smoker][1]) : -1.0,
 			( GetEngineTime() - g_fPinTime[smoker][0]),
-			bool:( reason != CUT_SLASH && reason != CUT_KILL )
+			bool:( reason != CUT_SLASH && reason != CUT_KILL, 
+			false )
 		);
 	
 	if ( attacker == victim )
@@ -2515,7 +2532,7 @@ public Action: Event_TonguePullStopped (Handle:event, const String:name[], bool:
 		}
 		else if ( g_bSmokerShoved[smoker] )
 		{
-			HandleSmokerSelfClear( attacker, smoker, true );
+			HandleSmokerSelfClear( attacker, smoker, true, false );
 		}
 		else if ( reason == CUT_SLASH ) // note: can't trust this to actually BE a slash..
 		{
@@ -2594,7 +2611,8 @@ public Action: Event_ChokeStop (Handle:event, const String:name[], bool:dontBroa
 			ZC_SMOKER,
 			(g_fPinTime[smoker][1] > 0.0) ? ( GetEngineTime() - g_fPinTime[smoker][1]) : -1.0,
 			( GetEngineTime() - g_fPinTime[smoker][0]),
-			bool:( reason != CUT_SLASH && reason != CUT_KILL )
+			bool:( reason != CUT_SLASH && reason != CUT_KILL
+			, false )
 		);
 
 	g_bSmokerClearCheck[smoker] = false;
@@ -2644,12 +2662,14 @@ public Action: OnTakeDamage_Car ( victim, &attacker, &inflictor, &Float:damage, 
 			g_iLastCarAlarmReason[attacker] = CALARM_EXPLOSION;
 		}
 	}
-	else if ( damage == 0.0 && ( damagetype & DMG_CLUB || damagetype & DMG_SLASH ) && !( damagetype & DMG_SLOWBURN) )
+	//else if ( damage == 0.0 && ( damagetype & DMG_CLUB || damagetype & DMG_SLASH ) && !( damagetype & DMG_SLOWBURN) )
+	else if ( (damage == 0.0 || damagetype & DMG_CLUB || damagetype & DMG_SLASH ) && !( damagetype & DMG_SLOWBURN) )
 	{
 		g_iLastCarAlarmReason[attacker] = CALARM_TOUCHED;
 	}
 	else
 	{
+		//PrintToChatAll("%d", damagetype);
 		g_iLastCarAlarmReason[attacker] = CALARM_HIT;
 	}
 	
@@ -2696,12 +2716,14 @@ public Action: OnTakeDamage_CarGlass ( victim, &attacker, &inflictor, &Float:dam
 				g_iLastCarAlarmReason[attacker] = CALARM_EXPLOSION;
 			}
 		}
-		else if ( damage == 0.0 && ( damagetype & DMG_CLUB || damagetype & DMG_SLASH ) && !( damagetype & DMG_SLOWBURN) )
+		//else if ( damage == 0.0 && ( damagetype & DMG_CLUB || damagetype & DMG_SLASH ) && !( damagetype & DMG_SLOWBURN) )
+		else if ( (damage == 0.0 || damagetype & DMG_CLUB || damagetype & DMG_SLASH) && !( damagetype & DMG_SLOWBURN) )
 		{
 			g_iLastCarAlarmReason[attacker] = CALARM_TOUCHED;
 		}
 		else
 		{
+			//PrintToChatAll("%d", damagetype);
 			g_iLastCarAlarmReason[attacker] = CALARM_HIT;
 		}
 	}
@@ -2777,6 +2799,10 @@ public Action: Timer_CheckAlarm (Handle:timer, any:entity)
 			else if ( IS_VALID_INFECTED(GetEntPropEnt(survivor, Prop_Send, "m_carryAttacker")) )
 			{
 				infected = GetEntPropEnt(survivor, Prop_Send, "m_carryAttacker");
+			}
+			else if ( IS_VALID_INFECTED(GetEntPropEnt(survivor, Prop_Send, "m_pummelAttacker")) )
+			{
+				infected = GetEntPropEnt(survivor, Prop_Send, "m_pummelAttacker");
 			}
 			else if ( IS_VALID_INFECTED(GetEntPropEnt(survivor, Prop_Send, "m_jockeyAttacker")) )
 			{
@@ -2869,7 +2895,7 @@ stock HandlePopStop(attacker, victim, hits, Float:timeVomit)
 }
 
 // charger level
-stock HandleLevel( attacker, victim )
+stock HandleLevel( attacker, victim, bool headshot )
 {
 	// report?
 	if ( g_bCvarReportEnable && (g_iCvarReportFlags & REP_LEVEL) )
@@ -2894,10 +2920,11 @@ stock HandleLevel( attacker, victim )
 	Call_StartForward(g_hForwardLevel);
 	Call_PushCell(attacker);
 	Call_PushCell(victim);
+	Call_PushCell(headshot);
 	Call_Finish();
 }
 // charger level hurt
-stock HandleLevelHurt( attacker, victim, damage )
+stock HandleLevelHurt( attacker, victim, damage, bool headshot )
 {
 	// report?
 	if ( g_bCvarReportEnable && (g_iCvarReportFlags & REP_HURTLEVEL) )
@@ -2922,6 +2949,7 @@ stock HandleLevelHurt( attacker, victim, damage )
 	Call_PushCell(attacker);
 	Call_PushCell(victim);
 	Call_PushCell(damage);
+	Call_PushCell(headshot);
 	Call_Finish();
 }
 
@@ -3027,7 +3055,7 @@ stock HandleSkeetAssist(attacker, victim)
 
 // real skeet
 stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
-	shots = 1, assist = -1, bool:isHunter = true )
+	shots = 1, assist = -1, bool:isHunter = true, bool headshot )
 {
 	// report?
 	if ( g_bCvarReportEnable && (g_iCvarReportFlags & REP_SKEET) )
@@ -3199,6 +3227,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if ( eWeaponType == WPTYPE_GL )
@@ -3207,6 +3236,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if ( eWeaponType == WPTYPE_MELEE )
@@ -3215,6 +3245,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if(eWeaponType == WPTYPE_MAGNUM)
@@ -3223,6 +3254,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if(eWeaponType == WPTYPE_SHOTGUN)
@@ -3231,6 +3263,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else
@@ -3239,6 +3272,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 		Call_PushCell(attacker);
 		Call_PushCell(victim);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 }
@@ -3246,7 +3280,7 @@ stock HandleSkeet( attacker, victim, strWeaponType eWeaponType,
 // hurt skeet / non-skeet
 //	NOTE: bSniper not set yet, do this
 stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeaponType eWeaponType,
-	shots = 1, bool:isHunter = true )
+	shots = 1, bool:isHunter = true, bool headshot )
 {
 	// report?
 	if ( g_bCvarReportEnable && (g_iCvarReportFlags & REP_HURTSKEET) )
@@ -3363,6 +3397,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeapo
 		Call_PushCell(damage);
 		Call_PushCell(bOverKill);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if ( eWeaponType == WPTYPE_MELEE )
@@ -3373,6 +3408,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeapo
 		Call_PushCell(damage);
 		Call_PushCell(bOverKill);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if ( eWeaponType == WPTYPE_MAGNUM )
@@ -3383,6 +3419,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeapo
 		Call_PushCell(damage);
 		Call_PushCell(bOverKill);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else if ( eWeaponType == WPTYPE_SHOTGUN )
@@ -3393,6 +3430,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeapo
 		Call_PushCell(damage);
 		Call_PushCell(bOverKill);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 	else
@@ -3403,6 +3441,7 @@ stock HandleNonSkeet( attacker, victim, damage, bool:bOverKill = false, strWeapo
 		Call_PushCell(damage);
 		Call_PushCell(bOverKill);
 		Call_PushCell((isHunter) ? 1 : 0);
+		Call_PushCell(headshot);
 		Call_Finish();
 	}
 }
@@ -3481,7 +3520,7 @@ HandleTongueCut( attacker, victim )
 	Call_Finish();
 }
 
-HandleSmokerSelfClear( attacker, victim, bool:withShove = false )
+void HandleSmokerSelfClear( int attacker, int victim, bool withShove = false, bool headshot )
 {
 	// report?
 	if (	g_bCvarReportEnable && (g_iCvarReportFlags & REP_SELFCLEAR) &&
@@ -3523,6 +3562,7 @@ HandleSmokerSelfClear( attacker, victim, bool:withShove = false )
 	Call_PushCell(attacker);
 	Call_PushCell(victim);
 	Call_PushCell(withShove);
+	Call_PushCell(headshot);
 	Call_Finish();
 }
 
@@ -3695,7 +3735,7 @@ stock HandleDeathCharge( attacker, victim, Float:height, Float:distance, bool:bC
 }
 
 // SI clears	(cleartimeA = pummel/pounce/ride/choke, cleartimeB = tongue drag, charger carry)
-stock HandleClear( attacker, victim, pinVictim, zombieClass, Float:clearTimeA, Float:clearTimeB, bool:bWithShove = false )
+stock HandleClear( attacker, victim, pinVictim, zombieClass, Float:clearTimeA, Float:clearTimeB, bool:bWithShove = false, bool headshot = false )
 {
 	// sanity check:
 	if ( clearTimeA < 0 && clearTimeA != -1.0 ) { clearTimeA = 0.0; }
@@ -3755,6 +3795,7 @@ stock HandleClear( attacker, victim, pinVictim, zombieClass, Float:clearTimeA, F
 	Call_PushFloat(clearTimeA);
 	Call_PushFloat(clearTimeB);
 	Call_PushCell( (bWithShove) ? 1 : 0 );
+	Call_PushCell( headshot );
 	Call_Finish();
 }
 
@@ -3805,7 +3846,8 @@ stock HandleCarAlarmTriggered( survivor, infected, reason )
 	if (	g_bCvarReportEnable && (g_iCvarReportFlags & REP_CARALARM) &&
 			IS_VALID_INGAME(survivor) && !IsFakeClient(survivor)
 	) {
-		if ( reason == view_as<int>(CALARM_HIT) ) {
+		if ( reason == view_as<int>(CALARM_HIT) ) 
+		{
 			CPrintToChatAll( "%t", "HandleCarAlarmTriggered_1", survivor );
 		}
 		else if ( reason == view_as<int>(CALARM_TOUCHED) )
