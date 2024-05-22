@@ -1,5 +1,17 @@
 "Games"
 {
+	"#default"
+	{
+		"Offsets"
+		{
+			"OS"
+			{
+				"linux"				"1"
+				"windows"			"0"
+			}
+		}
+	}
+
 	"left4dead"
 	{
 		"MemPatches"
@@ -9,10 +21,10 @@
 				"signature"			"ZombieBotLocomotion::ResolveZombieCollisions"
 				"linux"
 				{
-					"offset"		"1E2h"
-					"verify"		"\x2A\x2A\xD9\x83"					// fld  dword ptr [ebx+offs]
+					"offset"		"1EFh"
+					"verify"		"\x2A\x2A\xD8\x8B"					// fmul  dword ptr [ebx+offs]
 					"preserve"		"\xFF\xFF\x00\x00\xFF\xFF\xFF\xFF"
-					"patch"			"\x00\x00\xD9\x05\x00\x00\x00\x00"	// fld  ds:my_float
+					"patch"			"\x00\x00\xD8\x0D\x00\x00\x00\x00"	// fmul  ds:my_float
 				}
 				"windows"
 				{
@@ -20,6 +32,30 @@
 					"verify"		"\x2A\x2A\xD9\x05"
 					"preserve"		"\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
 					"patch"			"\x00\x00\x00\x00\x00\x00\x00\x00"
+				}
+			}
+
+			"ZombieBotLocomotion::ResolveZombieCollisions__result_multiple_dummypatch_linuxl4d1_p2"
+			{
+				"signature"			"ZombieBotLocomotion::ResolveZombieCollisions"
+				"linux"
+				{
+					"offset"		"203h"
+					"verify"		"\x2A\x2A\xD8\x8B"					// fmul  dword ptr [ebx+offs]
+					"preserve"		"\xFF\xFF\x00\x00\xFF\xFF\xFF\xFF"
+					"patch"			"\x00\x00\xD8\x0D\x00\x00\x00\x00"	// fmul  ds:my_float
+				}
+			}
+
+			"ZombieBotLocomotion::ResolveZombieCollisions__result_multiple_dummypatch_linuxl4d1_p3"
+			{
+				"signature"			"ZombieBotLocomotion::ResolveZombieCollisions"
+				"linux"
+				{
+					"offset"		"217h"
+					"verify"		"\x2A\x2A\xD8\x8B"					// fmul  dword ptr [ebx+offs]
+					"preserve"		"\xFF\xFF\x00\x00\xFF\xFF\xFF\xFF"
+					"patch"			"\x00\x00\xD8\x0D\x00\x00\x00\x00"	// fmul  ds:my_float
 				}
 			}
 		}
