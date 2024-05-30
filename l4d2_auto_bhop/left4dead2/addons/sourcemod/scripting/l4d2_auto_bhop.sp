@@ -16,6 +16,8 @@
 *							'player_disconnect' event instead of 'OnClientDisconnect()' function.
 *	01/01/2024 Version 1.3.5 - Add a cvar to control whether allow players to enable auto bhop in competitive modes.
 *	29/03/2024 Version 1.3.6 - Add a cvar to set default bhop status when player joins.
+*	30/05/2024 Version 1.4 - Fixed a bug that when 'l4d2_auto_bhop_allow_competitive' is '0' and 'l4d2_auto_bhop_default' is '1',
+							auto bhop will still be enabled in competitive modes when player joins.
 */
 
 #pragma semicolon 1
@@ -25,7 +27,7 @@
 #include <sdktools>
 
 #define MAXCLIENTS 32
-#define PLUGIN_VER "1.3.6"
+#define PLUGIN_VER "1.4"
 
 ConVar cv_autoBhopCompetitive, cv_autoBhopDefault;
 bool g_AutoBhop[MAXCLIENTS + 1];
@@ -79,12 +81,14 @@ public Action Cmd_Autobhop(int client, int args)
 	if (!IsClientInGame(client))
 		return Plugin_Handled;
 
-	if (!cv_autoBhopCompetitive.BoolValue && IsVersus()) {
+	if (!cv_autoBhopCompetitive.BoolValue && IsVersus())
+	{
 		ReplyToCommand(client, "对抗模式不可用.");
 		return Plugin_Handled;
 	}
 
-	if (!cv_autoBhopCompetitive.BoolValue && IsScavenge()) {
+	if (!cv_autoBhopCompetitive.BoolValue && IsScavenge())
+	{
 		ReplyToCommand(client, "清道夫模式不可用.");
 		return Plugin_Handled;
 	}
@@ -116,7 +120,11 @@ public Action OnPlayerRunCmd(int client, int &buttons)
 public void OnClientConnected(int client)
 {
 	if (cv_autoBhopDefault.BoolValue)
+	{
+		if (!cv_autoBhopCompetitive.BoolValue && (IsVersus() || IsScavenge()))
+			return;
 		g_AutoBhop[client] = true;
+	}
 }
 
 //OnClientDisconnect will fired when changing map, use "player_disconnect" event instead.
