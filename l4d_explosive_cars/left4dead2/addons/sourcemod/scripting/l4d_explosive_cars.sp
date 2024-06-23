@@ -5,7 +5,7 @@
 #include <sdkhooks>
 #include <left4dhooks>
 
-#define GETVERSION "2.3"
+#define GETVERSION "2.3a"
 #define ARRAY_SIZE 2048
 #define ENTITY_SAFE_LIMIT 2000 //don't spawn entity when it's index is above this
 #define EXLOPDE_INTERVAL 6.0
@@ -42,6 +42,7 @@ ConVar g_cvarPower;
 ConVar g_cvarTrace;
 ConVar g_cvarPanic;
 ConVar g_cvarPanicChance;
+ConVar g_cvarFlingPlayer;
 ConVar g_cvarInfected;
 ConVar g_cvarTankDamage;
 ConVar g_cvarBurnTimeout;
@@ -91,6 +92,7 @@ public void OnPluginStart()
 	g_cvarTrace = CreateConVar("l4d_explosive_cars_trace", "25", "Time before the fire trace left by the explosion expires", FCVAR_NOTIFY);
 	g_cvarPanic = CreateConVar("l4d_explosive_cars_panic", "1", "Should the car explosion cause a panic event? (1: Yes 0: No)", FCVAR_NOTIFY);
 	g_cvarPanicChance = CreateConVar("l4d_explosive_cars_panic_chance", "5", "Chance that the cars explosion might call a horde (1 / CVAR) [1: Always]", FCVAR_NOTIFY);
+	g_cvarFlingPlayer = CreateConVar("l4d_explosive_cars_fling_player", "1", "How would survivors react when car exploded? (1: Fling 0: Stagger)", FCVAR_NOTIFY);
 	g_cvarInfected = CreateConVar("l4d_explosive_cars_infected", "1", "Should infected trigger the car explosion? (1: Yes 0: No)", FCVAR_NOTIFY);
 	g_cvarTankDamage = CreateConVar("l4d_explosive_cars_tank", "0", "How much damage do the tank deal to the cars? (0: Default, which is 999 from the engine)", FCVAR_NOTIFY);
 	g_cvarBurnTimeout = CreateConVar("l4d_explosive_cars_removetime", "60", "Time to wait before removing the exploded car in case it blockes the way. (0: Don't remove)", FCVAR_NOTIFY);
@@ -246,17 +248,14 @@ void FindMapCars()
 				SDKHook(entity, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 			}
 
-			float vpos[3];
-			GetEntPropVector(entity, Prop_Send, "m_vecOrigin", vpos);
+			//float vpos[3];
+			//GetEntPropVector(entity, Prop_Send, "m_vecOrigin", vpos);
 			//LogMessage("pos: %.2f %.2f %.2f", vpos[0], vpos[1], vpos[2]);
 		}
 		else if(strcmp(classname, "prop_car_alarm") == 0)
 		{
-			if(StrContains(model, "vehicle", false) != -1)
-			{
-				g_bHooked[entity] = true;
-				SDKHook(entity, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
-			}
+			g_bHooked[entity] = true;
+			SDKHook(entity, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 		}
 	}
 }
@@ -311,8 +310,10 @@ public void OnNextFrame(int entityRef)
 	char model[256];
 	if(strncmp(classname, "prop_physics", 12) == 0)
 	{
+		if(!IsTankProp(entity)) return;
+
 		GetEntPropString(entity, Prop_Data, "m_ModelName", model, sizeof(model));
-		if(StrContains(model, "vehicle", false) != -1 && IsTankProp(entity))
+		if(StrContains(model, "vehicle", false) != -1)
 		{
 			SDKHook(entity, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 			g_bHooked[entity] = true;
@@ -321,9 +322,13 @@ public void OnNextFrame(int entityRef)
 			g_bMidWreck[entity] = false;
 			g_bHighWreck[entity] = false;
 			g_bCritWreck[entity] = false;
-			g_bHooked[entity] = false;
 			g_bExploded[entity] = false;
 			g_iParticle[entity] = -1;
+		}
+		else if (strcmp(model, "models/props/cs_assault/forklift.mdl", false) == 0)
+		{
+			g_bHooked[entity] = true;
+			SDKHook(entity, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 		}
 	}
 	else if(strcmp(classname, "prop_car_alarm") == 0)
@@ -335,7 +340,6 @@ public void OnNextFrame(int entityRef)
 		g_bMidWreck[entity] = false;
 		g_bHighWreck[entity] = false;
 		g_bCritWreck[entity] = false;
-		g_bHooked[entity] = false;
 		g_bExploded[entity] = false;
 		g_iParticle[entity] = -1;
 	}
@@ -649,7 +653,7 @@ void CreateExplosion(float carPos[3])
 			case 1:
 			{
 				PanicEvent();
-				PrintToChatAll("\x04[SM] \x03The car exploded and the infected heard the noise!");
+				//PrintToChatAll("\x04[SM] \x03The car exploded and the infected heard the noise!");
 			}
 		}
 	}
@@ -667,7 +671,7 @@ void CreateExplosion(float carPos[3])
 		//Vector and radius distance calcs by AtomicStryker!
 		if(GetVectorDistance(carPos, survivorPos) <= flMxDistance)
 		{
-			if(g_bL4D2Version)
+			if(g_bL4D2Version && g_cvarFlingPlayer.BoolValue == true)
 			{
 				MakeVectorFromPoints(carPos, survivorPos, traceVec);				// draw a line from car to Survivor
 				GetVectorAngles(traceVec, resultingFling);							// get the angles of that line
