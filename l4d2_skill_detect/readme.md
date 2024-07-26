@@ -2,7 +2,7 @@
 
 
 
-原作者来源：https://github.com/fbef0102/L4D2-Plugins/tree/master/l4d2_skill_detect
+原作者来源：https://github.com/SirPlease/L4D2-Competitive-Rework/blob/master/addons/sourcemod/scripting/l4d2_skill_detect.sp
 
 
 

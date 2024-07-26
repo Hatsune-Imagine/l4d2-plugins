@@ -1,0 +1,285 @@
+"Phrases"
+{
+	"Tag+"
+	{
+		"zho"	"{green}★{default}"
+	}
+	"Tag++"
+	{
+		"zho"	"{green}★★{default}"
+	}
+	"Tag+++"
+	{
+		"zho"	"{green}★★★{default}"
+	}
+	"Tag++++"
+	{
+		"zho"	"{green}★★★★{default}"
+	}
+	// boomer pop
+	"Popped"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"zho"		"{olive}{1}{default} 安全地解决了 {olive}{2}{default}."
+	}
+	"PoppedBot"
+	{
+		"zho"		"{olive}%N{default} 安全地解决了 {olive}Boomer{default}."
+	}
+	// charger level
+	"Leveled"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker, 2:victim
+		"zho"		"{olive}{1}{default} {blue}近戰秒殺了{default} 衝鋒的 {olive}{2}{default}."
+	}
+	"LeveledBot"
+	{
+		"zho"		"{olive}%N{default} {blue}近戰秒殺了{default} 衝鋒的 {olive}Charger{default}."
+	}
+	// charger level hurt
+	"LeveledHurt"
+	{
+		"#format"	"{1:N},{2:N},{3:i}" // 1:attacker 2:victim 3:damage
+		"zho"		"{olive}{1}{default} {blue}近戰砍死了{default} 衝鋒的 {olive}{2}{default} ({blue}{3} 傷害{default})."
+	}
+	"LeveledHurtBot"
+	{
+		"#format"	"{1:N},{2:i}" // 1:attacker 2:damage
+		"zho"		"{olive}{1}{default} {blue}近戰砍死了{default} 衝鋒的 {olive}Charger{default} ({blue}{2} 傷害{default})."
+	}
+	// deadstops
+	"Deadstopped"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"zho"		"{olive}{1}{default} {blue}推停了{default} 飛撲的 {olive}{2}{default}."
+	}
+	"DeadstoppedBot"
+	{
+		"zho"		"{olive}%N{default} {blue}推停了{default} 飛撲的 {olive}Hunter{default}."
+	}
+	// shove
+	"Shoved"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"zho"		"{olive}{1}{default} {blue}推開了{default} {olive}{2}{default}."
+	}
+	"ShovedBot"
+	{
+		"zho"		"{olive}%N{default} {blue}推開了{default} {olive}特感{default}."
+	}
+	// real skeet
+	"TeamSkeeted"
+	{
+		"zho"		"{olive}%N{default} 被 {blue}倖存者合力空爆了{default}."
+	}
+	"TeamSkeetedBot"
+	{
+		"zho"		"{olive}Hunter{default} 被 {blue}倖存者合力空爆了{default}."
+	}
+	"Skeeted"
+	{
+		"#format"	"{1:N},{2:s},{3:N}" // 1:attacker 2:(bMelee) ? "melee-": ((bSniper) ? "headshot-" : ((bGL) ? "grenade-" : "") ) 3:victim
+		"zho"		"{olive}{1}{default} {blue}{2}空爆了{default} {olive}{3}{default}."
+	}
+	"SkeetedBot"
+	{
+		"#format"	"{1:N},{2:s}" // 1:attacker 2:(bMelee) ? "melee-": ((bSniper) ? "headshot-" : ((bGL) ? "grenade-" : "") )
+		"zho"		"{olive}{1}{default} {blue}{2}空爆了{default} {olive}Hunter{default}."
+	}
+	"Melee"
+	{
+		"zho"		"近戰"
+	}
+	"HeadShot"
+	{
+		"zho"		"爆頭"
+	}
+	"Grenade"
+	{
+		"zho"		"榴彈"
+	}
+	// hurt skeet / non-skeet
+	"HurtSkeet"
+	{
+		"#format"	"{1:N},{2:i},{3:s}" // 1:victim 2:damage 3:(bOverKill) ? buffer : ""
+		"zho"		"{olive}{1}{default} 被多次射擊空爆了 ({blue}{2}{default} 最終傷害).{3}"
+	}
+	"HurtSkeetBot"
+	{
+		"#format"	"{1:i},{2:s}" // 1:damage 2:(bOverKill) ? buffer : ""
+		"zho"		"{olive}Hunter{default} 被多次射擊空爆了 ({blue}{1}{default} 最終傷害).{2}"
+	}
+	"Unchipped"
+	{
+		"zho"		""
+	}
+	// crown
+	"CrownedWitch"
+	{
+		"#format"	"{1:N},{2:i}" // 1:attacker 2:damage
+		"zho"		"{olive}{1}{default} 秒殺了 {olive}Witch{default} ({blue}{2}{default} 最終傷害)."
+	}
+	"CrownedWitch2"
+	{
+		"zho"		"{olive}Witch{default} 被 {blue}秒殺了{default}."
+	}
+	// drawcrown
+	"DrawCrowned"
+	{
+		"#format"	"{1:N},{2:i},{3:i}" // 1:attacker 2:damage 3:chipdamage
+		"zho"		"{olive}{1}{default} 引秒了 {olive}Witch{default} ({blue}{2}{default} 最終傷害, {olive}{3}{default} 初始傷害)."
+	}
+	"DrawCrowned2"
+	{
+		"#format"	"{1:i},{2:i}" // 1:damage 2:chipdamage
+		"zho"		"{olive}Witch{default} 被 引秒了 ({blue}{1}{default} 最終傷害, {olive}{2}{default} 初始傷害)."
+	}
+	// smoker clears
+	"CutTongue"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"zho"		"{olive}{1}{default} {blue}近戰砍斷了{default} {olive}{2}{default} 的舌頭."
+	}
+	"CutTongueBot"
+	{
+		"zho"		"{olive}%N{default} {blue}近戰砍斷了{default} {olive}Smoker{default} 的舌頭."
+	}
+	"SelfClearedTongue"
+	{
+		"#format"	"{1:N},{2:N},{3:s}" // 1:attacker 2:victim 3:(withShove) ? Buffer : ""
+		"zho"		"{olive}{1}{default} {blue}{3}自解了{default} {olive}{2}{default} 的舌頭."
+	}
+	"SelfClearedTongueBot"
+	{
+		"#format"	"{1:N},{2:s}" // 1:attacker 2:(withShove) ? Buffer : ""
+		"zho"		"{olive}{1}{default} {blue}{2}自解了{default} {olive}Smoker{default} 的舌頭."
+	}
+	"Shoving"
+	{
+		"zho"		"推開"
+	}
+	// rocks
+	"SkeetedRock"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"zho"		"{olive}{1}{default} {blue}打碎了{default} {olive}{2}{default} 的石頭."
+	}
+	"SkeetedRockBot"
+	{
+		"zho"		"{olive}%N{default} {blue}打碎了{default} {olive}Tank{default} 的石頭."
+	}
+	// highpounces
+	"HunterHP"
+	{
+		"#format"	"{1:N},{2:N},{3:i},{4:i}" // 1:attacker 2:victim 3:RoundFloat(calculatedDamage) 4:RoundFloat(height)
+		"zho"		"{olive}{1}{default} {red}高撲砸到{default} {olive}{2}{default} ({red}{3}{default} 傷害, 高度: {red}{4}{default})."
+	}
+	"HunterHPBot"
+	{
+		"#format"	"{1:N},{2:i},{3:i}" // 1:victim 2:RoundFloat(calculatedDamage) 3:RoundFloat(height)
+		"zho"		"{olive}Hunter{default} {red}高撲砸到{default} {olive}{1}{default} ({red}{2}{default} 傷害, 高度: {red}{3}{default})."
+	}
+	"JockeyHP"
+	{
+		"#format"	"{1:N},{2:N},{3:i}" // 1:attacker 2:victim 3:RoundFloat(height)
+		"zho"		"{olive}{1}{default} {red}高空騎到{default} {olive}{2}{default} ({red}高度{default}: {red}{3}{default})."
+	}
+	"JockeyHPBot"
+	{
+		"#format"	"{1:N},{2:i}" // 1:victim 2:RoundFloat(height)
+		"zho"		"{olive}Jockey{default} {red}高空騎到{default} {olive}{1}{default} ({red}高度{default}: {red}{2}{default})."
+	}
+	// deathcharges
+	"DeathCharged"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:i}" // 1:attacker 2:victim 3:(bCarried) ? "" : Buffer 4:RoundFloat(height)
+		"zho"		"{olive}{1}{default} {red}衝鋒{3}帶走{default} {olive}{2}{default} ({red}高度{default}: {red}{4}{default})."
+	}
+	"DeathChargedBot"
+	{
+		"#format"	"{1:N},{2:s},{3:i}" // 1:victim 2:(bCarried) ? "" : Buffer 3:RoundFloat(height)
+		"zho"		"{olive}Charger{default} {red}衝鋒{2}帶走{default} {olive}{1}{default} ({red}高度{default}: {red}{3}{default})."
+	}
+	"Bowling"
+	{
+		"zho"		"撞飛"
+	}
+	// SI clears	(cleartimeA = pummel/pounce/ride/choke, cleartimeB = tongue drag, charger carry)
+	"SIClear"
+	{
+		"#format"	"{1:N},{2:N},{3:N},{4:s},{5:.2f}" // 1:attacker 2:pinVictim 3:victim 4:g_csSIClassName[zombieClass] 5:fClearTime
+		"zho"		"{olive}{1}{default} 在 {blue}{5}{default} 秒內從 {olive}{3}{default}({4}) 手中救下 {olive}{2}{default}."
+	}
+	"SIClearTeammate"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:.2f}" // 1:attacker 2:victim 3:g_csSIClassName[zombieClass] 4:fClearTime
+		"zho"		"{olive}{1}{default} 在 {blue}{4}{default} 秒內從 {olive}{2}{default}({3}) 手中救下隊友."
+	}
+	"SIClearBot"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:.2f}" // 1:attacker 2:pinVictim 3:g_csSIClassName[zombieClass] 4:fClearTime
+		"zho"		"{olive}{1}{default} 在 {blue}{4}{default} 秒內從 {olive}{3}{default} 手中救下 {olive}{2}{default}."
+	}
+	"SIClearTeammateBot"
+	{
+		"#format"	"{1:N},{2:s},{3:.2f}" // 1:attacker 2:g_csSIClassName[zombieClass] 3:fClearTime
+		"zho"		"{olive}{1}{default} 在 {blue}{3}{default} 秒內從 {olive}{2}{default} 手中救下隊友."
+	}
+	// bhaps
+	"BunnyHop"
+	{ 
+		"#format"	"{1:i},{2:s},{3:.1f}" // 1:streak 2:(streak > 1) ? "s" : "" 3:maxVelocity
+		"zho"		"{default}你連跳了 {blue}{1}{default} 次{2} ({blue}最高速度{default}: {olive}{3}{default})."
+	}
+	"PluralCount"
+	{
+		"zho"		""
+	}
+	// car alarms
+	"CalarmHit"
+	{
+		"zho"		"{olive}%N{default} 開槍射到了警報車."
+	}
+	"CalarmTouched"
+	{
+		"#format"	"{1:N},{2:N}" // 1:infected 2:survivor
+		"zho"		"{olive}{1}{default} 攜帶 {olive}{2}{default} 觸碰了警報車."
+	}
+	"CalarmTouchedHunter"
+	{
+		"zho"		"{olive}%N{default} 因被 {olive}Hunter{default} 撲到而觸碰了警報車."
+	}
+	"CalarmTouchedJockey"
+	{	
+		"zho"		"{olive}%N{default} 因被 {olive}Jockey{default} 騎到而觸碰了警報車."
+	}
+	"CalarmTouchedCharger"
+	{
+		"zho"		"{olive}%N{default} 因被 {olive}Charger{default} 撞到而觸碰了警報車."
+	}
+	"CalarmTouchedInfected"
+	{
+		"zho"		"{olive}%N{default} 因被 {olive}AI特感{default} 抓住而觸碰了警報車."
+	}
+	"CalarmTouchedBot"
+	{
+		"zho"		"{olive}%N{default} 觸碰了警報車."
+	}
+	"CalarmExplosion"
+	{
+		"zho"		"{olive}%N{default} 製造爆炸觸發了警報車."
+	}
+	"CalarmBoomer"
+	{
+		"#format"	"{1:N},{2:N}" // 1:infected 2:survivor
+		"zho"		"{olive}{1}{default} 因打爆了 {olive}{2}{default}(Boomer) 而觸發了警報車."
+	}
+	"CalarmBoomerBot"
+	{
+		"zho"		"{olive}%N{default} 因打爆了 {olive}Boomer{default} 而觸發了警報車."
+	}
+	"Calarm"
+	{
+		"zho"		"{olive}%N{default} 觸發了警報車."
+	}
+}

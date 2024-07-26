@@ -1,0 +1,285 @@
+"Phrases"
+{
+	"Tag+"
+	{
+		"chi"	"{green}★{default}"
+	}
+	"Tag++"
+	{
+		"chi"	"{green}★★{default}"
+	}
+	"Tag+++"
+	{
+		"chi"	"{green}★★★{default}"
+	}
+	"Tag++++"
+	{
+		"chi"	"{green}★★★★{default}"
+	}
+	// boomer pop
+	"Popped"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"chi"		"{olive}{1}{default} 安全地解决了 {olive}{2}{default}."
+	}
+	"PoppedBot"
+	{
+		"chi"		"{olive}%N{default} 安全地解决了 {olive}Boomer{default}."
+	}
+	// charger level
+	"Leveled"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker, 2:victim
+		"chi"		"{olive}{1}{default} {blue}近战秒杀了{default} 冲锋的 {olive}{2}{default}."
+	}
+	"LeveledBot"
+	{
+		"chi"		"{olive}%N{default} {blue}近战秒杀了{default} 冲锋的 {olive}Charger{default}."
+	}
+	// charger level hurt
+	"LeveledHurt"
+	{
+		"#format"	"{1:N},{2:N},{3:i}" // 1:attacker 2:victim 3:damage
+		"chi"		"{olive}{1}{default} {blue}近战砍死了{default} 冲锋的 {olive}{2}{default} ({blue}{3} 伤害{default})."
+	}
+	"LeveledHurtBot"
+	{
+		"#format"	"{1:N},{2:i}" // 1:attacker 2:damage
+		"chi"		"{olive}{1}{default} {blue}近战砍死了{default} 冲锋的 {olive}Charger{default} ({blue}{2} 伤害{default})."
+	}
+	// deadstops
+	"Deadstopped"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"chi"		"{olive}{1}{default} {blue}推停了{default} 飞扑的 {olive}{2}{default}."
+	}
+	"DeadstoppedBot"
+	{
+		"chi"		"{olive}%N{default} {blue}推停了{default} 飞扑的 {olive}Hunter{default}."
+	}
+	// shove
+	"Shoved"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"chi"		"{olive}{1}{default} {blue}推开了{default} {olive}{2}{default}."
+	}
+	"ShovedBot"
+	{
+		"chi"		"{olive}%N{default} {blue}推开了{default} {olive}特感{default}."
+	}
+	// real skeet
+	"TeamSkeeted"
+	{
+		"chi"		"{olive}%N{default} 被 {blue}生还者合力空爆了{default}."
+	}
+	"TeamSkeetedBot"
+	{
+		"chi"		"{olive}Hunter{default} 被 {blue}生还者合力空爆了{default}."
+	}
+	"Skeeted"
+	{
+		"#format"	"{1:N},{2:s},{3:N}" // 1:attacker 2:(bMelee) ? "melee-": ((bSniper) ? "headshot-" : ((bGL) ? "grenade-" : "") ) 3:victim
+		"chi"		"{olive}{1}{default} {blue}{2}空爆了{default} {olive}{3}{default}."
+	}
+	"SkeetedBot"
+	{
+		"#format"	"{1:N},{2:s}" // 1:attacker 2:(bMelee) ? "melee-": ((bSniper) ? "headshot-" : ((bGL) ? "grenade-" : "") )
+		"chi"		"{olive}{1}{default} {blue}{2}空爆了{default} {olive}Hunter{default}."
+	}
+	"Melee"
+	{
+		"chi"		"近战"
+	}
+	"HeadShot"
+	{
+		"chi"		"爆头"
+	}
+	"Grenade"
+	{
+		"chi"		"榴弹"
+	}
+	// hurt skeet / non-skeet
+	"HurtSkeet"
+	{
+		"#format"	"{1:N},{2:i},{3:s}" // 1:victim 2:damage 3:(bOverKill) ? buffer : ""
+		"chi"		"{olive}{1}{default} 被多次射击空爆了 ({blue}{2}{default} 最终伤害).{3}"
+	}
+	"HurtSkeetBot"
+	{
+		"#format"	"{1:i},{2:s}" // 1:damage 2:(bOverKill) ? buffer : ""
+		"chi"		"{olive}Hunter{default} 被多次射击空爆了 ({blue}{1}{default} 最终伤害).{2}"
+	}
+	"Unchipped"
+	{
+		"chi"		""
+	}
+	// crown
+	"CrownedWitch"
+	{
+		"#format"	"{1:N},{2:i}" // 1:attacker 2:damage
+		"chi"		"{olive}{1}{default} 秒杀了 {olive}Witch{default} ({blue}{2}{default} 伤害)."
+	}
+	"CrownedWitch2"
+	{
+		"chi"		"{olive}Witch{default} 被 {blue}秒杀了{default}."
+	}
+	// drawcrown
+	"DrawCrowned"
+	{
+		"#format"	"{1:N},{2:i},{3:i}" // 1:attacker 2:damage 3:chipdamage
+		"chi"		"{olive}{1}{default} 引秒了 {olive}Witch{default} ({blue}{2}{default} 最终伤害, {olive}{3}{default} 初始伤害)."
+	}
+	"DrawCrowned2"
+	{
+		"#format"	"{1:i},{2:i}" // 1:damage 2:chipdamage
+		"chi"		"{olive}Witch{default} 被 引秒了 ({blue}{1}{default} 最终伤害, {olive}{2}{default} 初始伤害)."
+	}
+	// smoker clears
+	"CutTongue"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"chi"		"{olive}{1}{default} {blue}近战砍断了{default} {olive}{2}{default} 的舌头."
+	}
+	"CutTongueBot"
+	{
+		"chi"		"{olive}%N{default} {blue}近战砍断了{default} {olive}Smoker{default} 的舌头."
+	}
+	"SelfClearedTongue"
+	{
+		"#format"	"{1:N},{2:N},{3:s}" // 1:attacker 2:victim 3:(withShove) ? Buffer : ""
+		"chi"		"{olive}{1}{default} {blue}{3}自解了{default} {olive}{2}{default} 的舌头."
+	}
+	"SelfClearedTongueBot"
+	{
+		"#format"	"{1:N},{2:s}" // 1:attacker 2:(withShove) ? Buffer : ""
+		"chi"		"{olive}{1}{default} {blue}{2}自解了{default} {olive}Smoker{default} 的舌头."
+	}
+	"Shoving"
+	{
+		"chi"		"推开"
+	}
+	// rocks
+	"SkeetedRock"
+	{
+		"#format"	"{1:N},{2:N}" // 1:attacker 2:victim
+		"chi"		"{olive}{1}{default} {blue}打碎了{default} {olive}{2}{default} 的石头."
+	}
+	"SkeetedRockBot"
+	{
+		"chi"		"{olive}%N{default} {blue}打碎了{default} {olive}Tank{default} 的石头."
+	}
+	// highpounces
+	"HunterHP"
+	{
+		"#format"	"{1:N},{2:N},{3:i},{4:i}" // 1:attacker 2:victim 3:RoundFloat(calculatedDamage) 4:RoundFloat(height)
+		"chi"		"{olive}{1}{default} {red}高扑砸到{default} {olive}{2}{default} ({red}{3}{default} 伤害, 高度: {red}{4}{default})."
+	}
+	"HunterHPBot"
+	{
+		"#format"	"{1:N},{2:i},{3:i}" // 1:victim 2:RoundFloat(calculatedDamage) 3:RoundFloat(height)
+		"chi"		"{olive}Hunter{default} {red}高扑砸到{default} {olive}{1}{default} ({red}{2}{default} 伤害, 高度: {red}{3}{default})."
+	}
+	"JockeyHP"
+	{
+		"#format"	"{1:N},{2:N},{3:i}" // 1:attacker 2:victim 3:RoundFloat(height)
+		"chi"		"{olive}{1}{default} {red}高空骑到{default} {olive}{2}{default} ({red}高度{default}: {red}{3}{default})."
+	}
+	"JockeyHPBot"
+	{
+		"#format"	"{1:N},{2:i}" // 1:victim 2:RoundFloat(height)
+		"chi"		"{olive}Jockey{default} {red}高空骑到{default} {olive}{1}{default} ({red}高度{default}: {red}{2}{default})."
+	}
+	// deathcharges
+	"DeathCharged"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:i}" // 1:attacker 2:victim 3:(bCarried) ? "" : Buffer 4:RoundFloat(height)
+		"chi"		"{olive}{1}{default} {red}冲锋{3}带走{default} {olive}{2}{default} ({red}高度{default}: {red}{4}{default})."
+	}
+	"DeathChargedBot"
+	{
+		"#format"	"{1:N},{2:s},{3:i}" // 1:victim 2:(bCarried) ? "" : Buffer 3:RoundFloat(height)
+		"chi"		"{olive}Charger{default} {red}冲锋{2}带走{default} {olive}{1}{default} ({red}高度{default}: {red}{3}{default})."
+	}
+	"Bowling"
+	{
+		"chi"		"撞飞"
+	}
+	// SI clears	(cleartimeA = pummel/pounce/ride/choke, cleartimeB = tongue drag, charger carry)
+	"SIClear"
+	{
+		"#format"	"{1:N},{2:N},{3:N},{4:s},{5:.2f}" // 1:attacker 2:pinVictim 3:victim 4:g_csSIClassName[zombieClass] 5:fClearTime
+		"chi"		"{olive}{1}{default} 在 {blue}{5}{default} 秒内从 {olive}{3}{default}({4}) 手中救下 {olive}{2}{default}."
+	}
+	"SIClearTeammate"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:.2f}" // 1:attacker 2:victim 3:g_csSIClassName[zombieClass] 4:fClearTime
+		"chi"		"{olive}{1}{default} 在 {blue}{4}{default} 秒内从 {olive}{2}{default}({3}) 手中救下队友."
+	}
+	"SIClearBot"
+	{
+		"#format"	"{1:N},{2:N},{3:s},{4:.2f}" // 1:attacker 2:pinVictim 3:g_csSIClassName[zombieClass] 4:fClearTime
+		"chi"		"{olive}{1}{default} 在 {blue}{4}{default} 秒内从 {olive}{3}{default} 手中救下 {olive}{2}{default}."
+	}
+	"SIClearTeammateBot"
+	{
+		"#format"	"{1:N},{2:s},{3:.2f}" // 1:attacker 2:g_csSIClassName[zombieClass] 3:fClearTime
+		"chi"		"{olive}{1}{default} 在 {blue}{3}{default} 秒内从 {olive}{2}{default} 手中救下队友."
+	}
+	// bhaps
+	"BunnyHop"
+	{ 
+		"#format"	"{1:i},{2:s},{3:.1f}" // 1:streak 2:(streak > 1) ? "s" : "" 3:maxVelocity
+		"chi"		"{default}你连跳了 {blue}{1}{default} 次{2} ({blue}最高速度{default}: {olive}{3}{default})."
+	}
+	"PluralCount"
+	{
+		"chi"		""
+	}
+	// car alarms
+	"CalarmHit"
+	{
+		"chi"		"{olive}%N{default} 开枪射到了警报车."
+	}
+	"CalarmTouched"
+	{
+		"#format"	"{1:N},{2:N}" // 1:infected 2:survivor
+		"chi"		"{olive}{1}{default} 携带 {olive}{2}{default} 触碰了警报车."
+	}
+	"CalarmTouchedHunter"
+	{
+		"chi"		"{olive}%N{default} 因被 {olive}Hunter{default} 扑到而触碰了警报车."
+	}
+	"CalarmTouchedJockey"
+	{	
+		"chi"		"{olive}%N{default} 因被 {olive}Jockey{default} 骑到而触碰了警报车."
+	}
+	"CalarmTouchedCharger"
+	{
+		"chi"		"{olive}%N{default} 因被 {olive}Charger{default} 撞到而触碰了警报车."
+	}
+	"CalarmTouchedInfected"
+	{
+		"chi"		"{olive}%N{default} 因被 {olive}AI特感{default} 抓住而触碰了警报车."
+	}
+	"CalarmTouchedBot"
+	{
+		"chi"		"{olive}%N{default} 触碰了警报车."
+	}
+	"CalarmExplosion"
+	{
+		"chi"		"{olive}%N{default} 制造爆炸触发了警报车."
+	}
+	"CalarmBoomer"
+	{
+		"#format"	"{1:N},{2:N}" // 1:infected 2:survivor
+		"chi"		"{olive}{1}{default} 因打爆了 {olive}{2}{default}(Boomer) 而触发了警报车."
+	}
+	"CalarmBoomerBot"
+	{
+		"chi"		"{olive}%N{default} 因打爆了 {olive}Boomer{default} 而触发了警报车."
+	}
+	"Calarm"
+	{
+		"chi"		"{olive}%N{default} 触发了警报车."
+	}
+}
