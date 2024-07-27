@@ -71,7 +71,7 @@ char g_serverPort[8];
 char g_serverMap[32];
 char g_serverMode[32];
 int g_mapRound;
-// bool g_skillDetectLoaded;
+bool g_skillDetectLoaded;
 
 public Plugin myinfo = {
 	name 			= "L4D2 Player Stats with Database",
@@ -112,7 +112,7 @@ public void OnPluginStart() {
 		g_players[i].instaClearTime = new ArrayList();
 	}
 }
-/*
+
 public void OnAllPluginsLoaded() {
 	g_skillDetectLoaded = LibraryExists("skill_detect");
 }
@@ -130,7 +130,7 @@ void CheckLib(const char[] name, bool state) {
 		g_skillDetectLoaded = state;
 	}
 }
-*/
+
 Action Cmd_My_Stats(int client, int args) {
 	PrintToChat(client, "IP: %s", g_players[client].ip);
 	PrintToChat(client, "SteamID: %s", g_players[client].steamId);
@@ -686,6 +686,11 @@ void SQL_UpdatePlayerInfo(int client) {
 		return;
 	}
 
+	if (!g_skillDetectLoaded) {
+		PrintToServer("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
+		LogMessage("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
+	}
+
 	char update[2048];
 	FormatEx(update, sizeof(update), 
 		"update t_player set "
@@ -825,6 +830,11 @@ void SQL_UpdatePlayerInfo(int client) {
 void SQL_InsertPlayerRoundDetail(int client) {
 	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
 		return;
+	}
+
+	if (!g_skillDetectLoaded) {
+		PrintToServer("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
+		LogMessage("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
 	}
 
 	char insert[2048];
