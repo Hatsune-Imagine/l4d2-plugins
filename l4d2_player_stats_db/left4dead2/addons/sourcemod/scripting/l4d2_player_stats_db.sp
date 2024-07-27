@@ -46,6 +46,8 @@ enum struct PlayerInfo
 	int teammateRevived;
 	int incapacitated;
 	int ledgeHanged;
+	int missionCompleted;
+	int missionLost;
 	int smokerTongueCut;
 	int smokerSelfCleared;
 	int hunterSkeeted;
@@ -83,9 +85,9 @@ public void OnPluginStart() {
 	Database.Connect(ConnectCallback, "player_stats");
 
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
-	HookEvent("map_transition", Event_RoundEnd, EventHookMode_PostNoCopy);
-	HookEvent("mission_lost", Event_RoundEnd, EventHookMode_PostNoCopy);
-	HookEvent("finale_vehicle_leaving", Event_RoundEnd, EventHookMode_PostNoCopy);
+	HookEvent("mission_lost", Event_MissionLost, EventHookMode_PostNoCopy);
+	HookEvent("map_transition", Event_MissionCompleted, EventHookMode_PostNoCopy);
+	HookEvent("finale_vehicle_leaving", Event_MissionCompleted, EventHookMode_PostNoCopy);
 	HookEvent("adrenaline_used", Event_AdrenalineUsed, EventHookMode_Post);
 	HookEvent("pills_used", Event_PillsUsed, EventHookMode_Post);
 	HookEvent("heal_success", Event_HealSuccess, EventHookMode_Post);
@@ -157,6 +159,8 @@ Action Cmd_My_Stats(int client, int args) {
 	PrintToChat(client, "Teammate Revived: %d", g_players[client].teammateRevived);
 	PrintToChat(client, "Incapacitated: %d", g_players[client].incapacitated);
 	PrintToChat(client, "Ledge Hanged: %d", g_players[client].ledgeHanged);
+	PrintToChat(client, "Mission Completed: %d", g_players[client].missionCompleted);
+	PrintToChat(client, "Mission Lost: %d", g_players[client].missionLost);
 	PrintToChat(client, "Smoker Tongue Cut: %d", g_players[client].smokerTongueCut);
 	PrintToChat(client, "Smoker Self Cleared: %d", g_players[client].smokerSelfCleared);
 	PrintToChat(client, "Hunter Skeeted: %d", g_players[client].hunterSkeeted);
@@ -177,11 +181,14 @@ Action Cmd_My_Stats(int client, int args) {
 }
 
 public void OnClientAuthorized(int client) {
+	// 玩家进入游戏
 	if (IsFakeClient(client)) {
 		return;
 	}
 
+	// 初始化玩家本局缓存数据
 	InitCachedPlayerInfo(client);
+	// 保存玩家连接记录
 	SQL_InsertConnectLog(client);
 }
 
@@ -195,6 +202,7 @@ public void OnPluginEnd() {
 }
 
 void Event_AdrenalineUsed(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家使用肾上腺素
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N used adrenaline!", client, client);
 	if (IsValidClient(client)) {
@@ -203,6 +211,7 @@ void Event_AdrenalineUsed(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_PillsUsed(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家使用止痛药
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N used pills!", client, client);
 	if (IsValidClient(client)) {
@@ -211,6 +220,7 @@ void Event_PillsUsed(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_HealSuccess(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家使用医疗包
 	int client = GetClientOfUserId(event.GetInt("subject"));
 	// int helper = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N healed %d:%N", helper, helper, client, client);
@@ -220,6 +230,7 @@ void Event_HealSuccess(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_AwardEarned(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家保护队友
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	int subjectEnt = GetClientOfUserId(event.GetInt("subjectEntid"));
 	int awardId = GetEventInt(event, "award");
@@ -231,6 +242,7 @@ void Event_AwardEarned(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_ReviveSuccess(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家救起队友
 	// int client = GetClientOfUserId(event.GetInt("subject"));
 	int helper = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N revived %d:%N", helper, helper, client, client);
@@ -240,6 +252,7 @@ void Event_ReviveSuccess(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_PlayerIncapacitated(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家倒地
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N incapped!", client, client);
 	if (IsValidClient(client)) {
@@ -248,6 +261,7 @@ void Event_PlayerIncapacitated(Event event, const char[] name, bool dontBroadcas
 }
 
 void Event_PlayerLedgeGrab(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家挂边
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N hanged on ledge!", client, client);
 	if (IsValidClient(client)) {
@@ -281,10 +295,12 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 }
 
 void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+	// 回合开始
 	g_mapRound++;
 	GetCurrentMap(g_serverMap, sizeof(g_serverMap));
 	FindConVar("mp_gamemode").GetString(g_serverMode, sizeof(g_serverMode));
-	// 回合开始，重置所有玩家本局缓存数据
+
+	// 重置所有玩家本局缓存数据
 	for (int i = 1; i <= MaxClients; i++) {
 		ResetCachedPlayerInfo(i);
 	}
@@ -292,13 +308,15 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 	allFF = 0;
 }
 
-void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-	// 回合结束（过关/团灭），保存所有玩家本局缓存数据 -> 数据库
+void Event_MissionLost(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（团灭），保存所有玩家本局缓存数据 -> 数据库
 	int currentTime = RoundToNearest(GetEngineTime());
 	for (int i = 1; i <= MaxClients; i++) {
 		g_players[i].gametime = currentTime - g_players[i].gametime;
 		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
 		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
+		g_players[i].missionLost++;
+
 		float allInstaClearTime = 0.0;
 		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
 			char eachClearTime[8];
@@ -312,6 +330,31 @@ void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
 		SQL_InsertPlayerRoundDetail(i);
 	}
 }
+
+void Event_MissionCompleted(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（过关），保存所有玩家本局缓存数据 -> 数据库
+	int currentTime = RoundToNearest(GetEngineTime());
+	for (int i = 1; i <= MaxClients; i++) {
+		g_players[i].gametime = currentTime - g_players[i].gametime;
+		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
+		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
+		g_players[i].missionCompleted++;
+
+		float allInstaClearTime = 0.0;
+		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
+			char eachClearTime[8];
+			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[i].instaClearTime.Get(j));
+			LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", i, i, j, eachClearTime);
+			allInstaClearTime += StringToFloat(eachClearTime);
+		}
+		g_players[i].avgInstaClearTime = g_players[i].instaClearTime.Length > 0 ? allInstaClearTime / g_players[i].instaClearTime.Length : 0.0;
+
+		SQL_UpdatePlayerInfo(i);
+		SQL_InsertPlayerRoundDetail(i);
+	}
+}
+
+
 
 /*
 Such actions will trigger such events.
@@ -454,110 +497,120 @@ void Event_WitchDeath(Event event, const char[] name, bool dontBroadcast) {
 
 // -------------------- [skill_detect] Start --------------------
 
-// smoker tongue
 public void OnTongueCut(int attacker, int victim) {
+	// 玩家近战砍断Smoker舌头
 	if (IsValidClient(attacker)) {
 		g_players[attacker].smokerTongueCut++;
 	}
 }
 
 public void OnSmokerSelfClear(int attacker, int victim, bool withShove) {
+	// 玩家自解Smoker舌头
 	if (IsValidClient(attacker)) {
 		g_players[attacker].smokerSelfCleared++;
 	}
 }
 
-// skeets
 public void OnSkeet(int attacker, int victim) {
+	// 玩家空爆Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetGL(int attacker, int victim) {
+	// 玩家榴弹空爆Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetHurt(int attacker, int victim, int damage) {
+	// 玩家空爆残血Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetMelee(int attacker, int victim) {
+	// 玩家近战空爆Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetMeleeHurt(int attacker, int victim, int damage) {
+	// 玩家近战空爆残血Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetSniper(int attacker, int victim) {
+	// 玩家狙击空爆Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
 public void OnSkeetSniperHurt(int attacker, int victim, int damage) {
+	// 玩家狙击空爆残血Hunter
 	if (IsValidClient(attacker)) {
 		g_players[attacker].hunterSkeeted++;
 	}
 }
 
-// levels
 public void OnChargerLevel(int attacker, int victim) {
+	// 玩家近战砍死冲锋Charger
 	if (IsValidClient(attacker)) {
 		g_players[attacker].chargerLeveled++;
 	}
 }
 
 public void OnChargerLevelHurt(int attacker, int victim, int damage) {
+	// 玩家近战砍死残血冲锋Charger
 	if (IsValidClient(attacker)) {
 		g_players[attacker].chargerLeveled++;
 	}
 }
 
-// crowns
 public void OnWitchCrown(int attacker, int damage) {
+	// 玩家秒杀Witch
 	if (IsValidClient(attacker)) {
 		g_players[attacker].witchCrowned++;
 	}
 }
 
 public void OnWitchDrawCrown(int attacker, int damage, int chipdamage) {
+	// 玩家引秒Witch
 	if (IsValidClient(attacker)) {
 		g_players[attacker].witchCrowned++;
 	}
 }
 
-// tank rock
 public void OnTankRockSkeeted(int attacker, int victim) {
+	// 玩家打碎Tank石头
 	if (IsValidClient(attacker)) {
 		g_players[attacker].tankRockSkeeted++;
 	}
 }
 
 public void OnTankRockEaten(int attacker, int victim) {
+	// 玩家被Tank石头砸中
 	if (IsValidClient(attacker)) {
 		g_players[victim].tankRockEaten++;
 	}
 }
 
-// trigger alarm
 public void OnCarAlarmTriggered(int survivor, int infected) {
+	// 玩家触发警报
 	if (IsValidClient(survivor)) {
 		g_players[survivor].alarmTriggered++;
 	}
 }
 
-// insta-clear
 public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieClass, float timeA, float timeB, bool withShove) {
+	// 玩家解救被控队友
 	float clearTime = timeA;
 	if (zombieClass == ZC_CHARGER || zombieClass == ZC_SMOKER) { 
 		clearTime = timeB;
@@ -654,6 +707,8 @@ void SQL_UpdatePlayerInfo(int client) {
 	...	"teammate_revived = teammate_revived + %d, "
 	...	"incapacitated = incapacitated + %d, "
 	...	"ledge_hanged = ledge_hanged + %d, "
+	...	"mission_completed = mission_completed + %d, "
+	...	"mission_lost = mission_lost + %d, "
 	...	"smoker_tongue_cut = smoker_tongue_cut + %d, "
 	...	"smoker_self_cleared = smoker_self_cleared + %d, "
 	...	"hunter_skeeted = hunter_skeeted + %d, "
@@ -681,6 +736,8 @@ void SQL_UpdatePlayerInfo(int client) {
 		g_players[client].teammateRevived, 
 		g_players[client].incapacitated, 
 		g_players[client].ledgeHanged, 
+		g_players[client].missionCompleted, 
+		g_players[client].missionLost, 
 		g_players[client].smokerTongueCut, 
 		g_players[client].smokerSelfCleared, 
 		g_players[client].hunterSkeeted, 
@@ -716,6 +773,8 @@ void SQL_UpdatePlayerInfo(int client) {
 	...	"teammate_revived = teammate_revived + ?, "
 	...	"incapacitated = incapacitated + ?, "
 	...	"ledge_hanged = ledge_hanged + ?, "
+	...	"mission_completed = mission_completed + ?, "
+	...	"mission_lost = mission_lost + ?, "
 	...	"smoker_tongue_cut = smoker_tongue_cut + ?, "
 	...	"smoker_self_cleared = smoker_self_cleared + ?, "
 	...	"hunter_skeeted = hunter_skeeted + ?, "
@@ -745,15 +804,17 @@ void SQL_UpdatePlayerInfo(int client) {
 	SQL_BindParamInt(stmt, 15, g_players[client].teammateRevived, false);
 	SQL_BindParamInt(stmt, 16, g_players[client].incapacitated, false);
 	SQL_BindParamInt(stmt, 17, g_players[client].ledgeHanged, false);
-	SQL_BindParamInt(stmt, 18, g_players[client].smokerTongueCut, false);
-	SQL_BindParamInt(stmt, 19, g_players[client].smokerSelfCleared, false);
-	SQL_BindParamInt(stmt, 20, g_players[client].hunterSkeeted, false);
-	SQL_BindParamInt(stmt, 21, g_players[client].chargerLeveled, false);
-	SQL_BindParamInt(stmt, 22, g_players[client].witchCrowned, false);
-	SQL_BindParamInt(stmt, 23, g_players[client].tankRockSkeeted, false);
-	SQL_BindParamInt(stmt, 24, g_players[client].tankRockEaten, false);
-	SQL_BindParamInt(stmt, 25, g_players[client].alarmTriggered, false);
-	SQL_BindParamString(stmt, 26, g_players[client].steamId, false);
+	SQL_BindParamInt(stmt, 18, g_players[client].missionCompleted, false);
+	SQL_BindParamInt(stmt, 19, g_players[client].missionLost, false);
+	SQL_BindParamInt(stmt, 20, g_players[client].smokerTongueCut, false);
+	SQL_BindParamInt(stmt, 21, g_players[client].smokerSelfCleared, false);
+	SQL_BindParamInt(stmt, 22, g_players[client].hunterSkeeted, false);
+	SQL_BindParamInt(stmt, 23, g_players[client].chargerLeveled, false);
+	SQL_BindParamInt(stmt, 24, g_players[client].witchCrowned, false);
+	SQL_BindParamInt(stmt, 25, g_players[client].tankRockSkeeted, false);
+	SQL_BindParamInt(stmt, 26, g_players[client].tankRockEaten, false);
+	SQL_BindParamInt(stmt, 27, g_players[client].alarmTriggered, false);
+	SQL_BindParamString(stmt, 28, g_players[client].steamId, false);
 	if (!SQL_Execute(stmt)) {
 		LogError("Update t_player record failed. %s", updateError);
 	}
@@ -1053,6 +1114,8 @@ void ResetCachedPlayerInfo(int client) {
 	g_players[client].teammateRevived = 0;
 	g_players[client].incapacitated = 0;
 	g_players[client].ledgeHanged = 0;
+	g_players[client].missionCompleted = 0;
+	g_players[client].missionLost = 0;
 	g_players[client].smokerTongueCut = 0;
 	g_players[client].smokerSelfCleared = 0;
 	g_players[client].hunterSkeeted = 0;
