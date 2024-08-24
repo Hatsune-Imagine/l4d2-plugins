@@ -387,6 +387,14 @@ sudo systemctl restart mysql
 
 
 
+10）安装 zlib。
+
+```bash
+apt install lib32z1
+```
+
+
+
 
 
 ---
@@ -415,29 +423,29 @@ sudo yum install mysql-server
 
 DBeaver【免费】
 
+
+
+
+
+---
+
+
+
+
+
+---
+
+DataGrip
+
+
+
+---
+
+1）DBeaver【免费】
+
+https://dbeaver.io/download
+
 ![img-dbeaver](images/dbeaver.png)
-
-
-
----
-
-Navicat【收费】
-
-![img-navicat](images/navicat.png)
-
-
-
----
-
-DataGrip【收费】
-
-![img-datagrip](images/datagrip.png)
-
-
-
----
-
-1）DBeaver（https://dbeaver.io/download）
 
 
 
@@ -487,7 +495,11 @@ Linux 服务器用户还可通过 SSH 方式连接您服务器中的 MySQL 服�
 
 ---
 
-2）Navicat（https://navicat.com.cn/download/navicat-premium）
+2）Navicat【收费】
+
+https://navicat.com.cn/download/navicat-premium
+
+![img-navicat](images/navicat.png)
 
 
 
@@ -495,9 +507,11 @@ Linux 服务器用户还可通过 SSH 方式连接您服务器中的 MySQL 服�
 
 ---
 
-3）DataGrip（https://www.jetbrains.com/datagrip/download）
+3）DataGrip【收费】
 
+https://www.jetbrains.com/datagrip/download
 
+![img-datagrip](images/datagrip.png)
 
 
 

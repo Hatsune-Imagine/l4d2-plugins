@@ -71,13 +71,15 @@ char g_serverPort[8];
 char g_serverMap[32];
 char g_serverMode[32];
 int g_mapRound;
-bool g_skillDetectLoaded;
+
+bool isSkillDetectLoaded;
+bool isCompetitiveInRound;
 
 public Plugin myinfo = {
 	name 			= "L4D2 Player Stats with Database",
 	author 			= "HatsuneImagine",
 	description 	= "Store & Fetch player stats from/to databases.",
-	version 		= "1.0",
+	version 		= "1.1",
 	url 			= "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -85,6 +87,7 @@ public void OnPluginStart() {
 	Database.Connect(ConnectCallback, "player_stats");
 
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("mission_lost", Event_MissionLost, EventHookMode_PostNoCopy);
 	HookEvent("map_transition", Event_MissionCompleted, EventHookMode_PostNoCopy);
 	HookEvent("finale_vehicle_leaving", Event_MissionCompleted, EventHookMode_PostNoCopy);
@@ -114,7 +117,7 @@ public void OnPluginStart() {
 }
 
 public void OnAllPluginsLoaded() {
-	g_skillDetectLoaded = LibraryExists("skill_detect");
+	isSkillDetectLoaded = LibraryExists("skill_detect");
 }
 
 public void OnLibraryAdded(const char[] name) {
@@ -127,7 +130,7 @@ public void OnLibraryRemoved(const char[] name) {
 
 void CheckLib(const char[] name, bool state) {
 	if (strcmp(name, "skill_detect") == 0) {
-		g_skillDetectLoaded = state;
+		isSkillDetectLoaded = state;
 	}
 }
 
@@ -198,6 +201,7 @@ public void OnMapEnd() {
 }
 
 public void OnPluginEnd() {
+	// 插件卸载
 	CloseHandle(g_db);
 }
 
@@ -270,32 +274,36 @@ void Event_PlayerLedgeGrab(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
-	// 玩家退出
+	// 玩家退出，保存此玩家本局缓存数据 -> 数据库
 	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (client > 0 && client <= MaxClients) {
+		int currentTime = RoundToNearest(GetEngineTime());
+		g_players[client].gametime = currentTime - g_players[client].gametime;
+		g_players[client].siDamagePercent = allSiDamage == 0 ? (g_players[client].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[client].siDamageValue) / float(allSiDamage);
+		g_players[client].totalFFPercent = allFF == 0 ? (g_players[client].totalFF > 0 ? 1.0 : 0.0) : float(g_players[client].totalFF) / float(allFF);
+		float allInstaClearTime = 0.0;
+		for (int j = 0; j < g_players[client].instaClearTime.Length; j++) {
+			char eachClearTime[8];
+			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[client].instaClearTime.Get(j));
+			// LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", client, client, j, eachClearTime);
+			allInstaClearTime += StringToFloat(eachClearTime);
+		}
+		g_players[client].avgInstaClearTime = g_players[client].instaClearTime.Length > 0 ? allInstaClearTime / g_players[client].instaClearTime.Length : 0.0;
 
-	int currentTime = RoundToNearest(GetEngineTime());
-	g_players[client].gametime = currentTime - g_players[client].gametime;
-	g_players[client].siDamagePercent = allSiDamage == 0 ? (g_players[client].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[client].siDamageValue) / float(allSiDamage);
-	g_players[client].totalFFPercent = allFF == 0 ? (g_players[client].totalFF > 0 ? 1.0 : 0.0) : float(g_players[client].totalFF) / float(allFF);
-	float allInstaClearTime = 0.0;
-	for (int j = 0; j < g_players[client].instaClearTime.Length; j++) {
-		char eachClearTime[8];
-		FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[client].instaClearTime.Get(j));
-		LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", client, client, j, eachClearTime);
-		allInstaClearTime += StringToFloat(eachClearTime);
+		// 更新此玩家总体数据
+		SQL_UpdatePlayerInfo(client);
+
+		// 清除此client缓存数据
+		ClearCachedPlayerInfo(client);
+		g_playersInGame[client] = "";
 	}
-	g_players[client].avgInstaClearTime = g_players[client].instaClearTime.Length > 0 ? allInstaClearTime / g_players[client].instaClearTime.Length : 0.0;
-
-	// 保存此玩家本局缓存数据 -> 数据库
-	SQL_UpdatePlayerInfo(client);
-
-	// 清除此client缓存数据
-	ClearCachedPlayerInfo(client);
-	g_playersInGame[client] = "";
 }
 
 void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 	// 回合开始
+	if ((IsVersus() || IsScavenge())) {
+		isCompetitiveInRound = true;
+	}
 	g_mapRound++;
 	GetCurrentMap(g_serverMap, sizeof(g_serverMap));
 	FindConVar("mp_gamemode").GetString(g_serverMode, sizeof(g_serverMode));
@@ -308,49 +316,25 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 	allFF = 0;
 }
 
+void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（仅用于处理竞技类型模式），保存所有玩家本局缓存数据 -> 数据库
+	if ((IsVersus() || IsScavenge()) && isCompetitiveInRound) {
+		isCompetitiveInRound = false;
+		SaveAllPlayerInfoAndDetail(false, false);
+	}
+}
+
 void Event_MissionLost(Event event, const char[] name, bool dontBroadcast) {
 	// 回合结束（团灭），保存所有玩家本局缓存数据 -> 数据库
-	int currentTime = RoundToNearest(GetEngineTime());
-	for (int i = 1; i <= MaxClients; i++) {
-		g_players[i].gametime = currentTime - g_players[i].gametime;
-		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
-		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
-		g_players[i].missionLost++;
-
-		float allInstaClearTime = 0.0;
-		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
-			char eachClearTime[8];
-			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[i].instaClearTime.Get(j));
-			LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", i, i, j, eachClearTime);
-			allInstaClearTime += StringToFloat(eachClearTime);
-		}
-		g_players[i].avgInstaClearTime = g_players[i].instaClearTime.Length > 0 ? allInstaClearTime / g_players[i].instaClearTime.Length : 0.0;
-
-		SQL_UpdatePlayerInfo(i);
-		SQL_InsertPlayerRoundDetail(i);
+	if (!(IsVersus() || IsScavenge())) {
+		SaveAllPlayerInfoAndDetail(true, false);
 	}
 }
 
 void Event_MissionCompleted(Event event, const char[] name, bool dontBroadcast) {
 	// 回合结束（过关），保存所有玩家本局缓存数据 -> 数据库
-	int currentTime = RoundToNearest(GetEngineTime());
-	for (int i = 1; i <= MaxClients; i++) {
-		g_players[i].gametime = currentTime - g_players[i].gametime;
-		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
-		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
-		g_players[i].missionCompleted++;
-
-		float allInstaClearTime = 0.0;
-		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
-			char eachClearTime[8];
-			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[i].instaClearTime.Get(j));
-			LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", i, i, j, eachClearTime);
-			allInstaClearTime += StringToFloat(eachClearTime);
-		}
-		g_players[i].avgInstaClearTime = g_players[i].instaClearTime.Length > 0 ? allInstaClearTime / g_players[i].instaClearTime.Length : 0.0;
-
-		SQL_UpdatePlayerInfo(i);
-		SQL_InsertPlayerRoundDetail(i);
+	if (!(IsVersus() || IsScavenge())) {
+		SaveAllPlayerInfoAndDetail(true, true);
 	}
 }
 
@@ -624,6 +608,18 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 // -------------------- [skill_detect] End --------------------
 
 
+bool IsVersus() {
+	char mode[32];
+	FindConVar("mp_gamemode").GetString(mode, sizeof(mode));
+	return StrContains(mode, "versus", false) > -1;
+}
+
+bool IsScavenge() {
+	char mode[32];
+	FindConVar("mp_gamemode").GetString(mode, sizeof(mode));
+	return StrContains(mode, "scavenge", false) > -1;
+}
+
 bool IsValidClient(int client) {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
@@ -647,6 +643,33 @@ bool IsPlayerIncapacitated(int client) {
 
 bool IsMeleeWeapon(char[] weaponName) {
 	return StrEqual(weaponName, "melee", false) || StrEqual(weaponName, "chainsaw", false);
+}
+
+void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
+	int currentTime = RoundToNearest(GetEngineTime());
+	for (int i = 1; i <= MaxClients; i++) {
+		g_players[i].gametime = currentTime - g_players[i].gametime;
+		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
+		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
+		if (isAddMissionCount) {
+			if (isWin) g_players[i].missionCompleted++;
+			else g_players[i].missionLost++;
+		}
+
+		float allInstaClearTime = 0.0;
+		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
+			char eachClearTime[8];
+			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[i].instaClearTime.Get(j));
+			// LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", i, i, j, eachClearTime);
+			allInstaClearTime += StringToFloat(eachClearTime);
+		}
+		g_players[i].avgInstaClearTime = g_players[i].instaClearTime.Length > 0 ? allInstaClearTime / g_players[i].instaClearTime.Length : 0.0;
+
+		// 更新此玩家总体数据
+		SQL_UpdatePlayerInfo(i);
+		// 新增此玩家本局详情
+		SQL_InsertPlayerRoundDetail(i);
+	}
 }
 
 void SQL_InsertConnectLog(int client) {
@@ -686,7 +709,7 @@ void SQL_UpdatePlayerInfo(int client) {
 		return;
 	}
 
-	if (!g_skillDetectLoaded) {
+	if (!isSkillDetectLoaded) {
 		PrintToServer("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
 		LogMessage("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
 	}
@@ -832,7 +855,7 @@ void SQL_InsertPlayerRoundDetail(int client) {
 		return;
 	}
 
-	if (!g_skillDetectLoaded) {
+	if (!isSkillDetectLoaded) {
 		PrintToServer("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
 		LogMessage("[l4d2_player_stats_db] Warning: 'Skill Detect' is not loaded, some of the player skill data will not be recorded and saved to DB!");
 	}

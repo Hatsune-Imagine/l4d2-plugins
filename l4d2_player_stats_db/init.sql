@@ -2,8 +2,8 @@ CREATE DATABASE IF NOT EXISTS `player_stats` CHARACTER SET utf8mb4 COLLATE utf8m
 USE `player_stats`;
 
 CREATE TABLE IF NOT EXISTS `t_player` (
-  `steam_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Player Steam ID',
-  `nickname` varchar(64) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Player nickname',
+  `steam_id` varchar(32) NOT NULL COMMENT 'Player Steam ID',
+  `nickname` varchar(64) NOT NULL COMMENT 'Player nickname',
   `gametime` bigint unsigned NOT NULL DEFAULT '0' COMMENT 'Player gametime in this server (seconds)',
   `headshot` int unsigned NOT NULL DEFAULT '0' COMMENT 'Player headshot kill count',
   `melee` int unsigned NOT NULL DEFAULT '0' COMMENT 'Player melee kill count',
@@ -39,23 +39,23 @@ CREATE TABLE IF NOT EXISTS `t_player` (
 
 CREATE TABLE IF NOT EXISTS `t_player_connect_log` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-  `steam_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Player Steam ID',
-  `connect_ip` varchar(16) COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Player connect ip',
+  `steam_id` varchar(32) NOT NULL COMMENT 'Player Steam ID',
+  `connect_ip` varchar(16) NOT NULL COMMENT 'Player connect ip',
   `connect_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Player join time',
   PRIMARY KEY (`id`),
   KEY `idx_steam_id` (`steam_id`) USING BTREE,
   KEY `idx_connect_time` (`connect_time` DESC) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1024 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player connect log';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player connect log';
 
 
 CREATE TABLE IF NOT EXISTS `t_player_round_detail` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
-  `steam_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'Player Steam ID',
+  `steam_id` varchar(32) NOT NULL COMMENT 'Player Steam ID',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record created time',
-  `server_ip` varchar(16) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Server ip',
-  `server_port` varchar(8) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Server port',
-  `server_map` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Server map',
-  `server_mode` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '' COMMENT 'Server gamemode',
+  `server_ip` varchar(16) NOT NULL DEFAULT '' COMMENT 'Server ip',
+  `server_port` varchar(8) NOT NULL DEFAULT '' COMMENT 'Server port',
+  `server_map` varchar(32) NOT NULL DEFAULT '' COMMENT 'Server map',
+  `server_mode` varchar(32) NOT NULL DEFAULT '' COMMENT 'Server gamemode',
   `map_round` int unsigned NOT NULL DEFAULT '1' COMMENT 'Map round',
   `headshot` int unsigned NOT NULL DEFAULT '0' COMMENT 'Player headshot kill count',
   `melee` int unsigned NOT NULL DEFAULT '0' COMMENT 'Player melee kill count',
@@ -92,4 +92,4 @@ CREATE TABLE IF NOT EXISTS `t_player_round_detail` (
   PRIMARY KEY (`id`),
   KEY `idx_steam_id` (`steam_id`) USING BTREE,
   KEY `idx_create_time` (`create_time` DESC) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2338 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player round stats detail';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player round stats detail';
