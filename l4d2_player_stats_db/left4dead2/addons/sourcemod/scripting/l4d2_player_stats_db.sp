@@ -645,6 +645,16 @@ bool IsMeleeWeapon(char[] weaponName) {
 	return StrEqual(weaponName, "melee", false) || StrEqual(weaponName, "chainsaw", false);
 }
 
+void TrimSpecialChar(char[] str, int size) {
+	ReplaceString(str, size, "--", "");
+	ReplaceString(str, size, "#", "");
+	ReplaceString(str, size, "\\", "");
+	ReplaceString(str, size, "\"", "");
+	ReplaceString(str, size, "'", "");
+	ReplaceString(str, size, ";", "");
+	ReplaceString(str, size, "`", "");
+}
+
 void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
 	int currentTime = RoundToNearest(GetEngineTime());
 	for (int i = 1; i <= MaxClients; i++) {
@@ -1106,6 +1116,7 @@ void InitCachedPlayerInfo(int client) {
 	GetClientIP(client, ip, sizeof(ip));
 	GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
 	GetClientName(client, nickname, sizeof(nickname));
+	TrimSpecialChar(nickname, sizeof(nickname));
 
 	g_players[client].ip = ip;
 	g_players[client].steamId = steamId;
