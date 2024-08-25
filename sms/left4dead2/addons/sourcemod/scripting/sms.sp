@@ -2,12 +2,13 @@
 #pragma newdecls required
 #include <sourcemod>
 #include <sdktools>
+#include <geoip>
 #include <left4dhooks>
 
 #define PLUGIN_NAME				"Server Message System"
 #define PLUGIN_AUTHOR			"sorallll, HatsuneImagine"
 #define PLUGIN_DESCRIPTION		""
-#define PLUGIN_VERSION			"1.0.3"
+#define PLUGIN_VERSION			"1.1"
 #define PLUGIN_URL				""
 
 /*****************************************************************************************************/
@@ -148,11 +149,14 @@ stock void CSayText2(int client, int author, const char[] szMessage) {
 
 #define SOUND_CONNECT	"buttons/button11.wav"
 #define SOUND_DISCONNECT "doors/default_locked.wav"
+#define CONNECT_NOTIFY 1
+#define CONNECT_NOTIFY_SOUND 2
+#define CONNECT_NOTIFY_CLIENT_NUMBER 4
+#define CONNECT_NOTIFY_CLIENT_LOCATION 8
 
 ConVar
 	g_cvBlackWhite,
 	g_cvConnected,
-	g_cvConnectedSound,
 	g_cvPlayerDeath,
 	g_cvWitchstartled,
 	g_cvGameIdle,
@@ -164,24 +168,10 @@ ConVar
 	g_cvSurvivorMaxInc;
 
 bool
-	g_bLateLoad,
-	g_bBlackWhite,
-	g_bConnected,
-	g_bConnectedSound,
-	g_bPlayerDeath,
-	g_bWitchstartled,
-	g_bGameIdle,
-	g_bCvarChange,
-	g_bSMNotity,
-	g_bGameDisconnect;
+	g_bLateLoad;
 
 int
-	g_iSurvivorMaxInc,
 	g_iInstructorEntRef[MAXPLAYERS + 1][MAXPLAYERS + 1];
-
-float
-	g_fFallSpeedSafe,
-	g_fFallSpeedFatal;
 
 static const char
 	g_sZombieClass[][] = {
@@ -214,15 +204,14 @@ public void OnPluginStart() {
 	HookEvent("player_spawn",		Event_PlayerSpawn);
 	HookEvent("witch_harasser_set",	Event_WitchHarasserSet);
 	HookEvent("server_cvar",		Event_ServerCvar,		EventHookMode_Pre);
-	HookEvent("player_connect",		Event_PlayerConnect);
+	// HookEvent("player_connect",		Event_PlayerConnect);
 	HookEvent("player_disconnect",	Event_PlayerDisconnect, EventHookMode_Pre);
 
 	AddCommandListener(Listener_give, "give");
 	HookUserMessage(GetUserMessageId("TextMsg"), umTextMsg, true);
 
 	g_cvBlackWhite =		CreateConVar("sms_bw_notify",						"1",	"黑白提示.");
-	g_cvConnected =			CreateConVar("sms_connected_notify",				"1",	"连接退出提示.");
-	g_cvConnectedSound =	CreateConVar("sms_connected_sound",					"1",	"连接退出声音.");
+	g_cvConnected =			CreateConVar("sms_connected_notify",				"5",	"连接退出提示(0-关闭,1-文字提示,2-提示声音,4-人数显示,8-地区显示)[可相加组合].");
 	g_cvPlayerDeath =		CreateConVar("sms_playerdeath_notify",				"1",	"死亡提示.");
 	g_cvWitchstartled =		CreateConVar("sms_witchstartled_notify",			"1",	"Witch惊扰提示.");
 	g_cvGameIdle =			CreateConVar("sms_game_idle_notify_block",			"1",	"屏蔽游戏自带的玩家闲置提示.");
@@ -235,19 +224,6 @@ public void OnPluginStart() {
 	g_cvFallSpeedSafe = FindConVar("fall_speed_safe");
 	g_cvFallSpeedFatal = FindConVar("fall_speed_fatal");
 	g_cvSurvivorMaxInc = FindConVar("survivor_max_incapacitated_count");
-	g_cvFallSpeedSafe.AddChangeHook(CvarChanged);
-	g_cvFallSpeedFatal.AddChangeHook(CvarChanged);
-	g_cvSurvivorMaxInc.AddChangeHook(CvarChanged);
-
-	g_cvBlackWhite.AddChangeHook(CvarChanged);
-	g_cvConnected.AddChangeHook(CvarChanged);
-	g_cvConnectedSound.AddChangeHook(CvarChanged);
-	g_cvPlayerDeath.AddChangeHook(CvarChanged);
-	g_cvWitchstartled.AddChangeHook(CvarChanged);
-	g_cvGameIdle.AddChangeHook(CvarChanged);
-	g_cvCvarChange.AddChangeHook(CvarChanged);
-	g_cvSMNotity.AddChangeHook(CvarChanged);
-	g_cvGameDisconnect.AddChangeHook(CvarChanged);
 
 	if (g_bLateLoad) {
 		for (int i = 1; i <= MaxClients; i++) {
@@ -255,29 +231,6 @@ public void OnPluginStart() {
 				OnClientPutInServer(i);
 		}
 	}
-}
-
-public void OnConfigsExecuted() {
-	GetCvars();
-}
-
-void CvarChanged(ConVar convar, const char[] oldValue, const char[] newValue) {
-	GetCvars();
-}
-
-void GetCvars() {
-	g_bBlackWhite =		g_cvBlackWhite.BoolValue;
-	g_bConnected =		g_cvConnected.BoolValue;
-	g_bConnectedSound =	g_cvConnectedSound.BoolValue;
-	g_bPlayerDeath =	g_cvPlayerDeath.BoolValue;
-	g_bWitchstartled =	g_cvWitchstartled.BoolValue;
-	g_bGameIdle =		g_cvGameIdle.BoolValue;
-	g_bCvarChange =		g_cvCvarChange.BoolValue;
-	g_bSMNotity =		g_cvSMNotity.BoolValue;
-	g_bGameDisconnect =	g_cvGameDisconnect.BoolValue;
-	g_fFallSpeedSafe =	g_cvFallSpeedSafe.FloatValue;
-	g_fFallSpeedFatal =	g_cvFallSpeedFatal.FloatValue;
-	g_iSurvivorMaxInc =	g_cvSurvivorMaxInc.IntValue;
 }
 
 Action Listener_give(int client, const char[] command, int argc) {
@@ -293,7 +246,7 @@ Action Listener_give(int client, const char[] command, int argc) {
 }
 
 void NextFrame_give(int client) {
-	if ((client = GetClientOfUserId(client)) && IsClientInGame(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client) && GetEntProp(client, Prop_Send, "m_currentReviveCount") < g_iSurvivorMaxInc)
+	if ((client = GetClientOfUserId(client)) && IsClientInGame(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client) && GetEntProp(client, Prop_Send, "m_currentReviveCount") < g_cvSurvivorMaxInc.IntValue)
 		EndInstructorHint(client);
 }
 
@@ -310,7 +263,7 @@ public void OnClientPutInServer(int client) {
 // 死亡提示
 // ------------------------------------------------------------------------
 void OnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage, int damagetype) {
-	if (!g_bPlayerDeath)
+	if (!g_cvPlayerDeath.BoolValue)
 		return;
 
 	if (victim < 1 || victim > MaxClients || !IsClientInGame(victim) || GetClientTeam(victim) != 2 || GetEntProp(victim, Prop_Data, "m_iHealth") > 0)
@@ -344,7 +297,7 @@ void OnTakeDamageAlivePost(int victim, int attacker, int inflictor, float damage
 
 		if (damagetype & DMG_DROWN && GetEntProp(victim, Prop_Data, "m_nWaterLevel") > 1)
 			strcopy(cls, sizeof cls, "溺水");
-		else if (damagetype & DMG_FALL && RoundToFloor(Pow(GetEntPropFloat(victim, Prop_Send, "m_flFallVelocity") / (g_fFallSpeedFatal - g_fFallSpeedSafe), 2.0) * 100.0) == damage)
+		else if (damagetype & DMG_FALL && RoundToFloor(Pow(GetEntPropFloat(victim, Prop_Send, "m_flFallVelocity") / (g_cvFallSpeedFatal.FloatValue - g_cvFallSpeedSafe.FloatValue), 2.0) * 100.0) == damage)
 			strcopy(cls, sizeof cls, "坠落");
 		else if (strcmp(cls, "worldspawn") == 0 && damagetype == 131072)
 			strcopy(cls, sizeof cls, "流血");
@@ -365,39 +318,91 @@ bool IsValidClient(int client) {
 }
 
 //玩家连接文字+声音提示
-void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
-	if (!g_bConnected)
+// void Event_PlayerConnect(Event event, const char[] name, bool dontBroadcast) {
+// 	if (!g_bConnected)
+// 		return;
+
+// 	char networkid[5];
+// 	event.GetString("networkid", networkid, sizeof networkid);
+// 	if (strcmp(networkid, "BOT") == 0)
+// 		return;
+
+// 	int maxplayers = GetMaxPlayers();
+// 	if (maxplayers < 1)
+// 		return;
+
+// 	int players = GetRealPlayers(GetClientOfUserId(event.GetInt("userid")));
+// 	if (++players < 2)
+// 		return;
+
+// 	if (g_bConnectedSound)
+// 		PlaySound(SOUND_CONNECT);
+
+// 	char _name[MAX_NAME_LENGTH];
+// 	event.GetString("name", _name, sizeof _name);
+// 	CPrintToChatAll("{blue}%s {default}正在连接.{olive}(%d/%d)", _name, players, maxplayers);
+// }
+
+//玩家连接文字+声音提示
+public void OnClientConnected(int client) {
+	if (!(g_cvConnected.IntValue & CONNECT_NOTIFY))
 		return;
 
-	char networkid[5];
-	event.GetString("networkid", networkid, sizeof networkid);
-	if (strcmp(networkid, "BOT") == 0)
+	if (IsFakeClient(client))
 		return;
 
 	int maxplayers = GetMaxPlayers();
 	if (maxplayers < 1)
 		return;
 
-	int players = GetRealPlayers(GetClientOfUserId(event.GetInt("userid")));
+	int players = GetRealPlayers(client);
 	if (++players < 2)
 		return;
 
-	if (g_bConnectedSound)
-		PlaySound(SOUND_CONNECT);
-
+	char msg[128];
 	char _name[MAX_NAME_LENGTH];
-	event.GetString("name", _name, sizeof _name);
-	CPrintToChatAll("{blue}%s {default}正在连接.{olive}(%d/%d)", _name, players, maxplayers);
+	char ip[16];
+	char country[32];
+	char region[32];
+	char city[32];
+	GetClientName(client, _name, sizeof _name);
+	GetClientIP(client, ip, sizeof(ip));
+	if (!GeoipCountry(ip, country, sizeof(country))) {
+		Format(country, sizeof(country), IsLanIP(ip) ? "LAN" : "Unknown Country");
+	}
+	if (!GeoipRegion(ip, region, sizeof(region))) {
+		Format(region, sizeof(region), IsLanIP(ip) ? "LAN" : "Unknown Region");
+	}
+	if (!GeoipCity(ip, city, sizeof(city))) {
+		Format(city, sizeof(city), IsLanIP(ip) ? "LAN" : "Unknown City");
+	}
+
+	Format(msg, sizeof(msg), "{blue}%s {default}正在连接.", _name);
+	if (g_cvConnected.IntValue & CONNECT_NOTIFY_SOUND) {
+		PlaySound(SOUND_CONNECT);
+	}
+	if (g_cvConnected.IntValue & CONNECT_NOTIFY_CLIENT_NUMBER) {
+		char playerNumStr[16];
+		Format(playerNumStr, sizeof(playerNumStr), "{olive}(%d/%d)", players, maxplayers);
+		Format(msg, sizeof(msg), "%s %s", msg, playerNumStr);
+	}
+	if (g_cvConnected.IntValue & CONNECT_NOTIFY_CLIENT_LOCATION) {
+		char playerLocationStr[128];
+		Format(playerLocationStr, sizeof(playerLocationStr), "{olive}(%s, %s, %s)", country, region, city);
+		Format(msg, sizeof(msg), "%s %s", msg, playerLocationStr);
+	}
+
+	CPrintToChatAll(msg);
 }
 
 // ------------------------------------------------------------------------
 // 游戏自带的玩家离开游戏提示(聊天栏提示：XXX 离开了游戏。) -- 玩家断开连接文字+声音提示
 // ------------------------------------------------------------------------
 void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) {
-	if (g_bGameDisconnect)
+	if (g_cvGameDisconnect.BoolValue)
 		event.BroadcastDisabled = true;
 
-	if (!g_bConnected)
+	if (!(g_cvConnected.IntValue & CONNECT_NOTIFY))
 		return;
 
 	char networkid[5];
@@ -413,14 +418,22 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	if (players < 1)
 		return;
 
+	char msg[128];
 	char _name[MAX_NAME_LENGTH], reason[254];
 	event.GetString("name", _name, sizeof _name);
 	event.GetString("reason", reason, sizeof reason);
 
-	if (g_bConnectedSound)
+	Format(msg, sizeof(msg), "{blue}%s {default}离开游戏. {default}({green}%s{default})", _name, reason);
+	if (g_cvConnected.IntValue & CONNECT_NOTIFY_SOUND) {
 		PlaySound(SOUND_DISCONNECT);
+	}
+	if (g_cvConnected.IntValue & CONNECT_NOTIFY_CLIENT_NUMBER) {
+		char playerNumStr[16];
+		Format(playerNumStr, sizeof(playerNumStr), "{olive}(%d/%d)", players, maxplayers);
+		Format(msg, sizeof(msg), "%s %s", msg, playerNumStr);
+	}
 
-	CPrintToChatAll("{blue}%s {default}离开游戏{default}({green}%s{default}).{olive}(%d/%d)", _name, reason, players, maxplayers);
+	CPrintToChatAll(msg);
 }
 
 // ------------------------------------------------------------------------
@@ -430,10 +443,10 @@ Action umTextMsg(UserMsg msg_id, BfRead msg, const int[] players, int num, bool 
 	static char buffer[254];
 	msg.ReadString(buffer, sizeof buffer);
 
-	if (g_bGameIdle && strcmp(buffer, "\x03#L4D_idle_spectator") == 0) //聊天栏提示：XXX 现已闲置。
+	if (g_cvGameIdle.BoolValue && strcmp(buffer, "\x03#L4D_idle_spectator") == 0) //聊天栏提示：XXX 现已闲置。
 		return Plugin_Handled;
 	else if (StrContains(buffer, "\x03[SM]") == 0) {//聊天栏以[SM]开头的消息。
-		if (g_bSMNotity) {
+		if (g_cvSMNotity.BoolValue) {
 			DataPack dPack = new DataPack();
 			dPack.WriteCell(num);
 			for (int i; i < num; i++)
@@ -483,7 +496,7 @@ void NextFrame_SMMessage(DataPack dPack) {
 // Witch惊扰提示
 // ------------------------------------------------------------------------
 void Event_WitchHarasserSet(Event event, const char[] name, bool dontBroadcast) {
-	if (!g_bWitchstartled)
+	if (!g_cvWitchstartled.BoolValue)
 		return;
 
 	int client = GetClientOfUserId(event.GetInt("userid"));
@@ -508,7 +521,7 @@ void Event_WitchHarasserSet(Event event, const char[] name, bool dontBroadcast) 
 // ConVar更改提示
 // ------------------------------------------------------------------------
 Action Event_ServerCvar(Event event, const char[] name, bool dontBroadcast) {
-	if (g_bCvarChange)
+	if (g_cvCvarChange.BoolValue)
 		return Plugin_Handled;
 
 	return Plugin_Continue;
@@ -518,7 +531,7 @@ Action Event_ServerCvar(Event event, const char[] name, bool dontBroadcast) {
 // 黑白提示
 // ------------------------------------------------------------------------
 void Event_ReviveSuccess(Event event, const char[] name, bool dontBroadcast) {
-	if (!g_bBlackWhite)
+	if (!g_cvBlackWhite.BoolValue)
 		return;
 
 	if (event.GetBool("lastlife"))
@@ -526,7 +539,7 @@ void Event_ReviveSuccess(Event event, const char[] name, bool dontBroadcast) {
 }
 
 void NextFrame_LastLife(int client) {
-	if ((client = GetClientOfUserId(client)) && IsClientInGame(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client) && GetEntProp(client, Prop_Send, "m_currentReviveCount") >= g_iSurvivorMaxInc) {
+	if ((client = GetClientOfUserId(client)) && IsClientInGame(client) && GetClientTeam(client) == 2 && IsPlayerAlive(client) && GetEntProp(client, Prop_Send, "m_currentReviveCount") >= g_cvSurvivorMaxInc.IntValue) {
 		char text[254];
 		int idleplayer = GetIdlePlayerOfBot(client);
 		if (!idleplayer)
@@ -618,6 +631,20 @@ void EndInstructorHint(int client) {
 
 bool IsValidEntRef(int ent) {
 	return ent && EntRefToEntIndex(ent) != -1;
+}
+
+bool IsLanIP(char[] src) {
+	char ip4[4][4];
+	int ipnum;
+
+	if (ExplodeString(src, ".", ip4, 4, 4) == 4) {
+		ipnum = StringToInt(ip4[0])*65536 + StringToInt(ip4[1])*256 + StringToInt(ip4[2]);
+		if ((ipnum >= 655360 && ipnum < 655360+65535) || (ipnum >= 11276288 && ipnum < 11276288+4095) || (ipnum >= 12625920 && ipnum < 12625920+255)) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 int GetMaxPlayers() {
