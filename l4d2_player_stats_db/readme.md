@@ -390,7 +390,7 @@ sudo systemctl restart mysql
 10）安装 zlib。
 
 ```bash
-apt install lib32z1
+sudo apt install lib32z1
 ```
 
 
@@ -420,24 +420,6 @@ sudo yum install mysql-server
 ## 2. 使用数据库连接工具，创建数据库及表结构
 
 可使用3种工具，任选一种即可。
-
-DBeaver【免费】
-
-
-
-
-
----
-
-
-
-
-
----
-
-DataGrip
-
-
 
 ---
 
