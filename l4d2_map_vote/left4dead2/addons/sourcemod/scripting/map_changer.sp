@@ -26,10 +26,10 @@ enum {
 	FINALE_CHANGE_CREDITS_END	= 8
 }
 
-static const char
+char
 	g_sValveMaps[][][] = {
 		{"c14m2_lighthouse",		"c1m1_hotel",			"死亡中心"		},
-		{"c1m4_atrium",				"c2m1_highway",			"黑色狂欢节"	},
+		{"c1m4_atrium",				"c2m1_highway",			"黑色狂欢节"		},
 		{"c2m5_concert",			"c3m1_plankcountry",	"沼泽激战"		},
 		{"c3m4_plantation",			"c4m1_milltown_a",		"暴风骤雨"		},
 		{"c4m5_milltown_escape",	"c5m1_waterfront",		"教区"			},
