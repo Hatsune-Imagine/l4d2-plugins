@@ -52,9 +52,9 @@ Action CmdReflect(int client, int args) {
 
 Action OnTakeDamage(int victim, int &attacker, int &inflictor, float &damage, int &damagetype) {
 	// PrintToChatAll("[DEBUG] %d attacked %d, damage: %d, damagetype: %d", attacker, victim, RoundToFloor(damage), damagetype);
-	if (!(IsValidClient(attacker) && IsValidClient(victim))) return Plugin_Continue;
+	if (!IsValidClient(attacker) || !IsValidClient(victim)) return Plugin_Continue;
 	if (!g_cvEnable.BoolValue) return Plugin_Continue;
-	if (!g_cvEnableBot.BoolValue && !IsRealClient(victim)) return Plugin_Continue;
+	if (!g_cvEnableBot.BoolValue && IsFakeClient(victim)) return Plugin_Continue;
 	if (!g_cvEnableIncap.BoolValue && IsIncapacitated(victim)) return Plugin_Continue;
 	if (!g_cvEnableFire.BoolValue && (damagetype == DMG_BURN || damagetype == DMG_CUSTOM_FIRE || damagetype == DMG_CUSTOM_ONFIRE)) return Plugin_Continue;
 	if (!g_cvEnableExplode.BoolValue && (damagetype == DMG_CUSTOM_PIPEBOMB || damagetype == DMG_CUSTOM_PROPANE || damagetype == DMG_CUSTOM_OXYGEN || damagetype == DMG_CUSTOM_GL)) return Plugin_Continue;
@@ -81,10 +81,6 @@ bool IsClientInGodFrame(int client) {
 	CountdownTimer timer = L4D2Direct_GetInvulnerabilityTimer(client);
 	if (timer == CTimer_Null) return false;
 	return CTimer_GetRemainingTime(timer) > 0.0;
-}
-
-bool IsRealClient(int client) {
-	return client > 0 && client <= MaxClients && !IsFakeClient(client);
 }
 
 bool IsValidClient(int client) {
