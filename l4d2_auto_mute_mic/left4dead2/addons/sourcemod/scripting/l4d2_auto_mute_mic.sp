@@ -14,7 +14,7 @@ public Plugin myinfo = {
 	name = "L4D2 Auto Mute Mic",
 	author = "HatsuneImagine",
 	description = "Auto mute player microphone voices if constantly speaking for too long.",
-	version = "1.0",
+	version = "1.1",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -28,14 +28,14 @@ public void OnPluginStart() {
 }
 
 public void OnClientDisconnect(int client) {
-	if (!IsFakeClient(client)) {
-		g_clientVox[client] = 0;
-		g_voxStatus[client] = false;
-		g_speakStatus[client] = false;
-	}
+	if (IsFakeClient(client)) return;
+	g_clientVox[client] = 0;
+	g_voxStatus[client] = false;
+	g_speakStatus[client] = false;
 }
 
 public void OnClientSpeaking(int client) {
+	if (!IsValidClient(client)) return;
 	if (g_speakStatus[client]) return;
 	g_speakStatus[client] = true;
 	if (g_cvAutoMuteVoxMic.BoolValue) {
@@ -59,6 +59,7 @@ public void OnClientSpeaking(int client) {
 }
 
 public void OnClientSpeakingEnd(int client) {
+	if (!IsValidClient(client)) return;
 	g_speakStatus[client] = false;
 	if (g_cvAutoMuteEnable.BoolValue) {
 		if (IsValidHandle(g_speakTimers[client])) {
@@ -84,4 +85,8 @@ void OnQueryFinished(QueryCookie cookie, int client, ConVarQueryResult result, c
 	if (result == ConVarQuery_Okay) {
 		g_clientVox[client] = StringToInt(cvarValue);
 	}
+}
+
+bool IsValidClient(int client) {
+	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
