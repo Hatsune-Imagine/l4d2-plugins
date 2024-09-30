@@ -14,7 +14,7 @@ public Plugin myinfo = {
 	name = "L4D2 Auto Mute Mic",
 	author = "HatsuneImagine",
 	description = "Auto mute player microphone voices if constantly speaking for too long.",
-	version = "1.1",
+	version = "1.2",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -70,6 +70,7 @@ public void OnClientSpeakingEnd(int client) {
 }
 
 Action Timer_DelayMute(Handle timer, int client) {
+	if (!IsValidClient(client)) return Plugin_Continue;
 	PrintToChat(client, "\x05已达到\x03 %.1f \x05秒开麦时长限制,\x03 %.1f \x05秒后可再次开麦.", g_cvAutoMuteTime.FloatValue, g_cvAutoUnmuteTime.FloatValue);
 	BaseComm_SetClientMute(client, true);
 	CreateTimer(g_cvAutoUnmuteTime.FloatValue, Timer_DelayUnmute, client);
@@ -77,6 +78,7 @@ Action Timer_DelayMute(Handle timer, int client) {
 }
 
 Action Timer_DelayUnmute(Handle timer, int client) {
+	if (!IsValidClient(client)) return Plugin_Continue;
 	BaseComm_SetClientMute(client, false);
 	return Plugin_Continue;
 }
