@@ -3,7 +3,6 @@
 
 #include <sourcemod>
 #include <sdktools>
-#include <geoip>
 
 #define TEAM_SPECTATOR	1
 #define TEAM_SURVIVOR	2
@@ -21,11 +20,6 @@
 enum struct PlayerInfo
 {
 	char ip[16];
-	char country[32];
-	char region[32];
-	char city[32];
-	float latitude;
-	float longitude;
 	char steamId[32];
 	char nickname[32];
 	int gametime;
@@ -50,11 +44,8 @@ enum struct PlayerInfo
 	int medkitUsed;
 	int teammateProtected;
 	int teammateRevived;
-	int teammateIncapped;
-	int teammateKilled;
+	int incapacitated;
 	int ledgeHanged;
-	int incapped;
-	int dead;
 	int missionCompleted;
 	int missionLost;
 	int smokerTongueCut;
@@ -75,7 +66,6 @@ int allFF;
 Database g_db;
 PlayerInfo g_players[MAXPLAYERS + 1];
 char g_playersInGame[MAXPLAYERS + 1][32];
-char g_serverName[32];
 char g_serverIP[16];
 char g_serverPort[8];
 char g_serverMap[32];
@@ -86,14 +76,16 @@ bool isSkillDetectLoaded;
 bool isCompetitiveInRound;
 
 public Plugin myinfo = {
-	name = "L4D2 Player Stats with Database",
-	author = "HatsuneImagine",
-	description = "Store & Fetch player stats from/to databases.",
-	version = "2.0",
-	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
+	name 			= "L4D2 Player Stats with Database",
+	author 			= "HatsuneImagine",
+	description 	= "Store & Fetch player stats from/to databases.",
+	version 		= "1.1",
+	url 			= "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
 public void OnPluginStart() {
+	Database.Connect(ConnectCallback, "player_stats");
+
 	HookEvent("round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("round_end", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("mission_lost", Event_MissionLost, EventHookMode_PostNoCopy);
@@ -104,8 +96,8 @@ public void OnPluginStart() {
 	HookEvent("heal_success", Event_HealSuccess, EventHookMode_Post);
 	HookEvent("award_earned", Event_AwardEarned, EventHookMode_Post);
 	HookEvent("revive_success", Event_ReviveSuccess, EventHookMode_Post);
-	HookEvent("player_ledge_grab", Event_PlayerLedgeGrab, EventHookMode_Post);
 	HookEvent("player_incapacitated", Event_PlayerIncapacitated, EventHookMode_Post);
+	HookEvent("player_ledge_grab", Event_PlayerLedgeGrab, EventHookMode_Post);
 	HookEvent("player_disconnect", Event_PlayerDisconnect, EventHookMode_Pre);
 	HookEvent("infected_hurt", Event_InfectedHurt, EventHookMode_Post);
 	HookEvent("infected_death", Event_InfectedDeath, EventHookMode_Post);
@@ -113,21 +105,15 @@ public void OnPluginStart() {
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 	HookEvent("witch_killed", Event_WitchDeath, EventHookMode_Post);
 
-	FindConVar("hostname").GetString(g_serverName, sizeof(g_serverName));
 	FindConVar("net_public_adr").GetString(g_serverIP, sizeof(g_serverIP));
-	if (StrEqual(g_serverIP, "")) FindConVar("ip").GetString(g_serverIP, sizeof(g_serverIP));
 	FindConVar("hostport").GetString(g_serverPort, sizeof(g_serverPort));
-	HandleSpecialChar(g_serverName, sizeof(g_serverName));
 
-	RegConsoleCmd("sm_debug_mystats", Cmd_My_Stats, "Show my stats.");
-	RegConsoleCmd("sm_debug_my_stats", Cmd_My_Stats, "Show my stats.");
+	RegConsoleCmd("sm_mystats", Cmd_My_Stats, "Show my stats.");
+	RegConsoleCmd("sm_my_stats", Cmd_My_Stats, "Show my stats.");
 
 	for (int i = 0; i < MAXPLAYERS + 1; i++) {
 		g_players[i].instaClearTime = new ArrayList();
 	}
-
-	AddCommandListener(CommandListener, "");
-	Database.Connect(ConnectCallback, "player_stats");
 }
 
 public void OnAllPluginsLoaded() {
@@ -150,11 +136,6 @@ void CheckLib(const char[] name, bool state) {
 
 Action Cmd_My_Stats(int client, int args) {
 	PrintToChat(client, "IP: %s", g_players[client].ip);
-	PrintToChat(client, "Country: %s", g_players[client].country);
-	PrintToChat(client, "Region: %s", g_players[client].region);
-	PrintToChat(client, "City: %s", g_players[client].city);
-	PrintToChat(client, "Latitude: %.6f", g_players[client].latitude);
-	PrintToChat(client, "Longitude: %.6f", g_players[client].longitude);
 	PrintToChat(client, "SteamID: %s", g_players[client].steamId);
 	PrintToChat(client, "Nickname: %s", g_players[client].nickname);
 	PrintToChat(client, "GameTime: %d", g_players[client].gametime);
@@ -179,11 +160,8 @@ Action Cmd_My_Stats(int client, int args) {
 	PrintToChat(client, "Medkit Used: %d", g_players[client].medkitUsed);
 	PrintToChat(client, "Teammate Protected: %d", g_players[client].teammateProtected);
 	PrintToChat(client, "Teammate Revived: %d", g_players[client].teammateRevived);
-	PrintToChat(client, "Teammate Incapped: %d", g_players[client].teammateIncapped);
-	PrintToChat(client, "Teammate Killed: %d", g_players[client].teammateKilled);
+	PrintToChat(client, "Incapacitated: %d", g_players[client].incapacitated);
 	PrintToChat(client, "Ledge Hanged: %d", g_players[client].ledgeHanged);
-	PrintToChat(client, "Incapped: %d", g_players[client].incapped);
-	PrintToChat(client, "Dead: %d", g_players[client].dead);
 	PrintToChat(client, "Mission Completed: %d", g_players[client].missionCompleted);
 	PrintToChat(client, "Mission Lost: %d", g_players[client].missionLost);
 	PrintToChat(client, "Smoker Tongue Cut: %d", g_players[client].smokerTongueCut);
@@ -202,35 +180,6 @@ Action Cmd_My_Stats(int client, int args) {
 		PrintToChat(client, "\t%.2f", g_players[client].instaClearTime.Get(i));
 	}
 	PrintToChat(client, "]");
-	return Plugin_Continue;
-}
-
-Action CommandListener(int client, char[] command, int argc) {
-	if (!IsRealClient(client)) {
-		return Plugin_Continue;
-	}
-
-	StringToLowerCase(command);
-	if (!StrEqual(command, "say") && !StrEqual(command, "say_team")) {
-		return Plugin_Continue;
-	}
-
-	char team[16];
-	char msg[256];
-	GetTeamName(GetClientTeam(client), team, sizeof(team));
-	GetCmdArgString(msg, sizeof(msg));
-	StripQuotes(msg);
-	HandleSpecialChar(msg, sizeof(msg));
-
-	// 保存玩家聊天记录
-	if (StrEqual(command, "say")) {
-		SQL_InsertChatLog(client, team, msg);
-	}
-	else if (StrEqual(command, "say_team")) {
-		Format(msg, sizeof(msg), "(TEAM) %s", msg);
-		SQL_InsertChatLog(client, team, msg);
-	}
-
 	return Plugin_Continue;
 }
 
@@ -288,7 +237,7 @@ void Event_AwardEarned(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家保护队友
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	int subjectEnt = GetClientOfUserId(event.GetInt("subjectEntid"));
-	int awardId = event.GetInt("award");
+	int awardId = GetEventInt(event, "award");
 
 	// PrintToChatAll("%d:%N protected %d:%N, awardId = %i", client, client, subjectEnt, subjectEnt, awardId);
 	if (IsValidClient(client) && IsValidClient(subjectEnt) && awardId == 67) {
@@ -306,25 +255,21 @@ void Event_ReviveSuccess(Event event, const char[] name, bool dontBroadcast) {
 	}
 }
 
+void Event_PlayerIncapacitated(Event event, const char[] name, bool dontBroadcast) {
+	// 玩家倒地
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	// PrintToChatAll("%d:%N incapped!", client, client);
+	if (IsValidClient(client)) {
+		g_players[client].incapacitated++;
+	}
+}
+
 void Event_PlayerLedgeGrab(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家挂边
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	// PrintToChatAll("%d:%N hanged on ledge!", client, client);
 	if (IsValidClient(client)) {
 		g_players[client].ledgeHanged++;
-	}
-}
-
-void Event_PlayerIncapacitated(Event event, const char[] name, bool dontBroadcast) {
-	// 玩家倒地
-	int victim = GetClientOfUserId(event.GetInt("userid"));
-	int attacker = GetClientOfUserId(event.GetInt("attacker"));
-	// PrintToChatAll("%d:%N incapped!", victim, victim);
-	if (IsValidClient(victim) && GetClientTeam(victim) == TEAM_SURVIVOR) {
-		g_players[victim].incapped++;
-	}
-	if (IsValidClient(attacker) && IsValidClient(victim) && GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_SURVIVOR && attacker != victim) {
-		g_players[attacker].teammateIncapped++;
 	}
 }
 
@@ -347,8 +292,6 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 
 		// 更新此玩家总体数据
 		SQL_UpdatePlayerInfo(client);
-		// 新增此玩家本局详情
-		SQL_InsertPlayerRoundDetail(client);
 
 		// 清除此client缓存数据
 		ClearCachedPlayerInfo(client);
@@ -361,9 +304,9 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 	if ((IsVersus() || IsScavenge())) {
 		isCompetitiveInRound = true;
 	}
+	g_mapRound++;
 	GetCurrentMap(g_serverMap, sizeof(g_serverMap));
 	FindConVar("mp_gamemode").GetString(g_serverMode, sizeof(g_serverMode));
-	g_mapRound++;
 
 	// 重置所有玩家本局缓存数据
 	for (int i = 1; i <= MaxClients; i++) {
@@ -423,13 +366,14 @@ KillTank
 // KillCI, KillWitch
 void Event_InfectedHurt(Event event, const char[] name, bool dontBroadcast) {
 	// 感染者受伤，统计玩家对Witch伤害
-	int victimEntId = event.GetInt("entityid");
+	int victimEntId = GetEventInt(event, "entityid");
 
 	if (IsWitch(victimEntId)) {
-		int attacker = GetClientOfUserId(event.GetInt("attacker"));
-		int damageDone = event.GetInt("amount");
+		int attackerId = GetEventInt(event, "attacker");
+		int attacker = GetClientOfUserId(attackerId);
+		int damageDone = GetEventInt(event, "amount");
 
-		if (IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
+		if (attackerId && IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
 			g_players[attacker].siDamageValue += damageDone;
 			allSiDamage += damageDone;
 		}
@@ -439,12 +383,13 @@ void Event_InfectedHurt(Event event, const char[] name, bool dontBroadcast) {
 // KillCI, KillWitch
 void Event_InfectedDeath(Event event, const char[] name, bool dontBroadcast) {
 	// 感染者死亡，统计玩家普通感染者击杀数
-	int victimEntId = event.GetInt("entityid");
+	int victimEntId = GetEventInt(event, "entityid");
 
 	if (!IsWitch(victimEntId)) {
-		int attacker = GetClientOfUserId(event.GetInt("attacker"));
+		int attackerId = GetEventInt(event, "attacker");
+		int attacker = GetClientOfUserId(attackerId);
 
-		if (IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
+		if (attackerId && IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
 			g_players[attacker].ciKilled++;
 		}
 	}
@@ -453,18 +398,21 @@ void Event_InfectedDeath(Event event, const char[] name, bool dontBroadcast) {
 // KillSI, KillTank, FF
 void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家受伤，统计玩家对特感伤害/玩家友伤
-	int victim = GetClientOfUserId(event.GetInt("userid"));
-	int attacker = GetClientOfUserId(event.GetInt("attacker"));
-	int damageDone = event.GetInt("dmg_health");
+	int victimId = GetEventInt(event, "userid");
+	int victim = GetClientOfUserId(victimId);
+	int attackerId = GetEventInt(event, "attacker");
+	int attacker = GetClientOfUserId(attackerId);
+	int damageDone = GetEventInt(event, "dmg_health");
 
-	if (IsValidClient(attacker) && IsValidClient(victim)) {
+	if (victimId && attackerId && IsValidClient(attacker)) {
 		// 生还者攻击特感
 		if (GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_INFECTED) {
 			g_players[attacker].siDamageValue += damageDone;
 			allSiDamage += damageDone;
 		}
+
 		// 生还者攻击生还者
-		if (GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_SURVIVOR && !IsPlayerIncapacitated(victim)) {
+		else if (GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_SURVIVOR && !IsPlayerIncapacitated(victim)) {
 			g_players[attacker].totalFF += damageDone;
 			g_players[victim].totalFFReceived += damageDone;
 			allFF += damageDone;
@@ -475,48 +423,39 @@ void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast) {
 // KillCI, KillSI, KillWitch, KillTank
 void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家死亡，统计玩家特感击杀数
-	int victim = GetClientOfUserId(event.GetInt("userid"));
-	int attacker = GetClientOfUserId(event.GetInt("attacker"));
-	bool headshot = event.GetBool("headshot");
+	int victimId = GetEventInt(event, "userid");
+	int victim = GetClientOfUserId(victimId);
+	int attackerId = GetEventInt(event, "attacker");
+	int attacker = GetClientOfUserId(attackerId);
+	bool headshot = GetEventBool(event, "headshot");
 	char weapon[64];
-	event.GetString("weapon", weapon, sizeof(weapon));
+	GetEventString(event, "weapon", weapon, sizeof(weapon));
 
-	if (IsValidClient(attacker) && IsValidClient(victim)) {
-		// 生还者击杀特感
-		if (GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_INFECTED) {
-			int zombieClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
+	// 统计6种特感 + Tank 击杀数 (Witch需单独处理)
+	if (victimId && attackerId && IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_INFECTED) {
+		int zombieClass = GetEntProp(victim, Prop_Send, "m_zombieClass");
 
-			// 统计6种特感 + Tank 击杀数 (Witch需单独处理)
-			if (zombieClass == ZC_SMOKER) {
-				g_players[attacker].smokerKilled++;
-			}
-			else if (zombieClass == ZC_BOOMER) {
-				g_players[attacker].boomerKilled++;
-			}
-			else if (zombieClass == ZC_HUNTER) {
-				g_players[attacker].hunterKilled++;
-			}
-			else if (zombieClass == ZC_SPITTER) {
-				g_players[attacker].spitterKilled++;
-			}
-			else if (zombieClass == ZC_JOCKEY) {
-				g_players[attacker].jockeyKilled++;
-			}
-			else if (zombieClass == ZC_CHARGER) {
-				g_players[attacker].chargerKilled++;
-			}
-			else if (zombieClass == ZC_TANK) {
-				g_players[attacker].tankKilled++;
-			}
+		if (zombieClass == ZC_SMOKER) {
+			g_players[attacker].smokerKilled++;
 		}
-		// 生还者击杀生还者
-		if (GetClientTeam(attacker) == TEAM_SURVIVOR && GetClientTeam(victim) == TEAM_SURVIVOR && attacker != victim) {
-			g_players[attacker].teammateKilled++;
+		else if (zombieClass == ZC_BOOMER) {
+			g_players[attacker].boomerKilled++;
 		}
-	}
-	// 生还者死亡
-	if (IsValidClient(victim) && GetClientTeam(victim) == TEAM_SURVIVOR) {
-		g_players[victim].dead++;
+		else if (zombieClass == ZC_HUNTER) {
+			g_players[attacker].hunterKilled++;
+		}
+		else if (zombieClass == ZC_SPITTER) {
+			g_players[attacker].spitterKilled++;
+		}
+		else if (zombieClass == ZC_JOCKEY) {
+			g_players[attacker].jockeyKilled++;
+		}
+		else if (zombieClass == ZC_CHARGER) {
+			g_players[attacker].chargerKilled++;
+		}
+		else if (zombieClass == ZC_TANK) {
+			g_players[attacker].tankKilled++;
+		}
 	}
 
 	// 统计爆头数
@@ -532,8 +471,9 @@ void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
 
 void Event_WitchDeath(Event event, const char[] name, bool dontBroadcast) {
 	// Witch死亡，统计玩家Witch击杀数
-	int attacker = GetClientOfUserId(event.GetInt("userid"));
-	if (IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
+	int attackerId = event.GetInt("userid");
+	int attacker = GetClientOfUserId(attackerId);
+	if (attackerId && IsValidClient(attacker) && GetClientTeam(attacker) == TEAM_SURVIVOR) {
 		g_players[attacker].witchKilled++;
 	}
 }
@@ -683,11 +623,11 @@ bool IsScavenge() {
 bool IsValidClient(int client) {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
 }
-
+/*
 bool IsRealClient(int client) {
 	return IsValidClient(client) && !IsFakeClient(client);
 }
-
+*/
 bool IsWitch(int entity) {
 	if (entity > 0 && IsValidEntity(entity) && IsValidEdict(entity)) {
 		char edictClassName[64];
@@ -705,23 +645,14 @@ bool IsMeleeWeapon(char[] weaponName) {
 	return StrEqual(weaponName, "melee", false) || StrEqual(weaponName, "chainsaw", false);
 }
 
-void StringToLowerCase(char[] szInput) {
-	int iIterator;
-	while (szInput[iIterator] != EOS) {
-		szInput[iIterator] = CharToLower(szInput[iIterator]);
-		++iIterator;
-	}
-}
-
-void HandleSpecialChar(char[] str, int size) {
-	ReplaceString(str, size, "\\", "\\\\");
-	ReplaceString(str, size, "/", "\\/");
-	ReplaceString(str, size, "\"", "\\\"");
-	ReplaceString(str, size, "'", "\\'");
-	ReplaceString(str, size, "-", "\\-");
-	ReplaceString(str, size, "#", "\\#");
-	ReplaceString(str, size, ";", "\\;");
-	ReplaceString(str, size, "`", "\\`");
+void TrimSpecialChar(char[] str, int size) {
+	ReplaceString(str, size, "--", "");
+	ReplaceString(str, size, "#", "");
+	ReplaceString(str, size, "\\", "");
+	ReplaceString(str, size, "\"", "");
+	ReplaceString(str, size, "'", "");
+	ReplaceString(str, size, ";", "");
+	ReplaceString(str, size, "`", "");
 }
 
 void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
@@ -751,24 +682,6 @@ void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
 	}
 }
 
-void SQL_InsertOrUpdateServer() {
-	char query[2048];
-	FormatEx(query, sizeof(query), "select 1 from t_server where server_ip = '%s' and server_port = '%s'", g_serverIP, g_serverPort);
-	LogMessage(query);
-	g_db.Query(ServerQueryCallback, query);
-}
-
-void SQL_InsertChatLog(int client, char[] team, char[] msg) {
-	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
-		return;
-	}
-
-	char insert[2048];
-	FormatEx(insert, sizeof(insert), "insert into t_player_chat_log (server_id, steam_id, server_map, server_mode, map_round, player_team, content) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, '%s', '%s')", g_serverIP, g_serverPort, g_players[client].steamId, g_serverMap, g_serverMode, g_mapRound, team, msg);
-	LogMessage(insert);
-	g_db.Query(DatabaseInsertCallback, insert, client);
-}
-
 void SQL_InsertConnectLog(int client) {
 	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
 		return;
@@ -783,9 +696,21 @@ void SQL_InsertConnectLog(int client) {
 		g_playersInGame[client] = g_players[client].steamId;
 
 		char insert[2048];
-		FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (server_id, steam_id, connect_ip, ip_country, ip_region, ip_city, latitude, longitude) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', '%s', '%s', %.6f, %.6f)", g_serverIP, g_serverPort, g_players[client].steamId, g_players[client].ip, g_players[client].country, g_players[client].region, g_players[client].city, g_players[client].latitude, g_players[client].longitude);
+		FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (steam_id, connect_ip) values ('%s', '%s')", g_players[client].steamId, g_players[client].ip);
 		LogMessage(insert);
 		g_db.Query(DatabaseInsertCallback, insert, client);
+/*
+		char insert[2048];
+		char insertError[2048];
+		FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (steam_id, connect_ip) values (?, ?)");
+		DBStatement stmt = SQL_PrepareQuery(g_db, insert, insertError, sizeof(insertError));
+		SQL_BindParamString(stmt, 0, g_players[client].steamId, false);
+		SQL_BindParamString(stmt, 1, g_players[client].ip, false);
+		if (!SQL_Execute(stmt)) {
+			LogError("Insert t_player_connect_log record failed. %s", insertError);
+		}
+		CloseHandle(stmt);
+*/
 	}
 }
 
@@ -818,11 +743,8 @@ void SQL_UpdatePlayerInfo(int client) {
 	...	"total_ff_received = total_ff_received + %d, "
 	...	"teammate_protected = teammate_protected + %d, "
 	...	"teammate_revived = teammate_revived + %d, "
-	...	"teammate_incapped = teammate_incapped + %d, "
-	...	"teammate_killed = teammate_killed + %d, "
+	...	"incapacitated = incapacitated + %d, "
 	...	"ledge_hanged = ledge_hanged + %d, "
-	...	"incapped = incapped + %d, "
-	...	"dead = dead + %d, "
 	...	"mission_completed = mission_completed + %d, "
 	...	"mission_lost = mission_lost + %d, "
 	...	"smoker_tongue_cut = smoker_tongue_cut + %d, "
@@ -850,11 +772,8 @@ void SQL_UpdatePlayerInfo(int client) {
 		g_players[client].totalFFReceived, 
 		g_players[client].teammateProtected, 
 		g_players[client].teammateRevived, 
-		g_players[client].teammateIncapped, 
-		g_players[client].teammateKilled, 
+		g_players[client].incapacitated, 
 		g_players[client].ledgeHanged, 
-		g_players[client].incapped, 
-		g_players[client].dead, 
 		g_players[client].missionCompleted, 
 		g_players[client].missionLost, 
 		g_players[client].smokerTongueCut, 
@@ -869,6 +788,76 @@ void SQL_UpdatePlayerInfo(int client) {
 	);
 	LogMessage(update);
 	g_db.Query(DatabaseUpdateCallback, update);
+/*
+	char update[2048];
+	char updateError[2048];
+	FormatEx(update, sizeof(update), 
+		"update t_player set "
+	...	"gametime = gametime + ?, "
+	...	"headshot = headshot + ?, "
+	...	"melee = melee + ?, "
+	...	"ci_killed = ci_killed + ?, "
+	...	"smoker_killed = smoker_killed + ?, "
+	...	"boomer_killed = boomer_killed + ?, "
+	...	"hunter_killed = hunter_killed + ?, "
+	...	"spitter_killed = spitter_killed + ?, "
+	...	"jockey_killed = jockey_killed + ?, "
+	...	"charger_killed = charger_killed + ?, "
+	...	"witch_killed = witch_killed + ?, "
+	...	"tank_killed = tank_killed + ?, "
+	...	"total_ff = total_ff + ?, "
+	...	"total_ff_received = total_ff_received + ?, "
+	...	"teammate_protected = teammate_protected + ?, "
+	...	"teammate_revived = teammate_revived + ?, "
+	...	"incapacitated = incapacitated + ?, "
+	...	"ledge_hanged = ledge_hanged + ?, "
+	...	"mission_completed = mission_completed + ?, "
+	...	"mission_lost = mission_lost + ?, "
+	...	"smoker_tongue_cut = smoker_tongue_cut + ?, "
+	...	"smoker_self_cleared = smoker_self_cleared + ?, "
+	...	"hunter_skeeted = hunter_skeeted + ?, "
+	...	"charger_leveled = charger_leveled + ?, "
+	...	"witch_crowned = witch_crowned + ?, "
+	...	"tank_rock_skeeted = tank_rock_skeeted + ?, "
+	...	"tank_rock_eaten = tank_rock_eaten + ?, "
+	...	"alarm_triggered = alarm_triggered + ? "
+	...	"where steam_id = ?"
+	);
+	DBStatement stmt = SQL_PrepareQuery(g_db, update, updateError, sizeof(updateError));
+	SQL_BindParamInt(stmt, 0, g_players[client].gametime, false);
+	SQL_BindParamInt(stmt, 1, g_players[client].headshot, false);
+	SQL_BindParamInt(stmt, 2, g_players[client].melee, false);
+	SQL_BindParamInt(stmt, 3, g_players[client].ciKilled, false);
+	SQL_BindParamInt(stmt, 4, g_players[client].smokerKilled, false);
+	SQL_BindParamInt(stmt, 5, g_players[client].boomerKilled, false);
+	SQL_BindParamInt(stmt, 6, g_players[client].hunterKilled, false);
+	SQL_BindParamInt(stmt, 7, g_players[client].spitterKilled, false);
+	SQL_BindParamInt(stmt, 8, g_players[client].jockeyKilled, false);
+	SQL_BindParamInt(stmt, 9, g_players[client].chargerKilled, false);
+	SQL_BindParamInt(stmt, 10, g_players[client].witchKilled, false);
+	SQL_BindParamInt(stmt, 11, g_players[client].tankKilled, false);
+	SQL_BindParamInt(stmt, 12, g_players[client].totalFF, false);
+	SQL_BindParamInt(stmt, 13, g_players[client].totalFFReceived, false);
+	SQL_BindParamInt(stmt, 14, g_players[client].teammateProtected, false);
+	SQL_BindParamInt(stmt, 15, g_players[client].teammateRevived, false);
+	SQL_BindParamInt(stmt, 16, g_players[client].incapacitated, false);
+	SQL_BindParamInt(stmt, 17, g_players[client].ledgeHanged, false);
+	SQL_BindParamInt(stmt, 18, g_players[client].missionCompleted, false);
+	SQL_BindParamInt(stmt, 19, g_players[client].missionLost, false);
+	SQL_BindParamInt(stmt, 20, g_players[client].smokerTongueCut, false);
+	SQL_BindParamInt(stmt, 21, g_players[client].smokerSelfCleared, false);
+	SQL_BindParamInt(stmt, 22, g_players[client].hunterSkeeted, false);
+	SQL_BindParamInt(stmt, 23, g_players[client].chargerLeveled, false);
+	SQL_BindParamInt(stmt, 24, g_players[client].witchCrowned, false);
+	SQL_BindParamInt(stmt, 25, g_players[client].tankRockSkeeted, false);
+	SQL_BindParamInt(stmt, 26, g_players[client].tankRockEaten, false);
+	SQL_BindParamInt(stmt, 27, g_players[client].alarmTriggered, false);
+	SQL_BindParamString(stmt, 28, g_players[client].steamId, false);
+	if (!SQL_Execute(stmt)) {
+		LogError("Update t_player record failed. %s", updateError);
+	}
+	CloseHandle(stmt);
+*/
 }
 
 void SQL_InsertPlayerRoundDetail(int client) {
@@ -884,12 +873,12 @@ void SQL_InsertPlayerRoundDetail(int client) {
 	char insert[2048];
 	FormatEx(insert, sizeof(insert), 
 		"insert into t_player_round_detail ("
-	...	"server_id, "
 	...	"steam_id, "
+	...	"server_ip, "
+	...	"server_port, "
 	...	"server_map, "
 	...	"server_mode, "
 	...	"map_round, "
-	...	"gametime, "
 	...	"headshot, "
 	...	"melee, "
 	...	"ci_killed, "
@@ -911,11 +900,8 @@ void SQL_InsertPlayerRoundDetail(int client) {
 	...	"medkit_used, "
 	...	"teammate_protected, "
 	...	"teammate_revived, "
-	...	"teammate_incapped, "
-	...	"teammate_killed, "
+	...	"incapacitated, "
 	...	"ledge_hanged, "
-	...	"incapped, "
-	...	"dead, "
 	...	"smoker_tongue_cut, "
 	...	"smoker_self_cleared, "
 	...	"hunter_skeeted, "
@@ -925,14 +911,13 @@ void SQL_InsertPlayerRoundDetail(int client) {
 	...	"tank_rock_eaten, "
 	...	"alarm_triggered, "
 	...	"avg_insta_clear_time) "
-	...	"values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f, %d, %d, %.2f, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f)", 
+	...	"values ('%s', '%s', '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f, %d, %d, %.2f, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f)", 
+		g_players[client].steamId, 
 		g_serverIP, 
 		g_serverPort, 
-		g_players[client].steamId, 
 		g_serverMap, 
 		g_serverMode, 
 		g_mapRound, 
-		g_players[client].gametime, 
 		g_players[client].headshot, 
 		g_players[client].melee, 
 		g_players[client].ciKilled, 
@@ -954,11 +939,8 @@ void SQL_InsertPlayerRoundDetail(int client) {
 		g_players[client].medkitUsed, 
 		g_players[client].teammateProtected, 
 		g_players[client].teammateRevived, 
-		g_players[client].teammateIncapped, 
-		g_players[client].teammateKilled, 
+		g_players[client].incapacitated, 
 		g_players[client].ledgeHanged, 
-		g_players[client].incapped, 
-		g_players[client].dead, 
 		g_players[client].smokerTongueCut, 
 		g_players[client].smokerSelfCleared, 
 		g_players[client].hunterSkeeted, 
@@ -971,6 +953,95 @@ void SQL_InsertPlayerRoundDetail(int client) {
 	);
 	LogMessage(insert);
 	g_db.Query(DatabaseInsertCallback, insert);
+/*
+	char insert[2048];
+	char insertError[2048];
+	FormatEx(insert, sizeof(insert), 
+		"insert into t_player_round_detail ("
+	...	"steam_id, "
+	...	"server_ip, "
+	...	"server_port, "
+	...	"server_map, "
+	...	"server_mode, "
+	...	"map_round, "
+	...	"headshot, "
+	...	"melee, "
+	...	"ci_killed, "
+	...	"smoker_killed, "
+	...	"boomer_killed, "
+	...	"hunter_killed, "
+	...	"spitter_killed, "
+	...	"jockey_killed, "
+	...	"charger_killed, "
+	...	"witch_killed, "
+	...	"tank_killed, "
+	...	"si_damage_value, "
+	...	"si_damage_percent, "
+	...	"total_ff, "
+	...	"total_ff_received, "
+	...	"total_ff_percent, "
+	...	"adrenaline_used, "
+	...	"pills_used, "
+	...	"medkit_used, "
+	...	"teammate_protected, "
+	...	"teammate_revived, "
+	...	"incapacitated, "
+	...	"ledge_hanged, "
+	...	"smoker_tongue_cut, "
+	...	"smoker_self_cleared, "
+	...	"hunter_skeeted, "
+	...	"charger_leveled, "
+	...	"witch_crowned, "
+	...	"tank_rock_skeeted, "
+	...	"tank_rock_eaten, "
+	...	"alarm_triggered, "
+	...	"avg_insta_clear_time) "
+	...	"values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+	);
+	DBStatement stmt2 = SQL_PrepareQuery(g_db, update, insertError, sizeof(insertError));
+	SQL_BindParamString(stmt2, 0, g_players[client].steamId, false);
+	SQL_BindParamString(stmt2, 1, g_serverIP, false);
+	SQL_BindParamString(stmt2, 2, g_serverPort, false);
+	SQL_BindParamString(stmt2, 3, g_serverMap, false);
+	SQL_BindParamString(stmt2, 4, g_serverMode, false);
+	SQL_BindParamInt(stmt2, 5, g_mapRound, false);
+	SQL_BindParamInt(stmt2, 6, g_players[client].headshot, false);
+	SQL_BindParamInt(stmt2, 7, g_players[client].melee, false);
+	SQL_BindParamInt(stmt2, 8, g_players[client].ciKilled, false);
+	SQL_BindParamInt(stmt2, 9, g_players[client].smokerKilled, false);
+	SQL_BindParamInt(stmt2, 10, g_players[client].boomerKilled, false);
+	SQL_BindParamInt(stmt2, 11, g_players[client].hunterKilled, false);
+	SQL_BindParamInt(stmt2, 12, g_players[client].spitterKilled, false);
+	SQL_BindParamInt(stmt2, 13, g_players[client].jockeyKilled, false);
+	SQL_BindParamInt(stmt2, 14, g_players[client].chargerKilled, false);
+	SQL_BindParamInt(stmt2, 15, g_players[client].witchKilled, false);
+	SQL_BindParamInt(stmt2, 16, g_players[client].tankKilled, false);
+	SQL_BindParamInt(stmt2, 17, g_players[client].siDamageValue, false);
+	SQL_BindParamFloat(stmt2, 18, g_players[client].siDamagePercent);
+	SQL_BindParamInt(stmt2, 19, g_players[client].totalFF, false);
+	SQL_BindParamInt(stmt2, 20, g_players[client].totalFFReceived, false);
+	SQL_BindParamFloat(stmt2, 21, g_players[client].totalFFPercent);
+	SQL_BindParamInt(stmt2, 22, g_players[client].adrenalineUsed, false);
+	SQL_BindParamInt(stmt2, 23, g_players[client].pillsUsed, false);
+	SQL_BindParamInt(stmt2, 24, g_players[client].medkitUsed, false);
+	SQL_BindParamInt(stmt2, 25, g_players[client].teammateProtected, false);
+	SQL_BindParamInt(stmt2, 26, g_players[client].teammateRevived, false);
+	SQL_BindParamInt(stmt2, 27, g_players[client].incapacitated, false);
+	SQL_BindParamInt(stmt2, 28, g_players[client].ledgeHanged, false);
+	SQL_BindParamInt(stmt2, 29, g_players[client].smokerTongueCut, false);
+	SQL_BindParamInt(stmt2, 30, g_players[client].smokerSelfCleared, false);
+	SQL_BindParamInt(stmt2, 31, g_players[client].hunterSkeeted, false);
+	SQL_BindParamInt(stmt2, 32, g_players[client].chargerLeveled, false);
+	SQL_BindParamInt(stmt2, 33, g_players[client].witchCrowned, false);
+	SQL_BindParamInt(stmt2, 34, g_players[client].tankRockSkeeted, false);
+	SQL_BindParamInt(stmt2, 35, g_players[client].tankRockEaten, false);
+	SQL_BindParamInt(stmt2, 36, g_players[client].alarmTriggered, false);
+	SQL_BindParamFloat(stmt2, 37, g_players[client].avgInstaClearTime);
+	if (!SQL_Execute(stmt2)) {
+		LogError("Insert t_player_round_detail record failed. %s", insertError);
+	}
+	CloseHandle(stmt2);
+*/
 }
 
 void ConnectCallback(Database db, const char[] error, any data) {
@@ -981,24 +1052,6 @@ void ConnectCallback(Database db, const char[] error, any data) {
 
 	g_db = db;
 	g_db.SetCharset("utf8mb4");
-
-	// 新增或更新服务器信息
-	SQL_InsertOrUpdateServer();
-}
-
-void ServerQueryCallback(Database db, DBResultSet results, const char[] error, any data) {
-	if (results.RowCount == 0) {
-		char insert[2048];
-		FormatEx(insert, sizeof(insert), "insert into t_server (server_name, server_ip, server_port) values ('%s', '%s', '%s')", g_serverName, g_serverIP, g_serverPort);
-		LogMessage(insert);
-		g_db.Query(DatabaseInsertCallback, insert);
-	}
-	else {
-		char update[2048];
-		FormatEx(update, sizeof(update), "update t_server set server_name = '%s' where server_ip = '%s' and server_port = '%s'", g_serverName, g_serverIP, g_serverPort);
-		LogMessage(update);
-		g_db.Query(DatabaseUpdateCallback, update);
-	}
 }
 
 void PlayerJoinQueryCallback(Database db, DBResultSet results, const char[] error, any client) {
@@ -1007,12 +1060,40 @@ void PlayerJoinQueryCallback(Database db, DBResultSet results, const char[] erro
 		FormatEx(insert, sizeof(insert), "insert into t_player (steam_id, nickname) values ('%s', '%s')", g_players[client].steamId, g_players[client].nickname);
 		LogMessage(insert);
 		g_db.Query(DatabaseInsertCallback, insert);
+/*
+		char insert[2048];
+		char insertError[2048];
+		FormatEx(insert, sizeof(insert), "insert into t_player (steam_id, nickname) values (?, ?)");
+		DBStatement stmt = SQL_PrepareQuery(g_db, insert, insertError, sizeof(insertError));
+		SQL_BindParamString(stmt, 0, g_players[client].steamId, false);
+		SQL_BindParamString(stmt, 1, g_players[client].nickname, false);
+
+		LogMessage(insert);
+		if (!SQL_Execute(stmt)) {
+			LogError("Insert t_player record failed. %s", insertError);
+		}
+		CloseHandle(stmt);
+*/
 	}
 	else {
 		char update[2048];
 		FormatEx(update, sizeof(update), "update t_player set nickname = '%s' where steam_id = '%s'", g_players[client].nickname, g_players[client].steamId);
 		LogMessage(update);
 		g_db.Query(DatabaseUpdateCallback, update);
+/*
+		char update[2048];
+		char updateError[2048];
+		FormatEx(update, sizeof(update), "update t_player set nickname = ? where steam_id = ?");
+		DBStatement stmt = SQL_PrepareQuery(g_db, update, updateError, sizeof(updateError));
+		SQL_BindParamString(stmt, 0, g_players[client].nickname, false);
+		SQL_BindParamString(stmt, 1, g_players[client].steamId, false);
+
+		LogMessage(update);
+		if (!SQL_Execute(stmt)) {
+			LogError("Update t_player record failed. %s", updateError);
+		}
+		CloseHandle(stmt);
+*/
 	}
 }
 
@@ -1030,34 +1111,14 @@ void DatabaseUpdateCallback(Database db, DBResultSet results, const char[] error
 
 void InitCachedPlayerInfo(int client) {
 	char ip[16];
-	char country[32];
-	char region[32];
-	char city[32];
 	char steamId[32];
 	char nickname[32];
 	GetClientIP(client, ip, sizeof(ip));
 	GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
 	GetClientName(client, nickname, sizeof(nickname));
-	if (!GeoipCountry(ip, country, sizeof(country))) {
-		Format(country, sizeof(country), "<N/A>");
-	}
-	if (!GeoipRegion(ip, region, sizeof(region))) {
-		Format(region, sizeof(region), "<N/A>");
-	}
-	if (!GeoipCity(ip, city, sizeof(city))) {
-		Format(city, sizeof(city), "<N/A>");
-	}
-	HandleSpecialChar(nickname, sizeof(nickname));
-	HandleSpecialChar(country, sizeof(country));
-	HandleSpecialChar(region, sizeof(region));
-	HandleSpecialChar(city, sizeof(city));
+	TrimSpecialChar(nickname, sizeof(nickname));
 
 	g_players[client].ip = ip;
-	g_players[client].country = country;
-	g_players[client].region = region;
-	g_players[client].city = city;
-	g_players[client].latitude = GeoipLatitude(ip);
-	g_players[client].longitude = GeoipLongitude(ip);
 	g_players[client].steamId = steamId;
 	g_players[client].nickname = nickname;
 
@@ -1067,11 +1128,6 @@ void InitCachedPlayerInfo(int client) {
 void ClearCachedPlayerInfo(int client) {
 	ResetCachedPlayerInfo(client);
 	g_players[client].ip = "";
-	g_players[client].country = "";
-	g_players[client].region = "";
-	g_players[client].city = "";
-	g_players[client].latitude = 0.0;
-	g_players[client].longitude = 0.0;
 	g_players[client].steamId = "";
 	g_players[client].nickname = "";
 	g_players[client].gametime = 0;
@@ -1100,11 +1156,8 @@ void ResetCachedPlayerInfo(int client) {
 	g_players[client].medkitUsed = 0;
 	g_players[client].teammateProtected = 0;
 	g_players[client].teammateRevived = 0;
-	g_players[client].teammateIncapped = 0;
-	g_players[client].teammateKilled = 0;
+	g_players[client].incapacitated = 0;
 	g_players[client].ledgeHanged = 0;
-	g_players[client].incapped = 0;
-	g_players[client].dead = 0;
 	g_players[client].missionCompleted = 0;
 	g_players[client].missionLost = 0;
 	g_players[client].smokerTongueCut = 0;

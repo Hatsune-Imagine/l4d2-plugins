@@ -10,233 +10,94 @@
 
 
 
-
-
 ## 目录
 
 [TOC]
 
 
 
-## 插件首次安装/升级步骤
+## 插件以3种维度记录玩家信息：
 
-1. 如您首次安装此插件，则请使用*数据库连接工具*，**仅需执行 `init.sql` 文件**，即可将数据库表结构创建完成。详见[使用方法](#使用方法)。
-2. 如您已安装 1.x 版本，升级到此 2.0 版本前，请使用*数据库连接工具*，**仅需执行 `update_v1.x_to_v2.0.sql` 文件**，即可将数据库表结构更新为 2.0 版本插件兼容的格式。详见[使用方法](#使用方法)。
-
-
-
-
-
-## 插件以5种维度记录玩家信息
-
-1. **服务器信息**
-
-   - 服务器ID
-
-   - 服务器名称
-
-   - 服务器IP
-
-   - 服务器端口
-
-   - 记录创建时间
-
-
-
-2. **玩家整体信息**
-
+1. **玩家整体信息**
    - 玩家SteamID
-
    - 玩家昵称
-
    - 玩家在此服务器内游玩时长（秒）
-
    - 爆头击杀数
-
    - 近战击杀数
-
    - 普通感染者击杀数
-
    - Smoker击杀数
-
    - Boomer击杀数
-
    - Hunter击杀数
-
    - Spitter击杀数
-
    - Jockey击杀数
-
    - Charger击杀数
-
    - Witch击杀数
-
    - Tank击杀数
-
    - 造成队友伤害值
-
    - 受到队友伤害值
-
    - 保护队友次数
-
    - 扶起队友次数
-   - 打倒队友次数
-   - 打死队友次数
-
-   - 挂边次数
-
    - 倒地次数
-   - 死亡次数
-
+   - 挂边次数
    - 章节完成数
-
    - 章节团灭数
-
    - 近战砍断Smoker舌头数
-
    - 从Smoker舌头下自救数
-
    - 空爆Hunter数
-
    - 砍死冲锋Charger数
-
    - 秒杀Witch数
-
    - 打碎Tank石头数
-
    - 被Tank石头砸中数
-
    - 触发警报数
+
+
+
+2. **玩家连接日志信息**
+   - 玩家SteamID
+   - 玩家连接IP
+   - 玩家连接时间
 
 
 
 3. **玩家每章节详细信息**
-
-   - 服务器ID
-
    - 玩家SteamID
-
-   - 记录创建时间
-
+   - 服务器IP
+   - 服务器端口
    - 服务器地图章节
-
    - 服务器游戏模式
-
    - 章节回合数
-
-   - 玩家在此章节游玩时长（秒）
-
    - 爆头击杀数
-
    - 近战击杀数
-
    - 普通感染者击杀数
-
    - Smoker击杀数
-
    - Boomer击杀数
-
    - Hunter击杀数
-
    - Spitter击杀数
-
    - Jockey击杀数
-
    - Charger击杀数
-
    - Witch击杀数
-
    - Tank击杀数
-
    - 对特感伤害值
-
    - 对特感伤害百分比
-
    - 造成队友伤害值
-
    - 受到队友伤害值
-
    - 造成队友伤害百分比
-
    - 肾上腺素使用量
-
    - 止痛药使用量
-
    - 医疗包使用量
-
    - 保护队友次数
-
    - 扶起队友次数
-
-   - 打倒队友次数
-
-   - 打死队友次数
-
-   - 挂边次数
-
    - 倒地次数
-
-   - 死亡次数
-
+   - 挂边次数
    - 近战砍断Smoker舌头数
-
    - 从Smoker舌头下自救数
-
    - 空爆Hunter数
-
    - 砍死冲锋Charger数
-
    - 秒杀Witch数
-
    - 打碎Tank石头数
-
    - 被Tank石头砸中数
-
    - 触发警报数
-
    - 平均解救被控队友时间（秒）
-
-
-
-4. **玩家连接日志信息**
-
-   - 服务器ID
-
-   - 玩家SteamID
-
-   - 玩家连接时间
-
-   - 玩家连接IP
-
-   - IP所属国家
-
-   - IP所属地区
-
-   - IP所属城市
-
-   - 纬度
-
-   - 经度
-
-
-
-5. **玩家聊天日志信息**
-
-   - 服务器ID
-
-   - 玩家SteamID
-
-   - 记录创建时间
-
-   - 服务器地图章节
-
-   - 服务器游戏模式
-
-   - 章节回合数
-
-   - 玩家阵营
-
-   - 内容
 
 
 
@@ -246,7 +107,7 @@
 
 ### 1. 安装MySQL（建议版本 >= 5.7）
 
-#### 1.1 Windows服务器
+#### Windows
 
 1）前往 MySQL 官网。链接：https://dev.mysql.com/downloads/installer/
 
@@ -294,13 +155,7 @@
 
 
 
-9）配置 MySQL 加密策略。
-
-**注意：**
-
-**如您安装的是 5.7 版本，则默认使用 “Legacy Authentication”，即 `mysql_native_password` 加密方式。安装完成后，16）之后的步骤无需执行。如您安装完成后需允许外网访问您的MySQL，则16）之后的步骤仍然需要执行**。
-
-**如您安装的是 8.x 版本，则默认使用 “Strong Password Encryption”，即 `caching_sha2_password` 加密方式。建议您选择 “Legacy Authentication”，即 `mysql_native_password` 加密方式。这样安装完成后，16）之后的步骤无需执行。如您安装完成后需允许外网访问您的MySQL，则16）之后的步骤仍然需要执行**。**
+9）配置 MySQL 加密策略，使用默认强密码加密方式。
 
 ![img-mysql-win-8](images/mysql_windows_8.png)
 
@@ -414,7 +269,7 @@ quit
 
 ---
 
-#### 1.2 Linux服务器
+#### Linux
 
 Ubuntu/Debian 系 Linux
 
@@ -562,7 +417,7 @@ sudo yum install mysql-server
 
 
 
-### 2. 使用数据库连接工具，创建数据库及表结构
+## 2. 使用数据库连接工具，创建数据库及表结构
 
 可使用3种工具，任选一种即可。
 
@@ -600,17 +455,13 @@ Linux 服务器用户还可通过 SSH 方式连接您服务器中的 MySQL 服�
 
 
 
-成功连接后，打开 SQL 编辑器，
-
-如您是第一次安装本插件，则**仅需将 `init.sql` 文件**中的内容复制粘贴到此并执行即可。
-
-如您将插件 1.x 升级 2.0 版本，则**仅需将 `update_v1.x_to_v2.0.sql` 文件**中的内容复制粘贴到此并执行即可。
+成功连接后，打开 SQL 编辑器，并将 `init.sql` 文件中的内容复制粘贴到此。
 
 ![img-dbeaver-5](images/dbeaver_5.png)
 
 
 
-选中要执行的内容后，点击第3个按钮 “执行 SQL 脚本 (Alt+X)”。
+执行 SQL 脚本。
 
 ![img-dbeaver-6](images/dbeaver_6.png)
 
@@ -630,8 +481,6 @@ Linux 服务器用户还可通过 SSH 方式连接您服务器中的 MySQL 服�
 
 https://navicat.com.cn/download/navicat-premium
 
-使用方法与 DBeaver 类似，但更易操作。
-
 ![img-navicat](images/navicat.png)
 
 
@@ -644,15 +493,13 @@ https://navicat.com.cn/download/navicat-premium
 
 https://www.jetbrains.com/datagrip/download
 
-使用方法与 DBeaver 类似，但功能性更强，软件占用磁盘空间较大，默认英文界面。
-
 ![img-datagrip](images/datagrip.png)
 
 
 
 
 
-### 3. 编辑 SourceMod 连接 MySQL 配置
+## 3. 编辑 SourceMod 连接 MySQL 配置
 
 1）打开服务器端 SourceMod 数据库连接配置文件 `addons/sourcemod/configs/databases.cfg` 并在其中加入数据库连接配置。
 
