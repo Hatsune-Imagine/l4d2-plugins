@@ -5,7 +5,7 @@
 #include <sdktools>
 #include <sourcescramble> // https://github.com/nosoop/SMExt-SourceScramble
 
-#define VERSION "0.1a"
+#define VERSION "0.1b"
 
 int g_iCCommandSize;
 
@@ -70,7 +70,7 @@ void Init()
 	delete hGameData;
 }
 
-public void OnMapStart()
+public void OnConfigsExecuted()
 {
 	static bool shit = false;
 	if (shit) return;
