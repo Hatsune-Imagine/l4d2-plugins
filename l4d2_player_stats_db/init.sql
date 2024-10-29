@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `t_server` (
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Record created time',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uni_idx_ip_port` (`server_ip`,`server_port`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Server info';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Server info';
 
 
 CREATE TABLE IF NOT EXISTS `t_player` (
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS `t_player_round_detail` (
   KEY `idx_server_id` (`server_id`) USING BTREE,
   KEY `idx_steam_id` (`steam_id`) USING BTREE,
   KEY `idx_create_time` (`create_time` DESC) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=12285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player round stats detail';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player round stats detail';
 
 
 CREATE TABLE IF NOT EXISTS `t_player_connect_log` (
@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS `t_player_connect_log` (
   KEY `idx_server_id` (`server_id`) USING BTREE,
   KEY `idx_steam_id` (`steam_id`) USING BTREE,
   KEY `idx_connect_time` (`connect_time` DESC) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6016 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player connect log';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player connect log';
 
 
 CREATE TABLE IF NOT EXISTS `t_player_chat_log` (
@@ -136,4 +136,4 @@ CREATE TABLE IF NOT EXISTS `t_player_chat_log` (
   KEY `idx_server_id` (`server_id`) USING BTREE,
   KEY `idx_steam_id` (`steam_id`) USING BTREE,
   KEY `idx_create_time` (`create_time`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=337 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player chat log';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Player chat log';
