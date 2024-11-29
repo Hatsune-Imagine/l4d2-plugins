@@ -67,6 +67,111 @@ enum struct PlayerInfo
 	int alarmTriggered;
 	float avgInstaClearTime;
 	ArrayList instaClearTime;
+
+	void Init() {
+		this.ip = "";
+		this.country = "";
+		this.region = "";
+		this.city = "";
+		this.latitude = 0.0;
+		this.longitude = 0.0;
+		this.steamId = "";
+		this.nickname = "";
+		this.gametime = 0;
+		this.headshot = 0;
+		this.melee = 0;
+		this.ciKilled = 0;
+		this.smokerKilled = 0;
+		this.boomerKilled = 0;
+		this.hunterKilled = 0;
+		this.spitterKilled = 0;
+		this.jockeyKilled = 0;
+		this.chargerKilled = 0;
+		this.witchKilled = 0;
+		this.tankKilled = 0;
+		this.siDamageValue = 0;
+		this.siDamagePercent = 0.0;
+		this.totalFF = 0;
+		this.totalFFReceived = 0;
+		this.totalFFPercent = 0.0;
+		this.adrenalineUsed = 0;
+		this.pillsUsed = 0;
+		this.medkitUsed = 0;
+		this.teammateProtected = 0;
+		this.teammateRevived = 0;
+		this.teammateIncapped = 0;
+		this.teammateKilled = 0;
+		this.ledgeHanged = 0;
+		this.incapped = 0;
+		this.dead = 0;
+		this.missionCompleted = 0;
+		this.missionLost = 0;
+		this.smokerTongueCut = 0;
+		this.smokerSelfCleared = 0;
+		this.hunterSkeeted = 0;
+		this.chargerLeveled = 0;
+		this.witchCrowned = 0;
+		this.tankRockSkeeted = 0;
+		this.tankRockEaten = 0;
+		this.alarmTriggered = 0;
+		this.avgInstaClearTime = 0.0;
+		this.instaClearTime = new ArrayList();
+	}
+
+	void Reset() {
+		this.gametime = RoundToNearest(GetEngineTime());
+		this.headshot = 0;
+		this.melee = 0;
+		this.ciKilled = 0;
+		this.smokerKilled = 0;
+		this.boomerKilled = 0;
+		this.hunterKilled = 0;
+		this.spitterKilled = 0;
+		this.jockeyKilled = 0;
+		this.chargerKilled = 0;
+		this.witchKilled = 0;
+		this.tankKilled = 0;
+		this.siDamageValue = 0;
+		this.siDamagePercent = 0.0;
+		this.totalFF = 0;
+		this.totalFFReceived = 0;
+		this.totalFFPercent = 0.0;
+		this.adrenalineUsed = 0;
+		this.pillsUsed = 0;
+		this.medkitUsed = 0;
+		this.teammateProtected = 0;
+		this.teammateRevived = 0;
+		this.teammateIncapped = 0;
+		this.teammateKilled = 0;
+		this.ledgeHanged = 0;
+		this.incapped = 0;
+		this.dead = 0;
+		this.missionCompleted = 0;
+		this.missionLost = 0;
+		this.smokerTongueCut = 0;
+		this.smokerSelfCleared = 0;
+		this.hunterSkeeted = 0;
+		this.chargerLeveled = 0;
+		this.witchCrowned = 0;
+		this.tankRockSkeeted = 0;
+		this.tankRockEaten = 0;
+		this.alarmTriggered = 0;
+		this.avgInstaClearTime = 0.0;
+		this.instaClearTime.Clear();
+	}
+
+	void Clear() {
+		this.Reset();
+		this.ip = "";
+		this.country = "";
+		this.region = "";
+		this.city = "";
+		this.latitude = 0.0;
+		this.longitude = 0.0;
+		this.steamId = "";
+		this.nickname = "";
+		this.gametime = 0;
+	}
 }
 
 int allSiDamage;
@@ -75,6 +180,7 @@ int allFF;
 Database g_db;
 PlayerInfo g_players[MAXPLAYERS + 1];
 char g_playersInGame[MAXPLAYERS + 1][32];
+int g_serverID;
 char g_serverName[32];
 char g_serverIP[16];
 char g_serverPort[8];
@@ -89,7 +195,7 @@ public Plugin myinfo = {
 	name = "L4D2 Player Stats with Database",
 	author = "HatsuneImagine",
 	description = "Store & Fetch player stats from/to databases.",
-	version = "2.0",
+	version = "2.1",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -113,9 +219,11 @@ public void OnPluginStart() {
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 	HookEvent("witch_killed", Event_WitchDeath, EventHookMode_Post);
 
+	g_serverID = GetCommandLineParamInt("-server_id", 0);
 	FindConVar("hostname").GetString(g_serverName, sizeof(g_serverName));
-	FindConVar("net_public_adr").GetString(g_serverIP, sizeof(g_serverIP));
-	if (StrEqual(g_serverIP, "")) FindConVar("ip").GetString(g_serverIP, sizeof(g_serverIP));
+	GetCommandLineParam("-server_ip", g_serverIP, sizeof(g_serverIP), "");
+	if (strlen(g_serverIP) == 0) FindConVar("net_public_adr").GetString(g_serverIP, sizeof(g_serverIP));
+	if (strlen(g_serverIP) == 0) FindConVar("ip").GetString(g_serverIP, sizeof(g_serverIP));
 	FindConVar("hostport").GetString(g_serverPort, sizeof(g_serverPort));
 	HandleSpecialChar(g_serverName, sizeof(g_serverName));
 
@@ -123,11 +231,18 @@ public void OnPluginStart() {
 	RegConsoleCmd("sm_debug_my_stats", Cmd_My_Stats, "Show my stats.");
 
 	for (int i = 0; i < MAXPLAYERS + 1; i++) {
-		g_players[i].instaClearTime = new ArrayList();
+		g_players[i].Init();
+		g_playersInGame[i] = "";
 	}
 
 	AddCommandListener(CommandListener, "");
 	Database.Connect(ConnectCallback, "player_stats");
+}
+
+public void OnMapStart() {
+	if (g_db == INVALID_HANDLE) {
+		Database.Connect(ConnectCallback, "player_stats");
+	}
 }
 
 public void OnAllPluginsLoaded() {
@@ -211,7 +326,7 @@ Action CommandListener(int client, char[] command, int argc) {
 	}
 
 	StringToLowerCase(command);
-	if (!StrEqual(command, "say") && !StrEqual(command, "say_team")) {
+	if (strcmp(command, "say", false) != 0 && strcmp(command, "say_team", false) != 0) {
 		return Plugin_Continue;
 	}
 
@@ -223,10 +338,10 @@ Action CommandListener(int client, char[] command, int argc) {
 	HandleSpecialChar(msg, sizeof(msg));
 
 	// 保存玩家聊天记录
-	if (StrEqual(command, "say")) {
+	if (strcmp(command, "say", false) == 0) {
 		SQL_InsertChatLog(client, team, msg);
 	}
-	else if (StrEqual(command, "say_team")) {
+	else if (strcmp(command, "say_team", false) == 0) {
 		Format(msg, sizeof(msg), "(TEAM) %s", msg);
 		SQL_InsertChatLog(client, team, msg);
 	}
@@ -351,7 +466,7 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 		SQL_InsertPlayerRoundDetail(client);
 
 		// 清除此client缓存数据
-		ClearCachedPlayerInfo(client);
+		g_players[client].Clear();
 		g_playersInGame[client] = "";
 	}
 }
@@ -367,7 +482,7 @@ void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
 
 	// 重置所有玩家本局缓存数据
 	for (int i = 1; i <= MaxClients; i++) {
-		ResetCachedPlayerInfo(i);
+		g_players[i].Reset();
 	}
 	allSiDamage = 0;
 	allFF = 0;
@@ -692,7 +807,7 @@ bool IsWitch(int entity) {
 	if (entity > 0 && IsValidEntity(entity) && IsValidEdict(entity)) {
 		char edictClassName[64];
 		GetEdictClassname(entity, edictClassName, sizeof(edictClassName));
-		return StrEqual(edictClassName, "witch");
+		return strcmp(edictClassName, "witch", false) == 0;
 	}
 	return false;
 }
@@ -702,7 +817,7 @@ bool IsPlayerIncapacitated(int client) {
 }
 
 bool IsMeleeWeapon(char[] weaponName) {
-	return StrEqual(weaponName, "melee", false) || StrEqual(weaponName, "chainsaw", false);
+	return strcmp(weaponName, "melee", false) == 0 || strcmp(weaponName, "chainsaw", false) == 0;
 }
 
 void StringToLowerCase(char[] szInput) {
@@ -753,24 +868,34 @@ void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
 
 void SQL_InsertOrUpdateServer() {
 	char query[2048];
-	FormatEx(query, sizeof(query), "select 1 from t_server where server_ip = '%s' and server_port = '%s'", g_serverIP, g_serverPort);
+	if (g_serverID == 0) {
+		FormatEx(query, sizeof(query), "select 1 from t_server where server_ip = '%s' and server_port = '%s'", g_serverIP, g_serverPort);
+	}
+	else {
+		FormatEx(query, sizeof(query), "select 1 from t_server where id = %d", g_serverID);
+	}
 	LogMessage(query);
 	g_db.Query(ServerQueryCallback, query);
 }
 
 void SQL_InsertChatLog(int client, char[] team, char[] msg) {
-	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
+	if (strlen(g_players[client].steamId) == 0 || strcmp(g_players[client].steamId, "BOT") == 0) {
 		return;
 	}
 
 	char insert[2048];
-	FormatEx(insert, sizeof(insert), "insert into t_player_chat_log (server_id, steam_id, server_map, server_mode, map_round, player_team, content) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, '%s', '%s')", g_serverIP, g_serverPort, g_players[client].steamId, g_serverMap, g_serverMode, g_mapRound, team, msg);
+	if (g_serverID == 0) {
+		FormatEx(insert, sizeof(insert), "insert into t_player_chat_log (server_id, steam_id, server_map, server_mode, map_round, player_team, content) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, '%s', '%s')", g_serverIP, g_serverPort, g_players[client].steamId, g_serverMap, g_serverMode, g_mapRound, team, msg);
+	}
+	else {
+		FormatEx(insert, sizeof(insert), "insert into t_player_chat_log (server_id, steam_id, server_map, server_mode, map_round, player_team, content) values (%d, '%s', '%s', '%s', %d, '%s', '%s')", g_serverID, g_players[client].steamId, g_serverMap, g_serverMode, g_mapRound, team, msg);
+	}
 	LogMessage(insert);
-	g_db.Query(DatabaseInsertCallback, insert, client);
+	g_db.Query(DatabaseInsertCallback, insert);
 }
 
 void SQL_InsertConnectLog(int client) {
-	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
+	if (strlen(g_players[client].steamId) == 0 || strcmp(g_players[client].steamId, "BOT") == 0) {
 		return;
 	}
 
@@ -779,18 +904,23 @@ void SQL_InsertConnectLog(int client) {
 	LogMessage(query);
 	g_db.Query(PlayerJoinQueryCallback, query, client);
 
-	if (!StrEqual(g_playersInGame[client], g_players[client].steamId)) {
+	if (strcmp(g_playersInGame[client], g_players[client].steamId) != 0) {
 		g_playersInGame[client] = g_players[client].steamId;
 
 		char insert[2048];
-		FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (server_id, steam_id, connect_ip, ip_country, ip_region, ip_city, latitude, longitude) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', '%s', '%s', %.6f, %.6f)", g_serverIP, g_serverPort, g_players[client].steamId, g_players[client].ip, g_players[client].country, g_players[client].region, g_players[client].city, g_players[client].latitude, g_players[client].longitude);
+		if (g_serverID == 0) {
+			FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (server_id, steam_id, connect_ip, ip_country, ip_region, ip_city, latitude, longitude) values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', '%s', '%s', %.6f, %.6f)", g_serverIP, g_serverPort, g_players[client].steamId, g_players[client].ip, g_players[client].country, g_players[client].region, g_players[client].city, g_players[client].latitude, g_players[client].longitude);
+		}
+		else {
+			FormatEx(insert, sizeof(insert), "insert into t_player_connect_log (server_id, steam_id, connect_ip, ip_country, ip_region, ip_city, latitude, longitude) values (%d, '%s', '%s', '%s', '%s', '%s', %.6f, %.6f)", g_serverID, g_players[client].steamId, g_players[client].ip, g_players[client].country, g_players[client].region, g_players[client].city, g_players[client].latitude, g_players[client].longitude);
+		}
 		LogMessage(insert);
-		g_db.Query(DatabaseInsertCallback, insert, client);
+		g_db.Query(DatabaseInsertCallback, insert);
 	}
 }
 
 void SQL_UpdatePlayerInfo(int client) {
-	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
+	if (strlen(g_players[client].steamId) == 0 || strcmp(g_players[client].steamId, "BOT") == 0) {
 		return;
 	}
 
@@ -872,7 +1002,7 @@ void SQL_UpdatePlayerInfo(int client) {
 }
 
 void SQL_InsertPlayerRoundDetail(int client) {
-	if (StrEqual(g_players[client].steamId, "") || StrEqual(g_players[client].steamId, "BOT")) {
+	if (strlen(g_players[client].steamId) == 0 || strcmp(g_players[client].steamId, "BOT") == 0) {
 		return;
 	}
 
@@ -882,93 +1012,183 @@ void SQL_InsertPlayerRoundDetail(int client) {
 	}
 
 	char insert[2048];
-	FormatEx(insert, sizeof(insert), 
-		"insert into t_player_round_detail ("
-	...	"server_id, "
-	...	"steam_id, "
-	...	"server_map, "
-	...	"server_mode, "
-	...	"map_round, "
-	...	"gametime, "
-	...	"headshot, "
-	...	"melee, "
-	...	"ci_killed, "
-	...	"smoker_killed, "
-	...	"boomer_killed, "
-	...	"hunter_killed, "
-	...	"spitter_killed, "
-	...	"jockey_killed, "
-	...	"charger_killed, "
-	...	"witch_killed, "
-	...	"tank_killed, "
-	...	"si_damage_value, "
-	...	"si_damage_percent, "
-	...	"total_ff, "
-	...	"total_ff_received, "
-	...	"total_ff_percent, "
-	...	"adrenaline_used, "
-	...	"pills_used, "
-	...	"medkit_used, "
-	...	"teammate_protected, "
-	...	"teammate_revived, "
-	...	"teammate_incapped, "
-	...	"teammate_killed, "
-	...	"ledge_hanged, "
-	...	"incapped, "
-	...	"dead, "
-	...	"smoker_tongue_cut, "
-	...	"smoker_self_cleared, "
-	...	"hunter_skeeted, "
-	...	"charger_leveled, "
-	...	"witch_crowned, "
-	...	"tank_rock_skeeted, "
-	...	"tank_rock_eaten, "
-	...	"alarm_triggered, "
-	...	"avg_insta_clear_time) "
-	...	"values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f, %d, %d, %.2f, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f)", 
-		g_serverIP, 
-		g_serverPort, 
-		g_players[client].steamId, 
-		g_serverMap, 
-		g_serverMode, 
-		g_mapRound, 
-		g_players[client].gametime, 
-		g_players[client].headshot, 
-		g_players[client].melee, 
-		g_players[client].ciKilled, 
-		g_players[client].smokerKilled, 
-		g_players[client].boomerKilled, 
-		g_players[client].hunterKilled, 
-		g_players[client].spitterKilled, 
-		g_players[client].jockeyKilled, 
-		g_players[client].chargerKilled, 
-		g_players[client].witchKilled, 
-		g_players[client].tankKilled, 
-		g_players[client].siDamageValue, 
-		g_players[client].siDamagePercent, 
-		g_players[client].totalFF, 
-		g_players[client].totalFFReceived, 
-		g_players[client].totalFFPercent, 
-		g_players[client].adrenalineUsed, 
-		g_players[client].pillsUsed, 
-		g_players[client].medkitUsed, 
-		g_players[client].teammateProtected, 
-		g_players[client].teammateRevived, 
-		g_players[client].teammateIncapped, 
-		g_players[client].teammateKilled, 
-		g_players[client].ledgeHanged, 
-		g_players[client].incapped, 
-		g_players[client].dead, 
-		g_players[client].smokerTongueCut, 
-		g_players[client].smokerSelfCleared, 
-		g_players[client].hunterSkeeted, 
-		g_players[client].chargerLeveled, 
-		g_players[client].witchCrowned, 
-		g_players[client].tankRockSkeeted, 
-		g_players[client].tankRockEaten, 
-		g_players[client].alarmTriggered, 
-		g_players[client].avgInstaClearTime
-	);
+	if (g_serverID == 0) {
+		FormatEx(insert, sizeof(insert), 
+			"insert into t_player_round_detail ("
+		...	"server_id, "
+		...	"steam_id, "
+		...	"server_map, "
+		...	"server_mode, "
+		...	"map_round, "
+		...	"gametime, "
+		...	"headshot, "
+		...	"melee, "
+		...	"ci_killed, "
+		...	"smoker_killed, "
+		...	"boomer_killed, "
+		...	"hunter_killed, "
+		...	"spitter_killed, "
+		...	"jockey_killed, "
+		...	"charger_killed, "
+		...	"witch_killed, "
+		...	"tank_killed, "
+		...	"si_damage_value, "
+		...	"si_damage_percent, "
+		...	"total_ff, "
+		...	"total_ff_received, "
+		...	"total_ff_percent, "
+		...	"adrenaline_used, "
+		...	"pills_used, "
+		...	"medkit_used, "
+		...	"teammate_protected, "
+		...	"teammate_revived, "
+		...	"teammate_incapped, "
+		...	"teammate_killed, "
+		...	"ledge_hanged, "
+		...	"incapped, "
+		...	"dead, "
+		...	"smoker_tongue_cut, "
+		...	"smoker_self_cleared, "
+		...	"hunter_skeeted, "
+		...	"charger_leveled, "
+		...	"witch_crowned, "
+		...	"tank_rock_skeeted, "
+		...	"tank_rock_eaten, "
+		...	"alarm_triggered, "
+		...	"avg_insta_clear_time) "
+		...	"values ((select id from t_server where server_ip = '%s' and server_port = '%s'), '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f, %d, %d, %.2f, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f)", 
+			g_serverIP, 
+			g_serverPort, 
+			g_players[client].steamId, 
+			g_serverMap, 
+			g_serverMode, 
+			g_mapRound, 
+			g_players[client].gametime, 
+			g_players[client].headshot, 
+			g_players[client].melee, 
+			g_players[client].ciKilled, 
+			g_players[client].smokerKilled, 
+			g_players[client].boomerKilled, 
+			g_players[client].hunterKilled, 
+			g_players[client].spitterKilled, 
+			g_players[client].jockeyKilled, 
+			g_players[client].chargerKilled, 
+			g_players[client].witchKilled, 
+			g_players[client].tankKilled, 
+			g_players[client].siDamageValue, 
+			g_players[client].siDamagePercent, 
+			g_players[client].totalFF, 
+			g_players[client].totalFFReceived, 
+			g_players[client].totalFFPercent, 
+			g_players[client].adrenalineUsed, 
+			g_players[client].pillsUsed, 
+			g_players[client].medkitUsed, 
+			g_players[client].teammateProtected, 
+			g_players[client].teammateRevived, 
+			g_players[client].teammateIncapped, 
+			g_players[client].teammateKilled, 
+			g_players[client].ledgeHanged, 
+			g_players[client].incapped, 
+			g_players[client].dead, 
+			g_players[client].smokerTongueCut, 
+			g_players[client].smokerSelfCleared, 
+			g_players[client].hunterSkeeted, 
+			g_players[client].chargerLeveled, 
+			g_players[client].witchCrowned, 
+			g_players[client].tankRockSkeeted, 
+			g_players[client].tankRockEaten, 
+			g_players[client].alarmTriggered, 
+			g_players[client].avgInstaClearTime
+		);
+	}
+	else {
+		FormatEx(insert, sizeof(insert), 
+			"insert into t_player_round_detail ("
+		...	"server_id, "
+		...	"steam_id, "
+		...	"server_map, "
+		...	"server_mode, "
+		...	"map_round, "
+		...	"gametime, "
+		...	"headshot, "
+		...	"melee, "
+		...	"ci_killed, "
+		...	"smoker_killed, "
+		...	"boomer_killed, "
+		...	"hunter_killed, "
+		...	"spitter_killed, "
+		...	"jockey_killed, "
+		...	"charger_killed, "
+		...	"witch_killed, "
+		...	"tank_killed, "
+		...	"si_damage_value, "
+		...	"si_damage_percent, "
+		...	"total_ff, "
+		...	"total_ff_received, "
+		...	"total_ff_percent, "
+		...	"adrenaline_used, "
+		...	"pills_used, "
+		...	"medkit_used, "
+		...	"teammate_protected, "
+		...	"teammate_revived, "
+		...	"teammate_incapped, "
+		...	"teammate_killed, "
+		...	"ledge_hanged, "
+		...	"incapped, "
+		...	"dead, "
+		...	"smoker_tongue_cut, "
+		...	"smoker_self_cleared, "
+		...	"hunter_skeeted, "
+		...	"charger_leveled, "
+		...	"witch_crowned, "
+		...	"tank_rock_skeeted, "
+		...	"tank_rock_eaten, "
+		...	"alarm_triggered, "
+		...	"avg_insta_clear_time) "
+		...	"values (%d, '%s', '%s', '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f, %d, %d, %.2f, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %.2f)", 
+			g_serverID, 
+			g_players[client].steamId, 
+			g_serverMap, 
+			g_serverMode, 
+			g_mapRound, 
+			g_players[client].gametime, 
+			g_players[client].headshot, 
+			g_players[client].melee, 
+			g_players[client].ciKilled, 
+			g_players[client].smokerKilled, 
+			g_players[client].boomerKilled, 
+			g_players[client].hunterKilled, 
+			g_players[client].spitterKilled, 
+			g_players[client].jockeyKilled, 
+			g_players[client].chargerKilled, 
+			g_players[client].witchKilled, 
+			g_players[client].tankKilled, 
+			g_players[client].siDamageValue, 
+			g_players[client].siDamagePercent, 
+			g_players[client].totalFF, 
+			g_players[client].totalFFReceived, 
+			g_players[client].totalFFPercent, 
+			g_players[client].adrenalineUsed, 
+			g_players[client].pillsUsed, 
+			g_players[client].medkitUsed, 
+			g_players[client].teammateProtected, 
+			g_players[client].teammateRevived, 
+			g_players[client].teammateIncapped, 
+			g_players[client].teammateKilled, 
+			g_players[client].ledgeHanged, 
+			g_players[client].incapped, 
+			g_players[client].dead, 
+			g_players[client].smokerTongueCut, 
+			g_players[client].smokerSelfCleared, 
+			g_players[client].hunterSkeeted, 
+			g_players[client].chargerLeveled, 
+			g_players[client].witchCrowned, 
+			g_players[client].tankRockSkeeted, 
+			g_players[client].tankRockEaten, 
+			g_players[client].alarmTriggered, 
+			g_players[client].avgInstaClearTime
+		);
+	}
 	LogMessage(insert);
 	g_db.Query(DatabaseInsertCallback, insert);
 }
@@ -989,13 +1209,23 @@ void ConnectCallback(Database db, const char[] error, any data) {
 void ServerQueryCallback(Database db, DBResultSet results, const char[] error, any data) {
 	if (results.RowCount == 0) {
 		char insert[2048];
-		FormatEx(insert, sizeof(insert), "insert into t_server (server_name, server_ip, server_port) values ('%s', '%s', '%s')", g_serverName, g_serverIP, g_serverPort);
+		if (g_serverID == 0) {
+			FormatEx(insert, sizeof(insert), "insert into t_server (server_name, server_ip, server_port) values ('%s', '%s', '%s')", g_serverName, g_serverIP, g_serverPort);
+		}
+		else {
+			FormatEx(insert, sizeof(insert), "replace into t_server (id, server_name, server_ip, server_port) values (%d, '%s', '%s', '%s')", g_serverID, g_serverName, g_serverIP, g_serverPort);
+		}
 		LogMessage(insert);
 		g_db.Query(DatabaseInsertCallback, insert);
 	}
 	else {
 		char update[2048];
-		FormatEx(update, sizeof(update), "update t_server set server_name = '%s' where server_ip = '%s' and server_port = '%s'", g_serverName, g_serverIP, g_serverPort);
+		if (g_serverID == 0) {
+			FormatEx(update, sizeof(update), "update t_server set server_name = '%s' where server_ip = '%s' and server_port = '%s'", g_serverName, g_serverIP, g_serverPort);
+		}
+		else {
+			FormatEx(update, sizeof(update), "update t_server set server_name = '%s' where id = %d", g_serverName, g_serverID);
+		}
 		LogMessage(update);
 		g_db.Query(DatabaseUpdateCallback, update);
 	}
@@ -1017,13 +1247,13 @@ void PlayerJoinQueryCallback(Database db, DBResultSet results, const char[] erro
 }
 
 void DatabaseInsertCallback(Database db, DBResultSet results, const char[] error, any data) {
-	if (!StrEqual(error, "")) {
+	if (strlen(error) > 0) {
 		LogError("Insert error. %s", error);
 	}
 }
 
 void DatabaseUpdateCallback(Database db, DBResultSet results, const char[] error, any data) {
-	if (!StrEqual(error, "")) {
+	if (strlen(error) > 0) {
 		LogError("Update error. %s", error);
 	}
 }
@@ -1060,61 +1290,4 @@ void InitCachedPlayerInfo(int client) {
 	g_players[client].longitude = GeoipLongitude(ip);
 	g_players[client].steamId = steamId;
 	g_players[client].nickname = nickname;
-
-	ResetCachedPlayerInfo(client);
-}
-
-void ClearCachedPlayerInfo(int client) {
-	ResetCachedPlayerInfo(client);
-	g_players[client].ip = "";
-	g_players[client].country = "";
-	g_players[client].region = "";
-	g_players[client].city = "";
-	g_players[client].latitude = 0.0;
-	g_players[client].longitude = 0.0;
-	g_players[client].steamId = "";
-	g_players[client].nickname = "";
-	g_players[client].gametime = 0;
-}
-
-void ResetCachedPlayerInfo(int client) {
-	g_players[client].gametime = RoundToNearest(GetEngineTime());
-	g_players[client].headshot = 0;
-	g_players[client].melee = 0;
-	g_players[client].ciKilled = 0;
-	g_players[client].smokerKilled = 0;
-	g_players[client].boomerKilled = 0;
-	g_players[client].hunterKilled = 0;
-	g_players[client].spitterKilled = 0;
-	g_players[client].jockeyKilled = 0;
-	g_players[client].chargerKilled = 0;
-	g_players[client].witchKilled = 0;
-	g_players[client].tankKilled = 0;
-	g_players[client].siDamageValue = 0;
-	g_players[client].siDamagePercent = 0.0;
-	g_players[client].totalFF = 0;
-	g_players[client].totalFFReceived = 0;
-	g_players[client].totalFFPercent = 0.0;
-	g_players[client].adrenalineUsed = 0;
-	g_players[client].pillsUsed = 0;
-	g_players[client].medkitUsed = 0;
-	g_players[client].teammateProtected = 0;
-	g_players[client].teammateRevived = 0;
-	g_players[client].teammateIncapped = 0;
-	g_players[client].teammateKilled = 0;
-	g_players[client].ledgeHanged = 0;
-	g_players[client].incapped = 0;
-	g_players[client].dead = 0;
-	g_players[client].missionCompleted = 0;
-	g_players[client].missionLost = 0;
-	g_players[client].smokerTongueCut = 0;
-	g_players[client].smokerSelfCleared = 0;
-	g_players[client].hunterSkeeted = 0;
-	g_players[client].chargerLeveled = 0;
-	g_players[client].witchCrowned = 0;
-	g_players[client].tankRockSkeeted = 0;
-	g_players[client].tankRockEaten = 0;
-	g_players[client].alarmTriggered = 0;
-	g_players[client].avgInstaClearTime = 0.0;
-	g_players[client].instaClearTime.Clear();
 }
