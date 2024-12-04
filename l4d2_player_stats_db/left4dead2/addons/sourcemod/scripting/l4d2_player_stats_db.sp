@@ -195,7 +195,7 @@ public Plugin myinfo = {
 	name = "L4D2 Player Stats with Database",
 	author = "HatsuneImagine",
 	description = "Store & Fetch player stats from/to databases.",
-	version = "2.1",
+	version = "2.2",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -240,7 +240,7 @@ public void OnPluginStart() {
 }
 
 public void OnMapStart() {
-	if (g_db == INVALID_HANDLE) {
+	if (!IsValidHandle(g_db)) {
 		Database.Connect(ConnectCallback, "player_stats");
 	}
 }
