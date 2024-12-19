@@ -1,0 +1,576 @@
+"Phrases"
+{
+	"QUERY_ERROR"
+	{
+		"en"			"Query info error, please try again later."
+		"chi"			"查询信息出错, 请稍后再试."
+		"zho"			"查詢信息出錯, 請稍後再試."
+	}
+
+	"PLAYER_NOT_EXISTS"
+	{
+		"en"			"Player not exists!"
+		"chi"			"玩家不存在!"
+		"zho"			"玩家不存在!"
+	}
+
+	"PLAYER_RANK_NOT_EXISTS"
+	{
+		"en"			"Player Rank not exists!"
+		"chi"			"玩家排名不存在!"
+		"zho"			"玩家排名不存在!"
+	}
+
+	"PLAYER_ROUND_DETAIL_NOT_EXISTS"
+	{
+		"en"			"Player Round Detail not exists!"
+		"chi"			"玩家回合详情不存在!"
+		"zho"			"玩家回合詳情不存在!"
+	}
+
+	"PLAYER_CONNECT_LOG_NOT_EXISTS"
+	{
+		"en"			"Player Connect Log not exists!"
+		"chi"			"玩家连接记录不存在!"
+		"zho"			"玩家連接記錄不存在!"
+	}
+
+	"PLAYER_CHAT_LOG_NOT_EXISTS"
+	{
+		"en"			"Player Chat Log not exists!"
+		"chi"			"玩家聊天记录不存在!"
+		"zho"			"玩家聊天記錄不存在!"
+	}
+
+	"SELECT_PLAYER"
+	{
+		"en"			"Select Player"
+		"chi"			"选择玩家"
+		"zho"			"選擇玩家"
+	}
+
+	"PLAYER_STATS"
+	{
+		"en"			"'s Personal Stats"
+		"chi"			" 的个人战绩"
+		"zho"			" 的個人戰績"
+	}
+
+	"NICKNAME"
+	{
+		"en"			"Nickname"
+		"chi"			"昵称"
+		"zho"			"昵稱"
+	}
+
+	"RECENT_CONNECT_TIME"
+	{
+		"en"			"Recent Connect Time"
+		"chi"			"最近连接时间"
+		"zho"			"最近連接時間"
+	}
+
+	"RECENT_CONNECT_IP"
+	{
+		"en"			"Recent Connect IP"
+		"chi"			"最近连接IP"
+		"zho"			"最近連接IP"
+	}
+
+	"COUNTRY"
+	{
+		"en"			"Country/Region"
+		"chi"			"国家/地区"
+		"zho"			"國家/地區"
+	}
+
+	"REGION"
+	{
+		"en"			"Province/State"
+		"chi"			"省/州"
+		"zho"			"省/州"
+	}
+
+	"CITY"
+	{
+		"en"			"City/County"
+		"chi"			"市/县"
+		"zho"			"市/縣"
+	}
+
+	"LATITUDE"
+	{
+		"en"			"Latitude"
+		"chi"			"纬度"
+		"zho"			"緯度"
+	}
+
+	"LONGITUDE"
+	{
+		"en"			"Longitude"
+		"chi"			"经度"
+		"zho"			"經度"
+	}
+
+	"GAMETIME"
+	{
+		"en"			"GameTime In This Server"
+		"chi"			"本服游玩时长"
+		"zho"			"本服游玩時長"
+	}
+
+	"GAMETIME_ROUND"
+	{
+		"en"			"GameTime In This Round"
+		"chi"			"本回合游玩时长"
+		"zho"			"本回合游玩時長"
+	}
+
+	"HEADSHOT"
+	{
+		"en"			"Headshot Kill"
+		"chi"			"爆头击杀"
+		"zho"			"爆頭擊殺"
+	}
+
+	"MELEE"
+	{
+		"en"			"Melee Kill"
+		"chi"			"近战击杀"
+		"zho"			"近戰擊殺"
+	}
+
+	"CI_KILLED"
+	{
+		"en"			"CI Killed"
+		"chi"			"击杀普僵"
+		"zho"			"擊殺普僵"
+	}
+
+	"SI_KILLED"
+	{
+		"en"			"SI Killed"
+		"chi"			"击杀特感"
+		"zho"			"擊殺特感"
+	}
+
+	"SMOKER_KILLED"
+	{
+		"en"			"Smoker Killed"
+		"chi"			"击杀Smoker"
+		"zho"			"擊殺Smoker"
+	}
+
+	"BOOMER_KILLED"
+	{
+		"en"			"Boomer Killed"
+		"chi"			"击杀Boomer"
+		"zho"			"擊殺Boomer"
+	}
+
+	"HUNTER_KILLED"
+	{
+		"en"			"Hunter Killed"
+		"chi"			"击杀Hunter"
+		"zho"			"擊殺Hunter"
+	}
+
+	"SPITTER_KILLED"
+	{
+		"en"			"Spitter Killed"
+		"chi"			"击杀Spitter"
+		"zho"			"擊殺Spitter"
+	}
+
+	"JOCKEY_KILLED"
+	{
+		"en"			"Jockey Killed"
+		"chi"			"击杀Jockey"
+		"zho"			"擊殺Jockey"
+	}
+
+	"CHARGER_KILLED"
+	{
+		"en"			"Charger Killed"
+		"chi"			"击杀Charger"
+		"zho"			"擊殺Charger"
+	}
+
+	"WITCH_KILLED"
+	{
+		"en"			"Witch Killed"
+		"chi"			"击杀Witch"
+		"zho"			"擊殺Witch"
+	}
+
+	"TANK_KILLED"
+	{
+		"en"			"Tank Killed"
+		"chi"			"击杀Tank"
+		"zho"			"擊殺Tank"
+	}
+
+	"SI_DAMAGE_VALUE"
+	{
+		"en"			"SI Damage Value"
+		"chi"			"对特感造成伤害值"
+		"zho"			"對特感造成傷害值"
+	}
+
+	"SI_DAMAGE_PERCENT"
+	{
+		"en"			"SI Damage Percent"
+		"chi"			"对特感造成伤害百分比"
+		"zho"			"對特感造成傷害百分比"
+	}
+
+	"TOTAL_FF"
+	{
+		"en"			"Total FF"
+		"chi"			"总计造成友伤"
+		"zho"			"總計造成友傷"
+	}
+
+	"TOTAL_FF_RECEIVED"
+	{
+		"en"			"Total FF Received"
+		"chi"			"总计受到友伤"
+		"zho"			"總計受到友傷"
+	}
+
+	"TOTAL_FF_PERCENT"
+	{
+		"en"			"Total FF Percent"
+		"chi"			"总计造成友伤百分比"
+		"zho"			"總計造成友傷百分比"
+	}
+
+	"ADRENALINE_USED"
+	{
+		"en"			"Adrenaline Used"
+		"chi"			"肾上腺素使用量"
+		"zho"			"腎上腺素使用量"
+	}
+
+	"PILLS_USED"
+	{
+		"en"			"Pills Used"
+		"chi"			"止痛药使用量"
+		"zho"			"止痛藥使用量"
+	}
+
+	"MEDKIT_USED"
+	{
+		"en"			"Medkit Used"
+		"chi"			"医疗包使用量"
+		"zho"			"醫療包使用量"
+	}
+
+	"TEAMMATE_PROTECTED"
+	{
+		"en"			"Teammates Protected"
+		"chi"			"保护队友"
+		"zho"			"保護隊友"
+	}
+
+	"TEAMMATE_REVIVED"
+	{
+		"en"			"Teammates Revived"
+		"chi"			"扶起队友"
+		"zho"			"扶起隊友"
+	}
+
+	"TEAMMATE_INCAPPED"
+	{
+		"en"			"Teammates Incapped"
+		"chi"			"打倒队友"
+		"zho"			"打倒隊友"
+	}
+
+	"TEAMMATE_KILLED"
+	{
+		"en"			"Teammates Killed"
+		"chi"			"打死队友"
+		"zho"			"打死隊友"
+	}
+
+	"LEDGE_HANGED"
+	{
+		"en"			"Ledge Hanged"
+		"chi"			"挂边次数"
+		"zho"			"挂邊次數"
+	}
+
+	"INCAPPED"
+	{
+		"en"			"Incapped"
+		"chi"			"倒地次数"
+		"zho"			"倒地次數"
+	}
+
+	"DEAD"
+	{
+		"en"			"Dead"
+		"chi"			"死亡次数"
+		"zho"			"死亡次數"
+	}
+
+	"MISSION_COMPLETED"
+	{
+		"en"			"Mission Completed"
+		"chi"			"章节完成"
+		"zho"			"章節完成"
+	}
+
+	"MISSION_LOST"
+	{
+		"en"			"Mission Lost"
+		"chi"			"章节团灭"
+		"zho"			"章節團滅"
+	}
+
+	"SMOKER_TONGUE_CUT"
+	{
+		"en"			"Smoker Tongue Cut"
+		"chi"			"砍断Smoker舌头"
+		"zho"			"砍斷Smoker舌頭"
+	}
+
+	"SMOKER_SELF_CLEARED"
+	{
+		"en"			"Smoker Self Cleared"
+		"chi"			"从Smoker舌头下自救"
+		"zho"			"從Smoker舌頭下自救"
+	}
+
+	"HUNTER_SKEETED"
+	{
+		"en"			"Hunter Skeeted"
+		"chi"			"空爆Hunter"
+		"zho"			"空爆Hunter"
+	}
+
+	"CHARGER_LEVELED"
+	{
+		"en"			"Charger Leveled"
+		"chi"			"砍死冲锋Charger"
+		"zho"			"砍死衝鋒Charger"
+	}
+
+	"WITCH_CROWNED"
+	{
+		"en"			"Witch Crowned"
+		"chi"			"秒杀Witch"
+		"zho"			"秒殺Witch"
+	}
+
+	"TANK_ROCK_SKEETED"
+	{
+		"en"			"Tank Rock Skeeted"
+		"chi"			"打碎Tank石头"
+		"zho"			"打碎Tank石頭"
+	}
+
+	"TANK_ROCK_EATEN"
+	{
+		"en"			"Tank Rock Eaten"
+		"chi"			"被Tank石头砸中"
+		"zho"			"被Tank石頭砸中"
+	}
+
+	"ALARM_TRIGGERED"
+	{
+		"en"			"Alarm Triggered"
+		"chi"			"触发警报"
+		"zho"			"觸發警報"
+	}
+
+	"TOTAL_HEADSHOT_RATE"
+	{
+		"en"			"Total Headshot Rate"
+		"chi"			"总计爆头率"
+		"zho"			"總計爆頭率"
+	}
+
+	"AVG_SI_DAMAGE_PERCENT"
+	{
+		"en"			"Avg SI Damage Percent"
+		"chi"			"平均击杀特感百分比"
+		"zho"			"平均擊殺特感百分比"
+	}
+
+	"AVG_FF_PERCENT"
+	{
+		"en"			"Avg FF Percent"
+		"chi"			"平均造成友伤百分比"
+		"zho"			"平均造成友傷百分比"
+	}
+
+	"AVG_INSTA_CLEAR_TIME"
+	{
+		"en"			"Avg Extricate Teammates Time"
+		"chi"			"平均解救被控队友时间"
+		"zho"			"平均解救被控隊友時間"
+	}
+
+	"COMPREHENSIVE_RATING"
+	{
+		"en"			"Comprehensive Rating"
+		"chi"			"综合评级"
+		"zho"			"綜合評級"
+	}
+
+	"SECONDS"
+	{
+		"en"			"sec"
+		"chi"			"秒"
+		"zho"			"秒"
+	}
+
+	"MORE_INFO"
+	{
+		"en"			"More >>>"
+		"chi"			"更多 >>>"
+		"zho"			"更多 >>>"
+	}
+
+	"DETAIL"
+	{
+		"en"			"Detail Info"
+		"chi"			"详细信息"
+		"zho"			"详细信息"
+	}
+
+	"RANK"
+	{
+		"en"			"Rank Info"
+		"chi"			"排名信息"
+		"zho"			"排名信息"
+	}
+
+	"PLAYER_RANK"
+	{
+		"en"			"Player Rank In This Server"
+		"chi"			"玩家全服排名"
+		"zho"			"玩家全服排名"
+	}
+
+	"TOTAL_PLAYER"
+	{
+		"en"			"Total Players In This Server"
+		"chi"			"全服玩家总数"
+		"zho"			"全服玩家總數"
+	}
+
+	"RECENT_ROUND_DETAIL"
+	{
+		"en"			"Recent Rounds Info"
+		"chi"			"最近回合详情"
+		"zho"			"最近回合詳情"
+	}
+
+	"RECENT_CONNECT_LOG"
+	{
+		"en"			"Recent Connect Log"
+		"chi"			"最近连接记录"
+		"zho"			"最近連接記錄"
+	}
+
+	"RECENT_CHAT_LOG"
+	{
+		"en"			"Recent Chat Log"
+		"chi"			"最近聊天记录"
+		"zho"			"最近聊天記錄"
+	}
+
+	"PAGE"
+	{
+		"en"			"Page"
+		"chi"			"页码"
+		"zho"			"頁碼"
+	}
+
+	"ROUND"
+	{
+		"en"			"Round"
+		"chi"			"回合"
+		"zho"			"回合"
+	}
+
+	"CONNECT_LOG"
+	{
+		"en"			"Connect Log"
+		"chi"			"连接记录"
+		"zho"			"連接記錄"
+	}
+
+	"CHAT_LOG"
+	{
+		"en"			"Chat Log"
+		"chi"			"聊天记录"
+		"zho"			"聊天記錄"
+	}
+
+	"TIME"
+	{
+		"en"			"Time"
+		"chi"			"时间"
+		"zho"			"時間"
+	}
+
+	"SERVER_NAME"
+	{
+		"en"			"Server Name"
+		"chi"			"服务器名称"
+		"zho"			"伺服器名稱"
+	}
+
+	"SERVER_ADDRESS"
+	{
+		"en"			"Server Address"
+		"chi"			"服务器地址"
+		"zho"			"伺服器地址"
+	}
+
+	"SERVER_MAP"
+	{
+		"en"			"Map"
+		"chi"			"地图"
+		"zho"			"地圖"
+	}
+
+	"SERVER_MODE"
+	{
+		"en"			"Game Mode"
+		"chi"			"模式"
+		"zho"			"模式"
+	}
+
+	"MAP_ROUND"
+	{
+		"en"			"Map Round"
+		"chi"			"回合"
+		"zho"			"回合"
+	}
+
+	"BACK"
+	{
+		"en"			"Back <<"
+		"chi"			"上一页 <<"
+		"zho"			"上一頁 <<"
+	}
+
+	"NEXT"
+	{
+		"en"			"Next >>"
+		"chi"			"下一页 >>"
+		"zho"			"下一頁 >>"
+	}
+
+	"EXIT"
+	{
+		"en"			"Exit"
+		"chi"			"退出"
+		"zho"			"退出"
+	}
+}
