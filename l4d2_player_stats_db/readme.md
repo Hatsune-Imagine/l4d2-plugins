@@ -27,6 +27,48 @@
 
 
 
+## 相关插件
+
+1）[l4d2_player_stats_panel]: https://github.com/Hatsune-Imagine/l4d2-plugins/tree/main/l4d2_player_stats_panel
+
+2）[l4d2_skill_detect]: https://github.com/Hatsune-Imagine/l4d2-plugins/tree/main/l4d2_skill_detect
+
+
+
+
+
+## 建议设置
+
+1. 建议在您的求生服务器启动参数中添加 `-server_id x` 参数，其中填入一个唯一的服务器ID，便于插件存储服务器列表信息。
+
+   例：`-server_id 1`
+
+   
+
+2. 建议在您的求生服务器启动参数中添加 `-server_ip x.x.x.x` 参数，其中填入您服务器的公网连接IP，便于插件存储服务器IP信息。
+
+   例：`-server_ip 1.2.3.4`
+
+
+
+例：Windows求生服务器启动命令（仅供参考）
+
+```bash
+srcds.exe -console -insecure -nocrashdialog -nohltv -game left4dead2 -ip 0.0.0.0 -port 27015 -tickrate 100 -server_id 1 -server_ip 1.2.3.4 +sv_consistency 0 +servercfgfile server.cfg +map c1m1_hotel
+```
+
+
+
+例：Linux求生服务器启动命令（仅供参考）
+
+```bash
+./srcds_run -console -insecure -nohltv -game left4dead2 -ip 0.0.0.0 -port 27015 -tickrate 100 -server_id 1 -server_ip 1.2.3.4 +sv_consistency 0 +servercfgfile server.cfg +map c1m1_hotel
+```
+
+
+
+
+
 ## 插件以5种维度记录玩家信息
 
 1. **服务器信息**

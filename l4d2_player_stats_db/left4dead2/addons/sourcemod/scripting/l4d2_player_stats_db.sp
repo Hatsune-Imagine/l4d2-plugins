@@ -18,16 +18,21 @@
 #define ZC_WITCH		7
 #define ZC_TANK			8
 
+int allSiDamage;
+int allFF;
+
 enum struct PlayerInfo
 {
-	char ip[16];
-	char country[32];
-	char region[32];
-	char city[32];
-	float latitude;
-	float longitude;
+	bool isSaved;
+
 	char steamId[32];
 	char nickname[32];
+	char ip[16];
+	char country[64];
+	char region[64];
+	char city[64];
+	float latitude;
+	float longitude;
 	int gametime;
 	int headshot;
 	int melee;
@@ -69,14 +74,16 @@ enum struct PlayerInfo
 	ArrayList instaClearTime;
 
 	void Init() {
+		this.isSaved = false;
+
+		this.steamId = "";
+		this.nickname = "";
 		this.ip = "";
 		this.country = "";
 		this.region = "";
 		this.city = "";
 		this.latitude = 0.0;
 		this.longitude = 0.0;
-		this.steamId = "";
-		this.nickname = "";
 		this.gametime = 0;
 		this.headshot = 0;
 		this.melee = 0;
@@ -115,11 +122,96 @@ enum struct PlayerInfo
 		this.tankRockEaten = 0;
 		this.alarmTriggered = 0;
 		this.avgInstaClearTime = 0.0;
-		this.instaClearTime = new ArrayList();
+		if (IsValidHandle(this.instaClearTime)) this.instaClearTime.Clear();
+		else this.instaClearTime = new ArrayList();
+	}
+
+	void InitByClient(int client) {
+		this.isSaved = false;
+
+		GetClientAuthId(client, AuthId_Steam2, this.steamId, sizeof(this.steamId));
+		GetClientName(client, this.nickname, sizeof(this.nickname));
+		GetClientIP(client, this.ip, sizeof(this.ip));
+		if (!GeoipCountry(this.ip, this.country, sizeof(this.country))) {
+			Format(this.country, sizeof(this.country), "<N/A>");
+		}
+		if (!GeoipRegion(this.ip, this.region, sizeof(this.region))) {
+			Format(this.region, sizeof(this.region), "<N/A>");
+		}
+		if (!GeoipCity(this.ip, this.city, sizeof(this.city))) {
+			Format(this.city, sizeof(this.city), "<N/A>");
+		}
+		HandleSpecialChar(this.nickname, sizeof(this.nickname));
+		HandleSpecialChar(this.country, sizeof(this.country));
+		HandleSpecialChar(this.region, sizeof(this.region));
+		HandleSpecialChar(this.city, sizeof(this.city));
+		this.latitude = GeoipLatitude(this.ip);
+		this.longitude = GeoipLongitude(this.ip);
+		this.gametime = GetTime();
+		this.headshot = 0;
+		this.melee = 0;
+		this.ciKilled = 0;
+		this.smokerKilled = 0;
+		this.boomerKilled = 0;
+		this.hunterKilled = 0;
+		this.spitterKilled = 0;
+		this.jockeyKilled = 0;
+		this.chargerKilled = 0;
+		this.witchKilled = 0;
+		this.tankKilled = 0;
+		this.siDamageValue = 0;
+		this.siDamagePercent = 0.0;
+		this.totalFF = 0;
+		this.totalFFReceived = 0;
+		this.totalFFPercent = 0.0;
+		this.adrenalineUsed = 0;
+		this.pillsUsed = 0;
+		this.medkitUsed = 0;
+		this.teammateProtected = 0;
+		this.teammateRevived = 0;
+		this.teammateIncapped = 0;
+		this.teammateKilled = 0;
+		this.ledgeHanged = 0;
+		this.incapped = 0;
+		this.dead = 0;
+		this.missionCompleted = 0;
+		this.missionLost = 0;
+		this.smokerTongueCut = 0;
+		this.smokerSelfCleared = 0;
+		this.hunterSkeeted = 0;
+		this.chargerLeveled = 0;
+		this.witchCrowned = 0;
+		this.tankRockSkeeted = 0;
+		this.tankRockEaten = 0;
+		this.alarmTriggered = 0;
+		this.avgInstaClearTime = 0.0;
+		if (IsValidHandle(this.instaClearTime)) this.instaClearTime.Clear();
+		else this.instaClearTime = new ArrayList();
+	}
+
+	void Calculate(bool isAddMissionCount, bool isWin) {
+		this.gametime = GetTime() - this.gametime;
+		this.siDamagePercent = allSiDamage == 0 ? (this.siDamageValue > 0 ? 1.0 : 0.0) : float(this.siDamageValue) / float(allSiDamage);
+		this.totalFFPercent = allFF == 0 ? (this.totalFF > 0 ? 1.0 : 0.0) : float(this.totalFF) / float(allFF);
+		if (isAddMissionCount) {
+			if (isWin) this.missionCompleted++;
+			else this.missionLost++;
+		}
+
+		float allInstaClearTime = 0.0;
+		for (int j = 0; j < this.instaClearTime.Length; j++) {
+			char eachClearTime[8];
+			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", this.instaClearTime.Get(j));
+			// LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", client, client, j, eachClearTime);
+			allInstaClearTime += StringToFloat(eachClearTime);
+		}
+		this.avgInstaClearTime = this.instaClearTime.Length > 0 ? allInstaClearTime / this.instaClearTime.Length : 0.0;
 	}
 
 	void Reset() {
-		this.gametime = RoundToNearest(GetEngineTime());
+		this.isSaved = false;
+
+		this.gametime = GetTime();
 		this.headshot = 0;
 		this.melee = 0;
 		this.ciKilled = 0;
@@ -157,25 +249,10 @@ enum struct PlayerInfo
 		this.tankRockEaten = 0;
 		this.alarmTriggered = 0;
 		this.avgInstaClearTime = 0.0;
-		this.instaClearTime.Clear();
-	}
-
-	void Clear() {
-		this.Reset();
-		this.ip = "";
-		this.country = "";
-		this.region = "";
-		this.city = "";
-		this.latitude = 0.0;
-		this.longitude = 0.0;
-		this.steamId = "";
-		this.nickname = "";
-		this.gametime = 0;
+		if (IsValidHandle(this.instaClearTime)) this.instaClearTime.Clear();
+		else this.instaClearTime = new ArrayList();
 	}
 }
-
-int allSiDamage;
-int allFF;
 
 Database g_db;
 PlayerInfo g_players[MAXPLAYERS + 1];
@@ -195,7 +272,7 @@ public Plugin myinfo = {
 	name = "L4D2 Player Stats with Database",
 	author = "HatsuneImagine",
 	description = "Store & Fetch player stats from/to databases.",
-	version = "2.2",
+	version = "2.3",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -239,7 +316,7 @@ public void OnPluginStart() {
 	Database.Connect(ConnectCallback, "player_stats");
 }
 
-public void OnMapStart() {
+public void OnConfigsExecuted() {
 	if (!IsValidHandle(g_db)) {
 		Database.Connect(ConnectCallback, "player_stats");
 	}
@@ -264,14 +341,14 @@ void CheckLib(const char[] name, bool state) {
 }
 
 Action Cmd_My_Stats(int client, int args) {
+	PrintToChat(client, "SteamID: %s", g_players[client].steamId);
+	PrintToChat(client, "Nickname: %s", g_players[client].nickname);
 	PrintToChat(client, "IP: %s", g_players[client].ip);
 	PrintToChat(client, "Country: %s", g_players[client].country);
 	PrintToChat(client, "Region: %s", g_players[client].region);
 	PrintToChat(client, "City: %s", g_players[client].city);
 	PrintToChat(client, "Latitude: %.6f", g_players[client].latitude);
 	PrintToChat(client, "Longitude: %.6f", g_players[client].longitude);
-	PrintToChat(client, "SteamID: %s", g_players[client].steamId);
-	PrintToChat(client, "Nickname: %s", g_players[client].nickname);
 	PrintToChat(client, "GameTime: %d", g_players[client].gametime);
 	PrintToChat(client, "Headshot: %d", g_players[client].headshot);
 	PrintToChat(client, "Melee: %d", g_players[client].melee);
@@ -356,7 +433,7 @@ public void OnClientAuthorized(int client) {
 	}
 
 	// 初始化玩家本局缓存数据
-	InitCachedPlayerInfo(client);
+	g_players[client].InitByClient(client);
 	// 保存玩家连接记录
 	SQL_InsertConnectLog(client);
 }
@@ -447,18 +524,11 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	// 玩家退出，保存此玩家本局缓存数据 -> 数据库
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (client > 0 && client <= MaxClients) {
-		int currentTime = RoundToNearest(GetEngineTime());
-		g_players[client].gametime = currentTime - g_players[client].gametime;
-		g_players[client].siDamagePercent = allSiDamage == 0 ? (g_players[client].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[client].siDamageValue) / float(allSiDamage);
-		g_players[client].totalFFPercent = allFF == 0 ? (g_players[client].totalFF > 0 ? 1.0 : 0.0) : float(g_players[client].totalFF) / float(allFF);
-		float allInstaClearTime = 0.0;
-		for (int j = 0; j < g_players[client].instaClearTime.Length; j++) {
-			char eachClearTime[8];
-			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[client].instaClearTime.Get(j));
-			// LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", client, client, j, eachClearTime);
-			allInstaClearTime += StringToFloat(eachClearTime);
+		if (g_players[client].isSaved) {
+			return;
 		}
-		g_players[client].avgInstaClearTime = g_players[client].instaClearTime.Length > 0 ? allInstaClearTime / g_players[client].instaClearTime.Length : 0.0;
+		g_players[client].isSaved = true;
+		g_players[client].Calculate(false, false);
 
 		// 更新此玩家总体数据
 		SQL_UpdatePlayerInfo(client);
@@ -466,7 +536,7 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 		SQL_InsertPlayerRoundDetail(client);
 
 		// 清除此client缓存数据
-		g_players[client].Clear();
+		g_players[client].Init();
 		g_playersInGame[client] = "";
 	}
 }
@@ -840,24 +910,12 @@ void HandleSpecialChar(char[] str, int size) {
 }
 
 void SaveAllPlayerInfoAndDetail(bool isAddMissionCount, bool isWin) {
-	int currentTime = RoundToNearest(GetEngineTime());
 	for (int i = 1; i <= MaxClients; i++) {
-		g_players[i].gametime = currentTime - g_players[i].gametime;
-		g_players[i].siDamagePercent = allSiDamage == 0 ? (g_players[i].siDamageValue > 0 ? 1.0 : 0.0) : float(g_players[i].siDamageValue) / float(allSiDamage);
-		g_players[i].totalFFPercent = allFF == 0 ? (g_players[i].totalFF > 0 ? 1.0 : 0.0) : float(g_players[i].totalFF) / float(allFF);
-		if (isAddMissionCount) {
-			if (isWin) g_players[i].missionCompleted++;
-			else g_players[i].missionLost++;
+		if (g_players[i].isSaved || !IsClientInGame(i)) {
+			continue;
 		}
-
-		float allInstaClearTime = 0.0;
-		for (int j = 0; j < g_players[i].instaClearTime.Length; j++) {
-			char eachClearTime[8];
-			FormatEx(eachClearTime, sizeof(eachClearTime), "%.2f", g_players[i].instaClearTime.Get(j));
-			// LogMessage("Client: %d:%N, Insta-Clear Time Array Content[%d]: %s", i, i, j, eachClearTime);
-			allInstaClearTime += StringToFloat(eachClearTime);
-		}
-		g_players[i].avgInstaClearTime = g_players[i].instaClearTime.Length > 0 ? allInstaClearTime / g_players[i].instaClearTime.Length : 0.0;
+		g_players[i].isSaved = true;
+		g_players[i].Calculate(isAddMissionCount, isWin);
 
 		// 更新此玩家总体数据
 		SQL_UpdatePlayerInfo(i);
@@ -1194,7 +1252,7 @@ void SQL_InsertPlayerRoundDetail(int client) {
 }
 
 void ConnectCallback(Database db, const char[] error, any data) {
-	if (db == INVALID_HANDLE) {
+	if (!IsValidHandle(db)) {
 		LogError("Database connect failure: %s.", error);
 		return;
 	}
@@ -1256,38 +1314,4 @@ void DatabaseUpdateCallback(Database db, DBResultSet results, const char[] error
 	if (strlen(error) > 0) {
 		LogError("Update error. %s", error);
 	}
-}
-
-void InitCachedPlayerInfo(int client) {
-	char ip[16];
-	char country[32];
-	char region[32];
-	char city[32];
-	char steamId[32];
-	char nickname[32];
-	GetClientIP(client, ip, sizeof(ip));
-	GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId));
-	GetClientName(client, nickname, sizeof(nickname));
-	if (!GeoipCountry(ip, country, sizeof(country))) {
-		Format(country, sizeof(country), "<N/A>");
-	}
-	if (!GeoipRegion(ip, region, sizeof(region))) {
-		Format(region, sizeof(region), "<N/A>");
-	}
-	if (!GeoipCity(ip, city, sizeof(city))) {
-		Format(city, sizeof(city), "<N/A>");
-	}
-	HandleSpecialChar(nickname, sizeof(nickname));
-	HandleSpecialChar(country, sizeof(country));
-	HandleSpecialChar(region, sizeof(region));
-	HandleSpecialChar(city, sizeof(city));
-
-	g_players[client].ip = ip;
-	g_players[client].country = country;
-	g_players[client].region = region;
-	g_players[client].city = city;
-	g_players[client].latitude = GeoipLatitude(ip);
-	g_players[client].longitude = GeoipLongitude(ip);
-	g_players[client].steamId = steamId;
-	g_players[client].nickname = nickname;
 }

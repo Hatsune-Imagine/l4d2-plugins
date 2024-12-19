@@ -50,9 +50,9 @@ ALTER TABLE t_player_connect_log ADD server_id bigint unsigned NOT NULL COMMENT 
 CREATE INDEX idx_server_id USING BTREE ON t_player_connect_log (server_id);
 ALTER TABLE t_player_connect_log CHANGE connect_time connect_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Player join time' AFTER steam_id;
 ALTER TABLE t_player_connect_log CHANGE connect_ip connect_ip varchar(16) NOT NULL DEFAULT '' COMMENT 'Player connect ip';
-ALTER TABLE t_player_connect_log ADD ip_country varchar(32) NOT NULL DEFAULT '<N/A>' COMMENT 'IP country';
-ALTER TABLE t_player_connect_log ADD ip_region varchar(32) NOT NULL DEFAULT '<N/A>' COMMENT 'IP region';
-ALTER TABLE t_player_connect_log ADD ip_city varchar(100) NOT NULL DEFAULT '<N/A>' COMMENT 'IP city';
+ALTER TABLE t_player_connect_log ADD ip_country varchar(64) NOT NULL DEFAULT '<N/A>' COMMENT 'IP country';
+ALTER TABLE t_player_connect_log ADD ip_region varchar(64) NOT NULL DEFAULT '<N/A>' COMMENT 'IP region';
+ALTER TABLE t_player_connect_log ADD ip_city varchar(64) NOT NULL DEFAULT '<N/A>' COMMENT 'IP city';
 ALTER TABLE t_player_connect_log ADD latitude decimal(16,6) NOT NULL DEFAULT 0.0 COMMENT 'Latitude';
 ALTER TABLE t_player_connect_log ADD longitude decimal(16,6) NOT NULL DEFAULT 0.0 COMMENT 'Longitude';
 UPDATE t_player_connect_log cl, (SELECT IFNULL(MIN(server_id), 0) min_server_id, steam_id, DATE(create_time) create_date FROM t_player_round_detail GROUP BY steam_id, create_date) rd SET cl.server_id = rd.min_server_id WHERE cl.steam_id = rd.steam_id AND DATE(cl.connect_time) = rd.create_date;
