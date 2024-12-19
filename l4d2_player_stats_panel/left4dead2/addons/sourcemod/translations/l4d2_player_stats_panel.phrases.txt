@@ -395,22 +395,22 @@
 	"AVG_SI_DAMAGE_PERCENT"
 	{
 		"en"			"Avg SI Damage Percent"
-		"chi"			"平均击杀特感百分比"
-		"zho"			"平均擊殺特感百分比"
+		"chi"			"平均杀特百分比"
+		"zho"			"平均殺特百分比"
 	}
 
 	"AVG_FF_PERCENT"
 	{
 		"en"			"Avg FF Percent"
-		"chi"			"平均造成友伤百分比"
-		"zho"			"平均造成友傷百分比"
+		"chi"			"平均友伤百分比"
+		"zho"			"平均友傷百分比"
 	}
 
 	"AVG_INSTA_CLEAR_TIME"
 	{
 		"en"			"Avg Extricate Teammates Time"
-		"chi"			"平均解救被控队友时间"
-		"zho"			"平均解救被控隊友時間"
+		"chi"			"平均解控队友时间"
+		"zho"			"平均解控隊友時間"
 	}
 
 	"COMPREHENSIVE_RATING"

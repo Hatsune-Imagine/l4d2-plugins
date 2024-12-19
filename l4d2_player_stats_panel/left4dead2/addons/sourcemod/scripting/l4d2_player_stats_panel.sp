@@ -480,7 +480,7 @@ void OnNextFrame(int client) {
 			Panel panel = new Panel();
 			Format(buffer, sizeof(buffer), "▸ %N%T", viewingClient, "PLAYER_STATS", client);
 			panel.SetTitle(buffer, false);
-			panel.DrawText("————————————————————");
+			panel.DrawText("——————————————————");
 
 			Format(buffer, sizeof(buffer), "SteamID: BOT");
 			panel.DrawText(buffer);
@@ -488,7 +488,7 @@ void OnNextFrame(int client) {
 			panel.Send(client, EmptyPanelHandler, MENU_TIME_FOREVER);
 			g_btnPressed[client] = 0;
 		}
-		else if (GetClientAuthId(viewingClient, AuthId_Steam2, steamId, sizeof(steamId))) {
+		else if (GetClientAuthId(viewingClient, AuthId_Steam2, steamId, sizeof(steamId)) && GetClientTeam(client) == TEAM_SPECTATOR) {
 			SQL_QueryPlayer(client, steamId);
 		}
 	}
@@ -624,7 +624,7 @@ void ShowPlayerStatsPanel(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %s%T", g_playerRecentLookingAt[client].nickname, "PLAYER_STATS", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "SteamID: %s", g_playerRecentLookingAt[client].steamId);
 	panel.DrawText(buffer);
@@ -706,7 +706,7 @@ void ShowMoreInfoPanel(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T", "MORE_INFO", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "1. %T", "DETAIL", client);
 	panel.DrawText(buffer);
@@ -777,7 +777,7 @@ void ShowPlayerDetailPanel1(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T", "DETAIL", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "SteamID: %s", g_playerRecentLookingAt[client].steamId);
 	panel.DrawText(buffer);
@@ -821,12 +821,6 @@ void ShowPlayerDetailPanel1(int client) {
 	Format(buffer, sizeof(buffer), "%T: %d", "TANK_KILLED", client, g_playerRecentLookingAt[client].tankKilled);
 	panel.DrawText(buffer);
 
-	Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_FF", client, g_playerRecentLookingAt[client].totalFF);
-	panel.DrawText(buffer);
-
-	Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_FF_RECEIVED", client, g_playerRecentLookingAt[client].totalFFReceived);
-	panel.DrawText(buffer);
-
 	panel.DrawText(" ");
 	Format(buffer, sizeof(buffer), "8. %T", "BACK", client);
 	panel.DrawText(buffer);
@@ -865,7 +859,13 @@ void ShowPlayerDetailPanel2(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T", "DETAIL", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
+
+	Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_FF", client, g_playerRecentLookingAt[client].totalFF);
+	panel.DrawText(buffer);
+
+	Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_FF_RECEIVED", client, g_playerRecentLookingAt[client].totalFFReceived);
+	panel.DrawText(buffer);
 
 	Format(buffer, sizeof(buffer), "%T: %d", "TEAMMATE_PROTECTED", client, g_playerRecentLookingAt[client].teammateProtected);
 	panel.DrawText(buffer);
@@ -932,7 +932,7 @@ void ShowPlayerDetailPanel3(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T", "DETAIL", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %d", "SMOKER_TONGUE_CUT", client, g_playerRecentLookingAt[client].smokerTongueCut);
 	panel.DrawText(buffer);
@@ -996,7 +996,7 @@ void ShowPlayerDetailPanel4(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T", "DETAIL", client);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %.2f%%  %s", "TOTAL_HEADSHOT_RATE", client, g_playerRecentLookingAt[client].totalHeadshotRate * 100, g_playerRecentLookingAt[client].totalHeadshotRateStars);
 	panel.DrawText(buffer);
@@ -1083,7 +1083,7 @@ void PlayerRankQueryCallback(Database db, DBResultSet results, const char[] erro
 		Panel panel = new Panel();
 		Format(buffer, sizeof(buffer), "▸ %T", "RANK", client);
 		panel.SetTitle(buffer, false);
-		panel.DrawText("————————————————————");
+		panel.DrawText("——————————————————");
 
 		Format(buffer, sizeof(buffer), "%T: #%d", "PLAYER_RANK", client, playerRank);
 		panel.DrawText(buffer);
@@ -1156,7 +1156,7 @@ void PlayerRoundDetailListQueryCallback(Database db, DBResultSet results, const 
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T  %T: %d", "RECENT_ROUND_DETAIL", client, "PAGE", client, g_playerRecentLookingAtRound[client].recentQueryPageIndex + 1);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	if (results.RowCount == 0) {
 		panel.DrawText(" ");
@@ -1308,7 +1308,7 @@ void ShowPlayerRoundDetailPanel1(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T #%d", "ROUND", client, g_playerRecentLookingAtRound[client].roundDetailId);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %s", "GAMETIME_ROUND", client, g_playerRecentLookingAtRound[client].gametimeBuffer);
 	panel.DrawText(buffer);
@@ -1399,7 +1399,7 @@ void ShowPlayerRoundDetailPanel2(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T #%d", "ROUND", client, g_playerRecentLookingAtRound[client].roundDetailId);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %d", "SI_DAMAGE_VALUE", client, g_playerRecentLookingAtRound[client].siDamageValue);
 	panel.DrawText(buffer);
@@ -1463,7 +1463,7 @@ void ShowPlayerRoundDetailPanel3(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T #%d", "ROUND", client, g_playerRecentLookingAtRound[client].roundDetailId);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %d", "TEAMMATE_PROTECTED", client, g_playerRecentLookingAtRound[client].teammateProtected);
 	panel.DrawText(buffer);
@@ -1524,7 +1524,7 @@ void ShowPlayerRoundDetailPanel4(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T #%d", "ROUND", client, g_playerRecentLookingAtRound[client].roundDetailId);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "%T: %d", "SMOKER_TONGUE_CUT", client, g_playerRecentLookingAtRound[client].smokerTongueCut);
 	panel.DrawText(buffer);
@@ -1616,7 +1616,7 @@ void PlayerConnectLogListQueryCallback(Database db, DBResultSet results, const c
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T  %T: %d", "RECENT_CONNECT_LOG", client, "PAGE", client, g_playerRecentLookingAtConnectLog[client].recentQueryPageIndex + 1);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	if (results.RowCount == 0) {
 		panel.DrawText(" ");
@@ -1734,7 +1734,7 @@ void ShowPlayerConnectLogPanel(int client) {
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T #%d", "CONNECT_LOG", client, g_playerRecentLookingAtConnectLog[client].connectLogId);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	Format(buffer, sizeof(buffer), "SteamID: %s", g_playerRecentLookingAt[client].steamId);
 	panel.DrawText(buffer);
@@ -1831,7 +1831,7 @@ void PlayerChatLogListQueryCallback(Database db, DBResultSet results, const char
 	Panel panel = new Panel();
 	Format(buffer, sizeof(buffer), "▸ %T  %T: %d", "RECENT_CHAT_LOG", client, "PAGE", client, g_playerRecentLookingAtChatLogPageIndex[client] + 1);
 	panel.SetTitle(buffer, false);
-	panel.DrawText("————————————————————");
+	panel.DrawText("——————————————————");
 
 	if (results.RowCount == 0) {
 		panel.DrawText(" ");
