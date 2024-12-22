@@ -4,6 +4,7 @@
 #include <sourcemod>
 #include <sdktools>
 #include <geoip>
+#include <left4dhooks>
 
 #define TEAM_SPECTATOR	1
 #define TEAM_SURVIVOR	2
@@ -266,13 +267,12 @@ char g_serverMode[32];
 int g_mapRound;
 
 bool isSkillDetectLoaded;
-bool isCompetitiveInRound;
 
 public Plugin myinfo = {
 	name = "L4D2 Player Stats with Database",
 	author = "HatsuneImagine",
 	description = "Store & Fetch player stats from/to databases.",
-	version = "2.3",
+	version = "2.4",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
@@ -448,6 +448,123 @@ public void OnPluginEnd() {
 	CloseHandle(g_db);
 }
 
+
+/*
+Such actions will trigger such events.
+----------------------------------------
+COOP:
+	Round Start:
+		round_start
+
+	Survivor made it to the saferoom:
+		map_transition
+
+	Survivor complete the rescue:
+		finale_vehicle_leaving
+
+	Survivor all dead:
+		round_end
+		mission_lost
+
+REALISM:
+	Round Start:
+		round_start
+
+	Survivor made it to the saferoom:
+		map_transition
+
+	Survivor complete the rescue:
+		finale_vehicle_leaving
+
+	Survivor all dead:
+		round_end
+		mission_lost
+
+VERSUS:
+	Round Start:
+		round_start
+
+	Survivor leaving starting safe area:
+		versus_round_start
+
+	Survivor made it to the saferoom:
+		map_transition
+		round_end (twice)
+
+	Survivor complete the rescue:
+		finale_vehicle_leaving
+		round_end (twice)
+
+	Survivor all dead:
+		round_end (twice)
+
+	Two teams completed two rounds in the map finale:
+		versus_match_finished
+
+SURVIVAL:
+	Round Start:
+		round_start
+
+	Survivor triggered survival start:
+		survival_round_start
+
+	Survivor all dead:
+		round_end (twice)
+
+SCAVENGE:
+	Round Start:
+		round_start
+
+	Survivor leaving starting safe area or count down over:
+		scavenge_round_start
+
+	Round End:
+		round_end (twice)
+
+	Two teams completed all rounds:
+		scavenge_match_finished
+*/
+
+// [round_start]: COOP, REALISM, VERSUS, SURVIVAL, SCAVENGE
+void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
+	// 回合开始
+	GetCurrentMap(g_serverMap, sizeof(g_serverMap));
+	FindConVar("mp_gamemode").GetString(g_serverMode, sizeof(g_serverMode));
+	g_mapRound++;
+
+	// 重置所有玩家本局缓存数据
+	for (int i = 1; i <= MaxClients; i++) {
+		g_players[i].Reset();
+	}
+	allSiDamage = 0;
+	allFF = 0;
+}
+
+// [round_end]: VERSUS, SURVIVAL, SCAVENGE
+void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（仅用于处理 对抗/生还者/清道夫 及衍生的突变模式），保存所有玩家本局缓存数据 -> 数据库
+	if ((L4D_IsVersusMode() || L4D_IsSurvivalMode() || L4D2_IsScavengeMode())) {
+		SaveAllPlayerInfoAndDetail(false, false);
+	}
+}
+
+// [mission_lost]: COOP, REALISM
+void Event_MissionLost(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（团灭）（仅用于处理 战役/写实 及衍生的突变模式），保存所有玩家本局缓存数据 -> 数据库
+	if (L4D_IsCoopMode() || L4D2_IsRealismMode()) {
+		SaveAllPlayerInfoAndDetail(true, false);
+	}
+}
+
+// [map_transition, finale_vehicle_leaving]: COOP, REALISM
+void Event_MissionCompleted(Event event, const char[] name, bool dontBroadcast) {
+	// 回合结束（过关）（仅用于处理 战役/写实 及衍生的突变模式），保存所有玩家本局缓存数据 -> 数据库
+	if (L4D_IsCoopMode() || L4D2_IsRealismMode()) {
+		SaveAllPlayerInfoAndDetail(true, true);
+	}
+}
+
+
 void Event_AdrenalineUsed(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家使用肾上腺素
 	int client = GetClientOfUserId(event.GetInt("userid"));
@@ -541,71 +658,45 @@ void Event_PlayerDisconnect(Event event, const char[] name, bool dontBroadcast) 
 	}
 }
 
-void Event_RoundStart(Event event, const char[] name, bool dontBroadcast) {
-	// 回合开始
-	if ((IsVersus() || IsScavenge())) {
-		isCompetitiveInRound = true;
-	}
-	GetCurrentMap(g_serverMap, sizeof(g_serverMap));
-	FindConVar("mp_gamemode").GetString(g_serverMode, sizeof(g_serverMode));
-	g_mapRound++;
-
-	// 重置所有玩家本局缓存数据
-	for (int i = 1; i <= MaxClients; i++) {
-		g_players[i].Reset();
-	}
-	allSiDamage = 0;
-	allFF = 0;
-}
-
-void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast) {
-	// 回合结束（仅用于处理竞技类型模式），保存所有玩家本局缓存数据 -> 数据库
-	if ((IsVersus() || IsScavenge()) && isCompetitiveInRound) {
-		isCompetitiveInRound = false;
-		SaveAllPlayerInfoAndDetail(false, false);
-	}
-}
-
-void Event_MissionLost(Event event, const char[] name, bool dontBroadcast) {
-	// 回合结束（团灭），保存所有玩家本局缓存数据 -> 数据库
-	if (!(IsVersus() || IsScavenge())) {
-		SaveAllPlayerInfoAndDetail(true, false);
-	}
-}
-
-void Event_MissionCompleted(Event event, const char[] name, bool dontBroadcast) {
-	// 回合结束（过关），保存所有玩家本局缓存数据 -> 数据库
-	if (!(IsVersus() || IsScavenge())) {
-		SaveAllPlayerInfoAndDetail(true, true);
-	}
-}
-
-
 
 /*
 Such actions will trigger such events.
+----------------------------------------
+Hit CI:
+	infected_hurt
 
-KillCI
-	Infected Hurt
-	Infected Death
-	Player Death
+Kill CI:
+	infected_death
+	player_death
 
-KillSI
-	Player Hurt
-	Player Death
+Hit SI:
+	player_hurt
 
-KillWitch
-	Infected Hurt
-	Infected Death
-	Player Death
-	Witch Death
+Kill SI:
+	player_death
 
-KillTank
-	Player Hurt
-	Player Death
+Hit Witch:
+	infected_hurt
+
+Kill Witch:
+	infected_death
+	player_death
+	witch_killed
+
+Hit Tank:
+	player_hurt
+
+Kill Tank:
+	player_death
+
+Hit Survivor:
+	player_hurt
+
+Kill Survivor:
+	player_death
 */
 
-// KillCI, KillWitch
+// [infected_hurt]: Hit CI, Hit Witch
 void Event_InfectedHurt(Event event, const char[] name, bool dontBroadcast) {
 	// 感染者受伤，统计玩家对Witch伤害
 	int victimEntId = event.GetInt("entityid");
@@ -621,7 +712,7 @@ void Event_InfectedHurt(Event event, const char[] name, bool dontBroadcast) {
 	}
 }
 
-// KillCI, KillWitch
+// [infected_death]: Kill CI, Kill Witch
 void Event_InfectedDeath(Event event, const char[] name, bool dontBroadcast) {
 	// 感染者死亡，统计玩家普通感染者击杀数
 	int victimEntId = event.GetInt("entityid");
@@ -635,7 +726,7 @@ void Event_InfectedDeath(Event event, const char[] name, bool dontBroadcast) {
 	}
 }
 
-// KillSI, KillTank, FF
+// [player_hurt]: Hit SI, Hit Tank, Hit Survivor
 void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家受伤，统计玩家对特感伤害/玩家友伤
 	int victim = GetClientOfUserId(event.GetInt("userid"));
@@ -657,7 +748,7 @@ void Event_PlayerHurt(Event event, const char[] name, bool dontBroadcast) {
 	}
 }
 
-// KillCI, KillSI, KillWitch, KillTank
+// [player_death]: Kill CI, Kill SI, Kill Witch, Kill Tank, Kill Survivor
 void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
 	// 玩家死亡，统计玩家特感击杀数
 	int victim = GetClientOfUserId(event.GetInt("userid"));
@@ -715,6 +806,7 @@ void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast) {
 	}
 }
 
+// [witch_killed]: Kill Witch
 void Event_WitchDeath(Event event, const char[] name, bool dontBroadcast) {
 	// Witch死亡，统计玩家Witch击杀数
 	int attacker = GetClientOfUserId(event.GetInt("userid"));
@@ -852,18 +944,6 @@ public void OnSpecialClear(int clearer, int pinner, int pinvictim, int zombieCla
 
 // -------------------- [skill_detect] End --------------------
 
-
-bool IsVersus() {
-	char mode[32];
-	FindConVar("mp_gamemode").GetString(mode, sizeof(mode));
-	return StrContains(mode, "versus", false) > -1;
-}
-
-bool IsScavenge() {
-	char mode[32];
-	FindConVar("mp_gamemode").GetString(mode, sizeof(mode));
-	return StrContains(mode, "scavenge", false) > -1;
-}
 
 bool IsValidClient(int client) {
 	return client > 0 && client <= MaxClients && IsClientInGame(client);
