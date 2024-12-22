@@ -448,18 +448,18 @@
 		"zho"			"排名信息"
 	}
 
-	"PLAYER_RANK"
-	{
-		"en"			"Player Rank In This Server"
-		"chi"			"玩家全服排名"
-		"zho"			"玩家全服排名"
-	}
-
 	"TOTAL_PLAYER"
 	{
 		"en"			"Total Players In This Server"
 		"chi"			"全服玩家总数"
 		"zho"			"全服玩家總數"
+	}
+
+	"PLAYER_KILL_RANK"
+	{
+		"en"			"Player Kill Rank In This Server"
+		"chi"			"玩家全服击杀排名"
+		"zho"			"玩家全服击杀排名"
 	}
 
 	"RECENT_ROUND_DETAIL"

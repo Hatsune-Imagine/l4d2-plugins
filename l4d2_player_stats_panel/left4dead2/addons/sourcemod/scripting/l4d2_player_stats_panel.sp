@@ -8,6 +8,9 @@
 #define TEAM_SURVIVOR	2
 #define TEAM_INFECTED	3
 
+#define IMPULSE_FLASHLIGHT 100
+#define IMPULSE_SPRAY 201
+
 char g_rating[][] = {"E", "D", "C", "B", "A", "A+"};
 
 enum struct PlayerInfo
@@ -400,7 +403,10 @@ enum struct PlayerConnectLogInfo
 }
 
 Database g_db;
-ConVar g_cvEnableTab;
+ConVar g_cvEnableHoldingScore;
+ConVar g_cvEnableHoldingWalk;
+ConVar g_cvEnableDoubleTapFlashlight;
+ConVar g_cvEnableDoubleTapSpray;
 ConVar g_cvEnableSpec;
 ConVar g_cvSensitiveOnlyAdmin;
 PlayerInfo g_playerRecentLookingAt[MAXPLAYERS + 1];
@@ -408,17 +414,21 @@ PlayerRoundDetailInfo g_playerRecentLookingAtRound[MAXPLAYERS + 1];
 PlayerConnectLogInfo g_playerRecentLookingAtConnectLog[MAXPLAYERS + 1];
 int g_playerRecentLookingAtChatLogPageIndex[MAXPLAYERS + 1];
 int g_btnPressed[MAXPLAYERS + 1];
+float g_impPressed[MAXPLAYERS + 1];
 
 public Plugin myinfo = {
 	name = "L4D2 Player Stats Panel",
 	author = "HatsuneImagine",
 	description = "Query & Show player stats in the panel from databases.",
-	version = "2.3",
+	version = "2.4",
 	url = "https://github.com/Hatsune-Imagine/l4d2-plugins"
 }
 
 public void OnPluginStart() {
-	g_cvEnableTab = CreateConVar("l4d2_player_stats_panel_enable_tab", "1", "Enable holding 'TAB' button for a while to open player stats panel. (0=No, 1=Yes)");
+	g_cvEnableHoldingScore = CreateConVar("l4d2_player_stats_panel_enable_tab", "1", "Enable holding 'Score Board' button (Default: TAB) for a while to open player stats panel. (0=No, 1=Yes)");
+	g_cvEnableHoldingWalk = CreateConVar("l4d2_player_stats_panel_enable_shift", "0", "Enable holding 'Walk' button (Default: Shift) for a while to open player stats panel. (0=No, 1=Yes)");
+	g_cvEnableDoubleTapFlashlight = CreateConVar("l4d2_player_stats_panel_enable_f", "0", "Enable double-tap 'Flashlight' button (Default: F) to open player stats panel. (0=No, 1=Yes)");
+	g_cvEnableDoubleTapSpray = CreateConVar("l4d2_player_stats_panel_enable_t", "0", "Enable double-tap 'Spray' button (Default: T) to open player stats panel. (0=No, 1=Yes)");
 	g_cvEnableSpec = CreateConVar("l4d2_player_stats_panel_enable_spec", "1", "Enable auto open player stats panel when spectating other players. (0=No, 1=Yes)");
 	g_cvSensitiveOnlyAdmin = CreateConVar("l4d2_player_stats_panel_sensitive_only_admin", "0", "Display sensitive data only to admins. (0=No, 1=Yes)");
 	RegConsoleCmd("sm_mystats", Cmd_Show_Panel, "Show stats panel.");
@@ -432,6 +442,7 @@ public void OnPluginStart() {
 		g_playerRecentLookingAtConnectLog[i].Init();
 		g_playerRecentLookingAtChatLogPageIndex[i] = 0;
 		g_btnPressed[i] = 0;
+		g_impPressed[i] = 0.0;
 	}
 
 	Database.Connect(ConnectCallback, "player_stats");
@@ -452,7 +463,7 @@ public void OnConfigsExecuted() {
 }
 
 public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float vel[3], const float angles[3], int weapon, int subtype, int cmdnum, int tickcount, int seed, const int mouse[2]) {
-	if (g_cvEnableTab.BoolValue && (buttons & IN_SCORE)) {
+	if (g_cvEnableHoldingScore.BoolValue && (buttons & IN_SCORE)) {
 		g_btnPressed[client]++;
 		if (g_btnPressed[client] > 50) {
 			g_btnPressed[client] = 0;
@@ -461,6 +472,36 @@ public void OnPlayerRunCmdPost(int client, int buttons, int impulse, const float
 				SQL_QueryPlayer(client, steamId);
 			}
 		}
+	}
+	if (g_cvEnableHoldingWalk.BoolValue && (buttons & IN_SPEED)) {
+		g_btnPressed[client]++;
+		if (g_btnPressed[client] > 50) {
+			g_btnPressed[client] = 0;
+			char steamId[32];
+			if (GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId))) {
+				SQL_QueryPlayer(client, steamId);
+			}
+		}
+	}
+	if (g_cvEnableDoubleTapFlashlight.BoolValue && (impulse == IMPULSE_FLASHLIGHT)) {
+		float time = GetEngineTime();
+		if (time - g_impPressed[client] < 0.3) {
+			char steamId[32];
+			if (GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId))) {
+				SQL_QueryPlayer(client, steamId);
+			}
+		}
+		g_impPressed[client] = time; 
+	}
+	if (g_cvEnableDoubleTapSpray.BoolValue && (impulse == IMPULSE_SPRAY)) {
+		float time = GetEngineTime();
+		if (time - g_impPressed[client] < 0.3) {
+			char steamId[32];
+			if (GetClientAuthId(client, AuthId_Steam2, steamId, sizeof(steamId))) {
+				SQL_QueryPlayer(client, steamId);
+			}
+		}
+		g_impPressed[client] = time; 
 	}
 }
 
@@ -1046,24 +1087,49 @@ int PlayerDetailPanel4Handler(Handle menu, MenuAction action, int param1, int pa
 }
 
 void SQL_QueryPlayerRank(int client, char[] steamId) {
+	bool isLessThan8 = SQL_QueryIsMySQLVersionLessThan8();
 	char query[2048];
-	FormatEx(query, sizeof(query), 
-	"select b.total_player, a.player_rank "
-	...	"from "
-	...	"("
-	...	"select tmp.steam_id, row_number() over (order by tmp.total_kill desc) player_rank from ( "
-	...	"select p.steam_id, p.ci_killed + p.smoker_killed + p.boomer_killed + p.hunter_killed + p.spitter_killed + p.jockey_killed + p.charger_killed + p.witch_killed + p.tank_killed total_kill  "
-	...	"from t_player p "
-	...	") tmp "
-	...	") a, "
-	...	"("
-	...	"select count(0) total_player from t_player"
-	...	") b "
-	...	"where a.steam_id = '%s'"
-	, steamId);
+
+	if (isLessThan8) {
+		FormatEx(query, sizeof(query), 
+		"select a.total_player, b.player_kill_rank "
+		...	"from "
+		...	"("
+		...	"select count(0) total_player from t_player"
+		...	") a, "
+		...	"("
+		...	"select @num := if(@field_1 <> p.steam_id, @num + 1, 1) player_kill_rank, @field_1 := p.steam_id steam_id "
+		...	"from t_player p, (select @num := 0, @field_1 := null) tmp "
+		...	"order by p.ci_killed + p.smoker_killed + p.boomer_killed + p.hunter_killed + p.spitter_killed + p.jockey_killed + p.charger_killed + p.witch_killed + p.tank_killed desc"
+		...	") b "
+		...	"where b.steam_id = '%s'"
+		, steamId);
+	}
+	else {
+		FormatEx(query, sizeof(query), 
+		"select a.total_player, b.player_kill_rank "
+		...	"from "
+		...	"("
+		...	"select count(0) total_player from t_player"
+		...	") a, "
+		...	"("
+		...	"select p.steam_id, row_number() over (order by p.ci_killed + p.smoker_killed + p.boomer_killed + p.hunter_killed + p.spitter_killed + p.jockey_killed + p.charger_killed + p.witch_killed + p.tank_killed desc) player_kill_rank "
+		...	"from t_player p"
+		...	") b "
+		...	"where b.steam_id = '%s'"
+		, steamId);
+	}
 
 	LogMessage(query);
 	g_db.Query(PlayerRankQueryCallback, query, client);
+}
+
+bool SQL_QueryIsMySQLVersionLessThan8() {
+	DBResultSet results = SQL_Query(g_db, "select version() < '8.0'");
+	if (results.RowCount > 0 && results.FetchRow()) {
+		return results.FetchInt(0) > 0;
+	}
+	return true;
 }
 
 void PlayerRankQueryCallback(Database db, DBResultSet results, const char[] error, any client) {
@@ -1078,17 +1144,17 @@ void PlayerRankQueryCallback(Database db, DBResultSet results, const char[] erro
 	}
 	if (results.FetchRow()) {
 		int totalPlayer = results.FetchInt(0);
-		int playerRank = results.FetchInt(1);
+		int playerKillRank = results.FetchInt(1);
 		char buffer[128];
 		Panel panel = new Panel();
 		Format(buffer, sizeof(buffer), "▸ %T", "RANK", client);
 		panel.SetTitle(buffer, false);
 		panel.DrawText("——————————————————");
 
-		Format(buffer, sizeof(buffer), "%T: #%d", "PLAYER_RANK", client, playerRank);
+		Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_PLAYER", client, totalPlayer);
 		panel.DrawText(buffer);
 
-		Format(buffer, sizeof(buffer), "%T: %d", "TOTAL_PLAYER", client, totalPlayer);
+		Format(buffer, sizeof(buffer), "%T: #%d", "PLAYER_KILL_RANK", client, playerKillRank);
 		panel.DrawText(buffer);
 
 		panel.DrawText(" ");

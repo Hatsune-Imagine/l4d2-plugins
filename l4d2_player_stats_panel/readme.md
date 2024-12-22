@@ -41,10 +41,25 @@ https://github.com/Hatsune-Imagine/l4d2-plugins/tree/main/l4d2_player_stats_db
 ### 配置项
 
 ```bash
-// 长按 'TAB' 键可打开玩家个人战绩面板. (0=关闭, 1=开启)
+// 长按 '分数板' 键 (默认: TAB) 可打开玩家个人战绩面板. (0=关闭, 1=开启)
 // -
 // Default: "1"
 l4d2_player_stats_panel_enable_tab "1"
+
+// 长按 '静步' 键 (默认: Shift) 可打开玩家个人战绩面板. (0=关闭, 1=开启)
+// -
+// Default: "0"
+l4d2_player_stats_panel_enable_shift "0"
+
+// 双击 '手电筒' 键 (默认: F) 可打开玩家个人战绩面板. (0=关闭, 1=开启)
+// -
+// Default: "0"
+l4d2_player_stats_panel_enable_f "0"
+
+// 双击 '喷漆' 键 (默认: T) 可打开玩家个人战绩面板. (0=关闭, 1=开启)
+// -
+// Default: "0"
+l4d2_player_stats_panel_enable_t "0"
 
 // 当玩家正在旁观其他玩家时，自动打开玩家战绩面板. (0=关闭, 1=开启)
 // -
