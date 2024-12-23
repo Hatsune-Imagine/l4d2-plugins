@@ -339,15 +339,15 @@
 	"SMOKER_SELF_CLEARED"
 	{
 		"en"			"Smoker Self Cleared"
-		"chi"			"从Smoker舌头下自救"
-		"zho"			"從Smoker舌頭下自救"
+		"chi"			"自解Smoker舌头"
+		"zho"			"自解Smoker舌頭"
 	}
 
 	"HUNTER_SKEETED"
 	{
 		"en"			"Hunter Skeeted"
-		"chi"			"空爆Hunter"
-		"zho"			"空爆Hunter"
+		"chi"			"空爆飞扑Hunter"
+		"zho"			"空爆飛撲Hunter"
 	}
 
 	"CHARGER_LEVELED"
@@ -459,7 +459,7 @@
 	{
 		"en"			"Player Kill Rank In This Server"
 		"chi"			"玩家全服击杀排名"
-		"zho"			"玩家全服击杀排名"
+		"zho"			"玩家全服擊殺排名"
 	}
 
 	"RECENT_ROUND_DETAIL"

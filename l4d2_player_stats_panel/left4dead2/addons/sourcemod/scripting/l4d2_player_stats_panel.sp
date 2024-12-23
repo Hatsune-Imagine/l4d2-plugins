@@ -191,7 +191,8 @@ enum struct PlayerInfo
 		else if (this.avgTotalFFPercent <= 0.09) this.avgTotalFFPercentStars = "★";
 		else this.avgTotalFFPercentStars = "";
 
-		if (this.avgInstaClearTime > 0 && this.avgInstaClearTime <= 1.25) this.avgInstaClearTimeStars = "★★★★★";
+		if (this.avgInstaClearTime <= 0) this.avgInstaClearTimeStars = "";
+		else if (this.avgInstaClearTime <= 1.25) this.avgInstaClearTimeStars = "★★★★★";
 		else if (this.avgInstaClearTime <= 1.50) this.avgInstaClearTimeStars = "★★★★";
 		else if (this.avgInstaClearTime <= 1.75) this.avgInstaClearTimeStars = "★★★";
 		else if (this.avgInstaClearTime <= 2.00) this.avgInstaClearTimeStars = "★★";
